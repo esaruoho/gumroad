@@ -896,5 +896,56 @@ describe("Generate invoice for purchase", type: :system, js: true) do
         expect(pdf_text).to have_content("Products supplied by Gumroad.")
       end
     end
+
+    it "renders the optional business name on the generated invoice PDF" do
+      purchase = create(:physical_purchase, link: @physical_product)
+
+      visit new_purchase_invoice_path(purchase.external_id, email: purchase.email)
+
+      fill_in("Full name", with: "Wonderful Alice")
+      fill_in("Business name", with: "Acme Corp GmbH")
+      fill_in("Street address", with: "Crooked St.")
+      fill_in("City", with: "Wonderland")
+      fill_in("State", with: "CA")
+      fill_in("ZIP code", with: "12345")
+
+      within find("h5", text: "Invoice").first(:xpath, ".//..") do
+        expect(page).to have_content("Acme Corp GmbH")
+      end
+
+      click_on "Download"
+      wait_for_ajax
+
+      invoice_url = find_link("here")[:href]
+      reader = PDF::Reader.new(URI.open(invoice_url))
+      pdf_text = reader.page(1).text.squish
+
+      expect(pdf_text).to include("Wonderful Alice")
+      expect(pdf_text).to include("Acme Corp GmbH")
+      expect(pdf_text).to include("Crooked St.")
+      expect(pdf_text.index("Acme Corp GmbH")).to be > pdf_text.index("Wonderful Alice")
+      expect(pdf_text.index("Acme Corp GmbH")).to be < pdf_text.index("Crooked St.")
+    end
+
+    it "omits the business name from the PDF when the field is left blank" do
+      purchase = create(:physical_purchase, link: @physical_product)
+
+      visit new_purchase_invoice_path(purchase.external_id, email: purchase.email)
+
+      fill_in("Full name", with: "Wonderful Alice")
+      fill_in("Street address", with: "Crooked St.")
+      fill_in("City", with: "Wonderland")
+      fill_in("State", with: "CA")
+      fill_in("ZIP code", with: "12345")
+
+      click_on "Download"
+      wait_for_ajax
+
+      invoice_url = find_link("here")[:href]
+      reader = PDF::Reader.new(URI.open(invoice_url))
+      pdf_text = reader.page(1).text.squish
+
+      expect(pdf_text).to include("Wonderful Alice Crooked St.")
+    end
   end
 end
