@@ -24,7 +24,7 @@ class Purchases::InvoicesController < ApplicationController
 
     address_fields[:country] = ISO3166::Country[invoice_params[:address_fields][:country_code]]&.common_name
     business_vat_id = invoice_params[:vat_id] if is_vat_id_valid?(invoice_params[:vat_id])
-    invoice_presenter = InvoicePresenter.new(@chargeable, address_fields:, additional_notes: invoice_params[:additional_notes]&.strip, business_vat_id:)
+    invoice_presenter = InvoicePresenter.new(@chargeable, address_fields:, additional_notes: invoice_params[:additional_notes]&.strip, business_vat_id:, business_name: invoice_params[:business_name]&.strip.presence)
 
     begin
       @chargeable.refund_gumroad_taxes!(refunding_user_id: logged_in_user&.id, note: address_fields.to_json, business_vat_id:) if business_vat_id
@@ -85,7 +85,7 @@ class Purchases::InvoicesController < ApplicationController
     end
 
     def invoice_params
-      params.permit(:email, :vat_id, :additional_notes, address_fields: [:full_name, :street_address, :city, :state, :zip_code, :country_code])
+      params.permit(:email, :vat_id, :business_name, :additional_notes, address_fields: [:full_name, :street_address, :city, :state, :zip_code, :country_code])
     end
 
     def set_chargeable

@@ -39,6 +39,7 @@ class InvoicePresenter::FormInfo
         country_code: Compliance::Countries.find_by_name(chargeable.country)&.alpha2 || "",
       },
       email: chargeable.orderable.email,
+      business_name: "",
       vat_id: "",
       additional_notes: "",
     }

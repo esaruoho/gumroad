@@ -23,6 +23,7 @@ type NewInvoicePageProps = {
       country_code: string;
     };
     email: string;
+    business_name: string;
     vat_id: string;
     additional_notes: string;
   };
@@ -98,6 +99,15 @@ const PurchaseNewInvoicePage = () => {
                   type="text"
                   value={form.data.address_fields.full_name}
                   onChange={(e) => form.setData("address_fields.full_name", e.target.value)}
+                />
+              </Fieldset>
+              <Fieldset className="flex-1">
+                <Label htmlFor="business_name">Business name (optional)</Label>
+                <Input
+                  id="business_name"
+                  type="text"
+                  value={form.data.business_name}
+                  onChange={(e) => form.setData("business_name", e.target.value)}
                 />
               </Fieldset>
               {form_metadata.display_vat_id ? (
@@ -207,6 +217,7 @@ const PurchaseNewInvoicePage = () => {
                 >
                   {form.data.address_fields.full_name || "Edgar Gumstein"}
                 </div>
+                {form.data.business_name.length ? <div>{form.data.business_name}</div> : null}
                 <div
                   style={{
                     opacity: form.data.address_fields.street_address.length ? undefined : "var(--disabled-opacity)",
