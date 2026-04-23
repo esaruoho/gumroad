@@ -30,6 +30,7 @@ type NewInvoicePageProps = {
     heading: string;
     display_vat_id: boolean;
     vat_id_label: string;
+    business_id_labels: Record<string, string>;
     supplier_info: {
       heading: string;
       attributes: { label: string | null; value: string }[];
@@ -53,6 +54,9 @@ const PurchaseNewInvoicePage = () => {
   const { supplier_info, seller_info, order_info, countries } = form_metadata;
 
   const form = useForm(form_data);
+
+  const businessIdLabel =
+    form_metadata.business_id_labels[form.data.address_fields.country_code] ?? form_metadata.vat_id_label;
 
   const validateFields = () =>
     Object.entries(form.data.address_fields).reduce((isValid, [key, value]) => {
@@ -103,7 +107,7 @@ const PurchaseNewInvoicePage = () => {
               {form_metadata.display_vat_id ? (
                 <Fieldset className="flex-1">
                   <FieldsetTitle>
-                    <Label htmlFor="chargeable_vat_id">{form_metadata.vat_id_label}</Label>
+                    <Label htmlFor="chargeable_vat_id">{businessIdLabel}</Label>
                   </FieldsetTitle>
                   <Input
                     id="chargeable_vat_id"

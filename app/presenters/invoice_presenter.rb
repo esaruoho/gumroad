@@ -17,6 +17,7 @@ class InvoicePresenter
       heading: form_info.heading,
       display_vat_id: form_info.display_vat_id?,
       vat_id_label: form_info.vat_id_label,
+      business_id_labels: form_info.business_id_labels,
       supplier_info: { heading: supplier_info.heading, attributes: supplier_info.attributes },
       seller_info: { heading: seller_info.heading, attributes: seller_info.attributes },
       order_info: { heading: order_info.heading, form_attributes: order_info.form_attributes, invoice_date_attribute: order_info.invoice_date_attribute },
