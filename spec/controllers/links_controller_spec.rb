@@ -2922,7 +2922,7 @@ describe LinksController, :vcr, inertia: true do
         params = { price_cents: 0, name: "test link", price_range: "99999999999+" }
         post :create, params: { link: params }
         expect(response).to redirect_to(new_product_path)
-        expect(flash[:alert]).to include("price")
+        expect(flash[:alert]).to include("price entered is too large")
       end
 
       it "ignores is_in_preorder_state param" do

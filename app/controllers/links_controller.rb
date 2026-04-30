@@ -81,8 +81,10 @@ class LinksController < ApplicationController
       if ai_generated
         generate_product_details_using_ai
       end
-    rescue ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid, Link::LinkInvalid
-      return redirect_to new_product_path, alert: @product.errors.to_hash.transform_values(&:to_sentence).first, inertia: inertia_errors(@product)
+    rescue ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid, Link::LinkInvalid => e
+      alert = @product&.errors&.to_hash&.transform_values(&:to_sentence)&.first || e.message
+      inertia = @product ? inertia_errors(@product) : { errors: {} }
+      return redirect_to new_product_path, alert:, inertia:
     end
 
     create_user_event("add_product")
