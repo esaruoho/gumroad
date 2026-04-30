@@ -57,25 +57,25 @@ class LinksController < ApplicationController
       params[:link][:quantity_enabled] = true
     end
 
-    @product = current_seller.links.build(link_params)
-
-    @product.price_range = params[:link][:price_range]
-
-    @product.save_custom_summary(params[:link][:custom_summary]) if params[:link][:custom_summary].present?
-    @product.draft = true
-    @product.purchase_disabled_at = Time.current
-    @product.require_shipping = true if @product.is_physical
-    @product.display_product_reviews = true
-    @product.is_tiered_membership = @product.is_recurring_billing
-    @product.should_show_all_posts = @product.is_tiered_membership
-    @product.set_template_properties_if_needed
-    @product.taxonomy = Taxonomy.find_by(slug: "other")
-    @product.is_bundle = @product.native_type == Link::NATIVE_TYPE_BUNDLE
-    @product.json_data[:custom_button_text_option] = "donate_prompt" if @product.native_type == Link::NATIVE_TYPE_COFFEE
-
-    ai_generated = params[:link][:ai_prompt].present? && Feature.active?(:ai_product_generation, current_seller)
-
     begin
+      @product = current_seller.links.build(link_params)
+
+      @product.price_range = params[:link][:price_range]
+
+      @product.save_custom_summary(params[:link][:custom_summary]) if params[:link][:custom_summary].present?
+      @product.draft = true
+      @product.purchase_disabled_at = Time.current
+      @product.require_shipping = true if @product.is_physical
+      @product.display_product_reviews = true
+      @product.is_tiered_membership = @product.is_recurring_billing
+      @product.should_show_all_posts = @product.is_tiered_membership
+      @product.set_template_properties_if_needed
+      @product.taxonomy = Taxonomy.find_by(slug: "other")
+      @product.is_bundle = @product.native_type == Link::NATIVE_TYPE_BUNDLE
+      @product.json_data[:custom_button_text_option] = "donate_prompt" if @product.native_type == Link::NATIVE_TYPE_COFFEE
+
+      ai_generated = params[:link][:ai_prompt].present? && Feature.active?(:ai_product_generation, current_seller)
+
       @product.save!
 
       if ai_generated

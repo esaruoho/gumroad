@@ -2918,6 +2918,13 @@ describe LinksController, :vcr, inertia: true do
         expect(link.display_product_reviews).to be(true)
       end
 
+      it "redirects with an error when price_range exceeds MAX_PRICE_CENTS" do
+        params = { price_cents: 0, name: "test link", price_range: "99999999999+" }
+        post :create, params: { link: params }
+        expect(response).to redirect_to(new_product_path)
+        expect(flash[:alert]).to include("price")
+      end
+
       it "ignores is_in_preorder_state param" do
         params = { price_cents: 100, name: "preorder", is_in_preorder_state: true, release_at: 1.year.from_now.iso8601 }
         post :create, params: { link: params }
