@@ -355,7 +355,7 @@ describe("Product checkout with upsells", type: :system, js: true) do
         click_on "Upgrade"
 
         expect(page).to_not have_alert
-        expect(page).to have_selector("[aria-label='Card information'][aria-invalid='true']")
+        expect(page).to have_selector("[aria-label="Payment details"][aria-invalid='true']")
       end
     end
   end

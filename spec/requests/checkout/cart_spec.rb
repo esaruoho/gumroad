@@ -156,7 +156,7 @@ describe "Checkout cart", :js, type: :system do
 
           # Wait for the discount to be successfully verified - the card form will be removed when the product is free
           expect(page).to have_text("Discounts get-it-for-free US$-10", normalize_ws: true)
-          expect(page).not_to have_selector(:fieldset, "Card information")
+          expect(page).not_to have_selector(:fieldset, "Payment details")
 
           expect(cart.reload.discount_codes).to eq([{ "code" => "get-it-for-free", "fromUrl" => true }])
         end

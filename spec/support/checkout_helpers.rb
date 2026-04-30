@@ -193,12 +193,12 @@ module CheckoutHelpers
 end
 
 def fill_in_credit_card(number: "4242424242424242", expiry: StripePaymentMethodHelper::EXPIRY_MMYY, cvc: "123", zip_code: nil)
-  within_fieldset "Card information" do
+  within_fieldset "Payment details" do
     within_frame do
-      fill_in "Card number", with: number, visible: false if number.present?
-      fill_in "MM / YY", with: expiry, visible: false if expiry.present?
-      fill_in "CVC", with: cvc, visible: false if cvc.present?
-      fill_in "ZIP", with: zip_code, visible: false if zip_code.present?
+      find("#Field-numberInput", wait: 10).send_keys(number) if number.present?
+      find("#Field-expiryInput").send_keys(expiry) if expiry.present?
+      find("#Field-cvcInput").send_keys(cvc) if cvc.present?
+      find("#Field-postalCodeInput").send_keys(zip_code) if zip_code.present?
     end
   end
 end

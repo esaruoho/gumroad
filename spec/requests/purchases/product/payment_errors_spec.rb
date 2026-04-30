@@ -67,15 +67,15 @@ describe("Purchase from a product page", type: :system, js: true) do
 
     fill_in_credit_card(number: "", expiry: "", cvc: "")
     click_on "Pay"
-    expect(page).to have_selector("[aria-label='Card information'][aria-invalid='true']")
+    expect(page).to have_selector("[aria-label="Payment details"][aria-invalid='true']")
 
     fill_in_credit_card(expiry: "", cvc: "")
     click_on "Pay"
-    expect(page).to have_selector("[aria-label='Card information'][aria-invalid='true']")
+    expect(page).to have_selector("[aria-label="Payment details"][aria-invalid='true']")
 
     fill_in_credit_card(cvc: "")
     click_on "Pay"
-    expect(page).to have_selector("[aria-label='Card information'][aria-invalid='true']")
+    expect(page).to have_selector("[aria-label="Payment details"][aria-invalid='true']")
 
     check_out(@product)
   end
@@ -107,19 +107,19 @@ describe("Purchase from a product page", type: :system, js: true) do
     add_to_cart(product)
 
     click_on "Pay"
-    within_fieldset "Card information" do
+    within_fieldset "Payment details" do
       within_frame { expect_focused find_field("Card number") }
     end
 
     fill_in_credit_card(expiry: nil, cvc: nil)
     click_on "Pay"
-    within_fieldset "Card information" do
+    within_fieldset "Payment details" do
       within_frame { expect_focused find_field("MM / YY") }
     end
 
     fill_in_credit_card(cvc: nil)
     click_on "Pay"
-    within_fieldset "Card information" do
+    within_fieldset "Payment details" do
       within_frame { expect_focused find_field("CVC") }
     end
 
