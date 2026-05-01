@@ -91,6 +91,13 @@ describe "SafeRedirectPathService" do
       end
     end
 
+    context "when path has an invalid URI scheme" do
+      it "falls back to root path" do
+        @path = "https ://example.com/test"
+        expect(service.process).to eq "/"
+      end
+    end
+
     context "when path is nil" do
       it "raises TypeError" do
         @path = nil

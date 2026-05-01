@@ -33,6 +33,8 @@ class SafeRedirectPathService
 
     def url
       @_url ||= URI.parse(Addressable::URI.escape(CGI.unescape(path).split("#").first))
+    rescue Addressable::URI::InvalidURIError, URI::InvalidURIError
+      @_url = URI.parse("/")
     end
 
     def domain
