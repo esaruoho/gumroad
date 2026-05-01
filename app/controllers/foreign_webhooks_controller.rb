@@ -71,6 +71,15 @@ class ForeignWebhooksController < ApplicationController
   end
 
   def sendgrid
+    begin
+      if request.headers["X-Twilio-Email-Event-Webhook-Signature"].present? &&
+         request.raw_post.include?("CreatorContactingCustomersMailer.purchase_installment")
+        Rails.logger.info("SendGrid webhook with signature for purchase_installment")
+      end
+    rescue => e
+      Rails.logger.warn("SendGrid debug logging failed: #{e.message}")
+    end
+
     HandleSendgridEventJob.perform_async(params.to_unsafe_hash.to_hash)
     LogSendgridEventWorker.perform_async(params.to_unsafe_hash.to_hash)
 
