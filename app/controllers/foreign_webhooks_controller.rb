@@ -141,7 +141,14 @@ class ForeignWebhooksController < ApplicationController
       error = verify_sendgrid_signature(public_keys)
       return unless error
 
-      Rails.logger.warn("SendGrid webhook verification failed: #{error}")
+      log_message = "SendGrid webhook verification failed: #{error}"
+      if error == "Missing signature" || error == "Missing timestamp"
+        events = params["_json"]
+        events = [events] unless events.is_a?(Array)
+        event_types = events.map { |event| event.is_a?(Hash) || event.respond_to?(:[]) ? event["event"] : nil }.compact.uniq
+        log_message += " (event types: #{event_types.join(", ")})"
+      end
+      Rails.logger.warn(log_message)
       return unless Feature.active?(:verify_sendgrid_webhook_signatures)
 
       ErrorNotifier.notify("Error verifying SendGrid webhook: #{error}")
