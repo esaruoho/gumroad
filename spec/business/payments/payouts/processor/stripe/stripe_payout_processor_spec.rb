@@ -231,19 +231,20 @@ describe StripePayoutProcessor, :vcr do
 
   describe "prepare_payment_and_set_amount" do
     let(:user) { create(:user) }
-    let(:bank_account) { create(:ach_account_stripe_succeed, user:) }
-    let(:merchant_account) { create(:merchant_account_stripe_canada, user:) }
-
-    before do
-      user
-      bank_account
-      merchant_account
-      bank_account.reload
-      user.reload
+    let(:cad_merchant_account) do
+      create(:merchant_account, user:, charge_processor_id: StripeChargeProcessor.charge_processor_id,
+                                currency: Currency::CAD, country: "CA")
     end
-
-    let(:balance_1) { create(:balance, user:, date: Date.today - 1, currency: Currency::USD, amount_cents: 10_00, holding_currency: Currency::USD, holding_amount_cents: 10_00) }
-    let(:balance_2) { create(:balance, user:, date: Date.today - 2, currency: Currency::USD, amount_cents: 20_00, holding_currency: Currency::CAD, holding_amount_cents: 20_00) }
+    let(:balance_1) do
+      create(:balance, user:, merchant_account: cad_merchant_account, date: Date.today - 1,
+                       currency: Currency::USD, amount_cents: 100_00,
+                       holding_currency: Currency::CAD, holding_amount_cents: 100_00)
+    end
+    let(:balance_2) do
+      create(:balance, user:, merchant_account: cad_merchant_account, date: Date.today - 2,
+                       currency: Currency::USD, amount_cents: 200_00,
+                       holding_currency: Currency::CAD, holding_amount_cents: 200_00)
+    end
     let(:payment) do
       payment = create(:payment, user:, currency: nil, amount_cents: nil)
       payment.balances << balance_1
@@ -252,6 +253,8 @@ describe StripePayoutProcessor, :vcr do
     end
 
     before do
+      allow(described_class).to receive(:get_payout_details)
+        .and_return([cad_merchant_account, [], [balance_1, balance_2]])
       described_class.prepare_payment_and_set_amount(payment, [balance_1, balance_2])
     end
 
@@ -260,7 +263,7 @@ describe StripePayoutProcessor, :vcr do
     end
 
     it "sets the amount as the sum of the balances" do
-      expect(payment.amount_cents).to eq(30_00)
+      expect(payment.amount_cents).to eq(300_00)
     end
   end
 
@@ -288,7 +291,7 @@ describe StripePayoutProcessor, :vcr do
       MerchantAccount.gumroad(StripeChargeProcessor.charge_processor_id) ||
         create(:merchant_account, user: nil, charge_processor_id: StripeChargeProcessor.charge_processor_id)
     end
-    let(:balance_held_by_gumroad) { create(:balance, user:, merchant_account: gumroad_merchant_account, state: "processing", amount_cents: 10_00, holding_amount_cents: 10_00) }
+    let(:balance_held_by_gumroad) { create(:balance, user:, merchant_account: gumroad_merchant_account, state: "processing", amount_cents: 200_00, holding_amount_cents: 200_00) }
     let(:payment) do
       payment = create(:payment, user:, currency: nil, amount_cents: nil, state: "processing")
       payment.balances << balance_held_by_gumroad
@@ -311,7 +314,7 @@ describe StripePayoutProcessor, :vcr do
 
     let(:balance_transaction) do
       bt = double
-      allow(bt).to receive(:amount).and_return(10_00)
+      allow(bt).to receive(:amount).and_return(200_00)
       bt
     end
 
@@ -350,7 +353,75 @@ describe StripePayoutProcessor, :vcr do
       expect(errors).to eq([])
       expect(Stripe::Charge).to have_received(:retrieve).twice
       expect(described_class).to have_received(:sleep).with(2).once
-      expect(payment.amount_cents).to eq(10_00)
+      expect(payment.amount_cents).to eq(200_00)
+    end
+  end
+
+  describe "prepare_payment_and_set_amount with currency-mismatched balances" do
+    let(:user) { create(:user) }
+    let(:payment) { create(:payment, user:, currency: nil, amount_cents: nil) }
+    let(:gumroad_merchant_account) do
+      MerchantAccount.gumroad(StripeChargeProcessor.charge_processor_id) ||
+        create(:merchant_account, user: nil, charge_processor_id: StripeChargeProcessor.charge_processor_id)
+    end
+    let(:user_merchant_account) { create(:merchant_account, user:, charge_processor_id: StripeChargeProcessor.charge_processor_id, currency: Currency::USD) }
+
+    context "when a Gumroad-held balance has holding_currency != usd" do
+      # Reproduces the issue #333 failure mode: a stale VND-denominated balance carried over
+      # from a closed Vietnam Stripe Connect account gets summed into a USD payout, treating
+      # foreign-currency cents as if they were USD cents and silently corrupting the wire amount.
+      let(:vnd_balance) do
+        create(:balance, user:, merchant_account: gumroad_merchant_account,
+                         amount_cents: 0, holding_currency: Currency::VND, holding_amount_cents: -11_727)
+      end
+      let(:usd_balance) do
+        create(:balance, user:, merchant_account: gumroad_merchant_account,
+                         amount_cents: 126_72, holding_currency: Currency::USD, holding_amount_cents: 126_72)
+      end
+
+      before do
+        allow(described_class).to receive(:get_payout_details)
+          .and_return([user_merchant_account, [vnd_balance, usd_balance], []])
+      end
+
+      it "fails the payment with an explanatory error rather than summing across currencies" do
+        errors = described_class.prepare_payment_and_set_amount(payment, [vnd_balance, usd_balance])
+
+        expect(errors.first).to match(/holding_currency that does not match the payout currency/)
+        expect(errors.first).to include(vnd_balance.id.to_s)
+        expect(payment.reload.state).to eq("failed")
+      end
+
+      it "does not silently produce a $9.45 wire amount from $126.72 of seller balance" do
+        described_class.prepare_payment_and_set_amount(payment, [vnd_balance, usd_balance])
+
+        expect(payment.amount_cents).not_to eq(9_45)
+      end
+    end
+
+    context "when a Stripe-held balance has holding_currency != merchant_account.currency" do
+      let(:cad_merchant_account) { create(:merchant_account, user:, charge_processor_id: StripeChargeProcessor.charge_processor_id, currency: Currency::CAD, country: "CA") }
+      let(:cad_balance) do
+        create(:balance, user:, merchant_account: cad_merchant_account,
+                         amount_cents: 200_00, holding_currency: Currency::CAD, holding_amount_cents: 200_00)
+      end
+      let(:mismatched_balance) do
+        create(:balance, user:, merchant_account: cad_merchant_account,
+                         amount_cents: 0, holding_currency: Currency::USD, holding_amount_cents: -50_00)
+      end
+
+      before do
+        allow(described_class).to receive(:get_payout_details)
+          .and_return([cad_merchant_account, [], [cad_balance, mismatched_balance]])
+      end
+
+      it "fails the payment with an explanatory error" do
+        errors = described_class.prepare_payment_and_set_amount(payment, [cad_balance, mismatched_balance])
+
+        expect(errors.first).to match(/holding_currency that does not match the payout currency/)
+        expect(errors.first).to include(mismatched_balance.id.to_s)
+        expect(payment.reload.state).to eq("failed")
+      end
     end
   end
 

@@ -141,6 +141,18 @@ class StripePayoutProcessor
       return ["Cannot process payout: no valid merchant account found for user."]
     end
 
+    # Refuse to sum `holding_amount_cents` across balances whose `holding_currency` differs from the
+    # destination it will be summed into. Without this guard, a stale foreign-currency balance (e.g. a
+    # VND-denominated row carried in from a closed merchant account) gets added to a USD payout as if its
+    # cents were USD cents, silently corrupting the wire amount.
+    mismatched_stripe_balances = balances_held_by_stripe.reject { |b| b.holding_currency == merchant_account.currency }
+    mismatched_gumroad_balances = balances_held_by_gumroad.reject { |b| b.holding_currency == Currency::USD }
+    if mismatched_stripe_balances.any? || mismatched_gumroad_balances.any?
+      mismatched_ids = (mismatched_stripe_balances + mismatched_gumroad_balances).map(&:id)
+      payment.mark_failed!
+      return ["Cannot process payout: balances #{mismatched_ids} have holding_currency that does not match the payout currency."]
+    end
+
     payment.stripe_connect_account_id = merchant_account.charge_processor_merchant_id
     payment.currency = merchant_account.currency
     payment.amount_cents = 0
