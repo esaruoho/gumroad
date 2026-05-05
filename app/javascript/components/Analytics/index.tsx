@@ -1,4 +1,4 @@
-import { lightFormat } from "date-fns";
+import { differenceInDays, lightFormat } from "date-fns";
 import { pickBy } from "lodash-es";
 import * as React from "react";
 
@@ -21,11 +21,14 @@ import { useAnalyticsDateRange } from "$app/components/Analytics/useAnalyticsDat
 import { DateRangePicker } from "$app/components/DateRangePicker";
 import { LoadingSpinner } from "$app/components/LoadingSpinner";
 import { showAlert } from "$app/components/server-components/Alert";
+import { Alert } from "$app/components/ui/Alert";
 import { InputGroup } from "$app/components/ui/InputGroup";
 import { Placeholder, PlaceholderImage } from "$app/components/ui/Placeholder";
 import { Select } from "$app/components/ui/Select";
 
 import placeholder from "$assets/images/placeholders/sales.png";
+
+const MAX_DATE_RANGE_DAYS = 365;
 
 export type Product = {
   name: string;
@@ -114,6 +117,7 @@ const Analytics = ({ products: initialProducts, country_codes, state_names }: An
   } | null>(null);
   const startTime = lightFormat(dateRange.from, "yyyy-MM-dd");
   const endTime = lightFormat(dateRange.to, "yyyy-MM-dd");
+  const isDateRangeClamped = differenceInDays(dateRange.to, dateRange.from) > MAX_DATE_RANGE_DAYS;
 
   const hasContent = products.length > 0;
 
@@ -170,6 +174,15 @@ const Analytics = ({ products: initialProducts, country_codes, state_names }: An
     >
       {hasContent ? (
         <div className="space-y-8 p-4 md:p-8">
+          {isDateRangeClamped ? (
+            <Alert variant="info">
+              Only the last 12 months are shown.{" "}
+              <a href={Routes.export_purchases_path({ start_time: startTime, end_time: endTime })}>
+                Export your full sales
+              </a>{" "}
+              for the complete range.
+            </Alert>
+          ) : null}
           <SalesQuickStats total={mainData?.total} />
           {mainData ? (
             <>
