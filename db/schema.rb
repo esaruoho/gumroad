@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_24_000000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_25_000000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", limit: 191, null: false
     t.string "record_type", limit: 191, null: false
@@ -569,6 +569,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_24_000000) do
     t.integer "ancestry_depth", default: 0, null: false
     t.string "idempotency_key"
     t.index ["ancestry"], name: "index_comments_on_ancestry"
+    t.index ["comment_type", "commentable_type", "created_at", "commentable_id"], name: "index_comments_on_comment_type_and_created_at"
     t.index ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
     t.index ["commentable_type", "commentable_id", "idempotency_key"], name: "index_comments_on_commentable_and_idempotency_key", unique: true
     t.index ["purchase_id"], name: "index_comments_on_purchase_id"
