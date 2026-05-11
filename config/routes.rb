@@ -341,17 +341,18 @@ Rails.application.routes.draw do
             end
           end
 
-          resources :payouts, only: [] do
+          resources :payouts, only: [:index] do
             collection do
-              post :list
               post :pause
               post :resume
               post :issue
-              post :scheduled_list
             end
+          end
+
+          resources :scheduled_payouts, only: [:index] do
             member do
-              post :scheduled_execute
-              post :scheduled_cancel
+              post :execute
+              post :cancel
             end
           end
 

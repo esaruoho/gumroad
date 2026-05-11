@@ -29,8 +29,8 @@ describe Api::Internal::Admin::PayoutsController do
     stub_const("GUMROAD_ADMIN_ID", create(:admin_user).id)
   end
 
-  describe "POST list" do
-    include_examples "admin api authorization required", :post, :list
+  describe "GET index" do
+    include_examples "admin api authorization required", :get, :index
 
     it "returns the user's recent payouts and next payout information" do
       payment1 = create(:payment_completed, user:, created_at: 1.day.ago, bank_account: create(:ach_account_stripe_succeed, user:))
@@ -38,14 +38,13 @@ describe Api::Internal::Admin::PayoutsController do
       create(:payment, user:, created_at: 3.days.ago)
       create(:payment_completed, user:, created_at: 4.days.ago)
       payment5 = create(:payment_completed, user:, created_at: 5.days.ago, processor: PayoutProcessorType::PAYPAL, payment_address: "payme@example.com")
-      payment6 = create(:payment_completed, user:, created_at: 6.days.ago)
       payout_note = "Payout paused due to verification"
       user.add_payout_note(content: payout_note)
 
       allow_any_instance_of(User).to receive(:next_payout_date).and_return(Date.tomorrow)
       allow_any_instance_of(User).to receive(:formatted_balance_for_next_payout_date).and_return("$100.00")
 
-      post :list, params: { email: user.email }
+      get :index, params: { email: user.email }
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body["success"]).to be(true)
@@ -53,8 +52,9 @@ describe Api::Internal::Admin::PayoutsController do
       expect(response.parsed_body["next_payout_date"]).to eq(Date.tomorrow.to_s)
       expect(response.parsed_body["balance_for_next_payout"]).to eq("$100.00")
       expect(response.parsed_body["payout_note"]).to eq(payout_note)
+      expect(response.parsed_body["pagination"]).to eq({ "next" => nil, "limit" => 20 })
 
-      payouts = response.parsed_body["last_payouts"]
+      payouts = response.parsed_body["recent_payouts"]
       expect(payouts.length).to eq(5)
       expect(payouts.first).to include(
         "external_id" => payment1.external_id,
@@ -71,25 +71,60 @@ describe Api::Internal::Admin::PayoutsController do
         "bank_account_visual" => nil,
         "paypal_email" => "payme@example.com"
       )
-      expect(payouts.map { _1["external_id"] }).not_to include(payment6.external_id)
+    end
+
+    it "paginates recent payouts with a cursor" do
+      newest = create(:payment_completed, user:, created_at: 1.hour.ago)
+      middle = create(:payment_completed, user:, created_at: 2.hours.ago)
+      oldest = create(:payment_completed, user:, created_at: 3.hours.ago)
+
+      get :index, params: { user_id: user.external_id, limit: 2 }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["recent_payouts"].map { _1["external_id"] }).to eq([newest.external_id, middle.external_id])
+      cursor = response.parsed_body["pagination"]["next"]
+      expect(cursor).to be_present
+      expect(response.parsed_body["pagination"]["limit"]).to eq(2)
+
+      get :index, params: { user_id: user.external_id, limit: 2, cursor: }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["recent_payouts"].map { _1["external_id"] }).to eq([oldest.external_id])
+      expect(response.parsed_body["pagination"]).to eq({ "next" => nil, "limit" => 2 })
+    end
+
+    it "returns bad request when the cursor is invalid" do
+      get :index, params: { user_id: user.external_id, cursor: "invalid" }
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to eq({ success: false, message: "invalid cursor" }.as_json)
+    end
+
+    it "scopes recent payouts to the requested user" do
+      mine = create(:payment_completed, user:, created_at: 1.hour.ago)
+      create(:payment_completed, user: create(:user), created_at: 2.hours.ago)
+
+      get :index, params: { user_id: user.external_id }
+
+      expect(response.parsed_body["recent_payouts"].map { _1["external_id"] }).to eq([mine.external_id])
     end
 
     it "returns a bad request when email and user_id are missing" do
-      post :list
+      get :index
 
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body).to eq({ success: false, message: "email or user_id is required" }.as_json)
     end
 
     it "returns not found when the user does not exist" do
-      post :list, params: { email: "missing@example.com" }
+      get :index, params: { email: "missing@example.com" }
 
       expect(response).to have_http_status(:not_found)
       expect(response.parsed_body).to eq({ success: false, message: "User not found" }.as_json)
     end
 
     it "lists payouts by user_id" do
-      post :list, params: { user_id: user.external_id }
+      get :index, params: { user_id: user.external_id }
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body["user_id"]).to eq(user.external_id)
@@ -434,294 +469,5 @@ describe Api::Internal::Admin::PayoutsController do
 
     include_examples "requires user_id for payout mutation", :issue, extra_params: { payout_processor: "stripe", payout_period_end_date: 1.day.ago.to_date.to_s }
     include_examples "checks expected_email for payout mutation", :issue, extra_params: { payout_processor: "stripe", payout_period_end_date: 1.day.ago.to_date.to_s }
-  end
-
-  describe "POST scheduled_list" do
-    include_examples "admin api authorization required", :post, :scheduled_list
-
-    let(:merchant_account) { create(:merchant_account, user: nil) }
-
-    let(:enrichment_keys) do
-      %w[
-        product_count
-        incoming_affiliate_count
-        risk_state
-        top_categories
-        unpaid_balance_cents
-        unpaid_balance_formatted
-      ]
-    end
-
-    it "returns scheduled payouts ordered by id desc" do
-      first = create(:scheduled_payout, user:)
-      second = create(:scheduled_payout, user: create(:user))
-
-      post :scheduled_list
-
-      expect(response).to have_http_status(:ok)
-      payload = response.parsed_body
-      expect(payload["success"]).to be(true)
-      expect(payload["scheduled_payouts"].map { _1["external_id"] }).to eq([second.external_id, first.external_id])
-    end
-
-    it "filters by status when provided" do
-      flagged = create(:scheduled_payout, user:, status: "flagged")
-      create(:scheduled_payout, user: create(:user), status: "pending")
-
-      post :scheduled_list, params: { status: "flagged" }
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body["scheduled_payouts"].map { _1["external_id"] }).to eq([flagged.external_id])
-    end
-
-    it "returns 400 when status is invalid" do
-      post :scheduled_list, params: { status: "bogus" }
-
-      expect(response).to have_http_status(:bad_request)
-      expect(response.parsed_body).to eq({ success: false, message: "status is invalid" }.as_json)
-    end
-
-    it "caps the limit at SCHEDULED_PAYOUTS_MAX_LIMIT" do
-      post :scheduled_list, params: { limit: 9999 }
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body["limit"]).to eq(50)
-    end
-
-    it "uses the default limit when limit is missing or non-positive" do
-      post :scheduled_list
-
-      expect(response.parsed_body["limit"]).to eq(20)
-
-      post :scheduled_list, params: { limit: 0 }
-
-      expect(response.parsed_body["limit"]).to eq(20)
-    end
-
-    it "includes enrichment keys for each scheduled payout" do
-      scheduled_payout = create(:scheduled_payout, user:)
-
-      post :scheduled_list
-
-      row = response.parsed_body["scheduled_payouts"].find { _1["external_id"] == scheduled_payout.external_id }
-      expect(row.keys).to include(*enrichment_keys)
-      expect(row["risk_state"]).to eq(Admin::UserRiskStatePresenter.new(user).props.as_json)
-    end
-
-    it "reports alive product count" do
-      seller = create(:compliant_user)
-      create_list(:product, 2, user: seller)
-      create(:product, user: seller, deleted_at: Time.current)
-      scheduled_payout = create(:scheduled_payout, user: seller)
-
-      post :scheduled_list
-
-      row = response.parsed_body["scheduled_payouts"].find { _1["external_id"] == scheduled_payout.external_id }
-      expect(row["product_count"]).to eq(2)
-    end
-
-    it "reports incoming affiliate count without global or deleted affiliates" do
-      seller = create(:compliant_user)
-      create_list(:direct_affiliate, 2, seller:)
-      create(:collaborator, seller:)
-      create(:direct_affiliate, seller:, deleted_at: Time.current)
-      seller.global_affiliate.update_column(:seller_id, seller.id)
-      scheduled_payout = create(:scheduled_payout, user: seller)
-
-      post :scheduled_list
-
-      row = response.parsed_body["scheduled_payouts"].find { _1["external_id"] == scheduled_payout.external_id }
-      expect(row["incoming_affiliate_count"]).to eq(3)
-    end
-
-    it "reports top categories by alive product count" do
-      seller = create(:compliant_user)
-      taxonomy_a = create(:taxonomy, slug: "taxonomy-a")
-      taxonomy_b = create(:taxonomy, slug: "taxonomy-b")
-      create_list(:product, 2, user: seller, taxonomy: taxonomy_a)
-      create(:product, user: seller, taxonomy: taxonomy_b)
-      scheduled_payout = create(:scheduled_payout, user: seller)
-
-      post :scheduled_list
-
-      row = response.parsed_body["scheduled_payouts"].find { _1["external_id"] == scheduled_payout.external_id }
-      expected_categories = [
-        { "slug" => "taxonomy-a", "product_count" => 2 },
-        { "slug" => "taxonomy-b", "product_count" => 1 }
-      ]
-      expect(row["top_categories"]).to eq(expected_categories)
-    end
-
-    it "reports unpaid balance" do
-      seller = create(:compliant_user)
-      create(:balance, user: seller, merchant_account:, amount_cents: 12_345, state: "unpaid")
-      create(:balance, user: seller, merchant_account:, amount_cents: 9_999, state: "paid")
-      scheduled_payout = create(:scheduled_payout, user: seller)
-
-      post :scheduled_list
-
-      row = response.parsed_body["scheduled_payouts"].find { _1["external_id"] == scheduled_payout.external_id }
-      expect(row["unpaid_balance_cents"]).to eq(12_345)
-      expect(row["unpaid_balance_formatted"]).to eq("$123.45")
-    end
-
-    it "keeps scheduled payout list enrichment queries bounded" do
-      taxonomy = create(:taxonomy)
-      5.times do
-        seller = create(:compliant_user)
-        create(:product, user: seller, taxonomy:)
-        create(:direct_affiliate, seller:)
-        create(:balance, user: seller, merchant_account:, amount_cents: 1_00)
-        create(:comment, commentable: seller, comment_type: Comment::COMMENT_TYPE_COMPLIANT)
-        create(:scheduled_payout, user: seller)
-      end
-
-      queries = sql_queries_for { post :scheduled_list, params: { limit: 5 } }
-
-      expect(response).to have_http_status(:ok)
-      expect(queries.count).to be <= 14
-    end
-  end
-
-  describe "POST scheduled_execute" do
-    include_examples "admin api authorization required", :post, :scheduled_execute, { id: "abc" }
-
-    it "returns 404 when the scheduled payout is not found" do
-      post :scheduled_execute, params: { id: "missing" }
-
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it "executes a pending scheduled payout" do
-      scheduled_payout = create(:scheduled_payout, user:)
-      allow_any_instance_of(ScheduledPayout).to receive(:execute!).and_return(:executed)
-
-      post :scheduled_execute, params: { id: scheduled_payout.external_id }
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to include("success" => true, "result" => "executed")
-      expect(response.parsed_body["scheduled_payout"].keys).to include(
-        "product_count",
-        "incoming_affiliate_count",
-        "risk_state",
-        "top_categories",
-        "unpaid_balance_cents",
-        "unpaid_balance_formatted"
-      )
-    end
-
-    it "promotes a flagged scheduled payout to pending before executing" do
-      scheduled_payout = create(:scheduled_payout, user:, status: "flagged")
-      allow_any_instance_of(ScheduledPayout).to receive(:execute!).and_return(:executed)
-
-      expect do
-        post :scheduled_execute, params: { id: scheduled_payout.external_id }
-      end.to change { scheduled_payout.reload.status }.from("flagged").to("pending")
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body["result"]).to eq("executed")
-    end
-
-    it "returns 422 when the scheduled payout is already executed" do
-      scheduled_payout = create(:scheduled_payout, user:, status: "executed")
-
-      post :scheduled_execute, params: { id: scheduled_payout.external_id }
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.parsed_body["message"]).to eq("Cannot execute a executed scheduled payout.")
-    end
-
-    it "returns 422 and the error message when execute! raises" do
-      scheduled_payout = create(:scheduled_payout, user:)
-      allow_any_instance_of(ScheduledPayout).to receive(:execute!).and_raise("nope")
-
-      post :scheduled_execute, params: { id: scheduled_payout.external_id }
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.parsed_body).to include("success" => false, "message" => "nope")
-    end
-
-    it "writes an admin audit log targeting the scheduled payout" do
-      scheduled_payout = create(:scheduled_payout, user:)
-      allow_any_instance_of(ScheduledPayout).to receive(:execute!).and_return(:executed)
-
-      expect do
-        post :scheduled_execute, params: { id: scheduled_payout.external_id }
-      end.to change { AdminApiAuditLog.count }.by(1)
-
-      expect(AdminApiAuditLog.last).to have_attributes(
-        action: "payouts.scheduled_execute",
-        target_type: "ScheduledPayout",
-        target_id: scheduled_payout.id,
-        target_external_id: scheduled_payout.external_id,
-        response_status: 200
-      )
-    end
-  end
-
-  describe "POST scheduled_cancel" do
-    include_examples "admin api authorization required", :post, :scheduled_cancel, { id: "abc" }
-
-    it "returns 404 when the scheduled payout is not found" do
-      post :scheduled_cancel, params: { id: "missing" }
-
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it "cancels a pending scheduled payout" do
-      scheduled_payout = create(:scheduled_payout, user:)
-
-      expect do
-        post :scheduled_cancel, params: { id: scheduled_payout.external_id }
-      end.to change { scheduled_payout.reload.status }.from("pending").to("cancelled")
-
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body["success"]).to be(true)
-      expect(response.parsed_body["scheduled_payout"].keys).to include(
-        "product_count",
-        "incoming_affiliate_count",
-        "risk_state",
-        "top_categories",
-        "unpaid_balance_cents",
-        "unpaid_balance_formatted"
-      )
-    end
-
-    it "returns 422 and the error message when cancel! raises" do
-      scheduled_payout = create(:scheduled_payout, user:)
-      allow_any_instance_of(ScheduledPayout).to receive(:cancel!).and_raise("already executed")
-
-      post :scheduled_cancel, params: { id: scheduled_payout.external_id }
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.parsed_body).to include("success" => false, "message" => "already executed")
-    end
-
-    it "writes an admin audit log targeting the scheduled payout" do
-      scheduled_payout = create(:scheduled_payout, user:)
-
-      expect do
-        post :scheduled_cancel, params: { id: scheduled_payout.external_id }
-      end.to change { AdminApiAuditLog.count }.by(1)
-
-      expect(AdminApiAuditLog.last).to have_attributes(
-        action: "payouts.scheduled_cancel",
-        target_type: "ScheduledPayout",
-        target_id: scheduled_payout.id,
-        response_status: 200
-      )
-    end
-  end
-
-  def sql_queries_for(&block)
-    queries = []
-    counter = lambda do |*, payload|
-      next if payload[:cached] || payload[:name].in?(["SCHEMA", "TRANSACTION"])
-
-      queries << payload[:sql]
-    end
-
-    ActiveSupport::Notifications.subscribed(counter, "sql.active_record", &block)
-    queries
   end
 end
