@@ -303,7 +303,7 @@ Rails.application.routes.draw do
 
           resources :purchases, only: [:show] do
             collection do
-              post :search
+              get :search
               post :resend_all_receipts
               post :reassign
             end
@@ -320,14 +320,18 @@ Rails.application.routes.draw do
 
           resources :licenses, only: [] do
             collection do
-              post :lookup
+              get :lookup
             end
           end
 
           resources :users, only: [] do
             collection do
-              post :info
-              post :suspension
+              get :info
+              get :affiliates
+              get :comments
+              get :compliance_info
+              get :purchases
+              get :suspension
               post :reset_password
               post :update_email
               post :two_factor_authentication
@@ -340,25 +344,22 @@ Rails.application.routes.draw do
             end
           end
 
-          resources :payouts, only: [] do
+          resources :payouts, only: [:index] do
             collection do
-              post :list
               post :pause
               post :resume
               post :issue
-              post :scheduled_list
-            end
-            member do
-              post :scheduled_execute
-              post :scheduled_cancel
             end
           end
 
-          resources :products, only: [:show] do
-            collection do
-              post :list
+          resources :scheduled_payouts, only: [:index] do
+            member do
+              post :execute
+              post :cancel
             end
           end
+
+          resources :products, only: [:index, :show]
         end
 
         namespace :grmc do
@@ -965,11 +966,6 @@ Rails.application.routes.draw do
 
     resources :reviews, only: [:index]
 
-    resources :support, only: [:index] do
-      collection do
-        post :create_unauthenticated_ticket
-      end
-    end
 
     # url redirects
     get "/r/:id/expired", to: "url_redirects#expired", as: :url_redirect_expired_page

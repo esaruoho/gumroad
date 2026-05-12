@@ -117,6 +117,7 @@ export default function PaymentsPage() {
   const markFieldInvalid = (fieldName: FormFieldName) => setErrorFieldNames(new Set(errorFieldNames.add(fieldName)));
   const [isUpdateCountryConfirmed, setIsUpdateCountryConfirmed] = React.useState(false);
   const [isPayoutMethodChangeConfirmed, setIsPayoutMethodChangeConfirmed] = React.useState(false);
+  const [saveCounter, setSaveCounter] = React.useState(0);
 
   const form = useForm<{
     user: ComplianceInfo;
@@ -386,6 +387,9 @@ export default function PaymentsPage() {
     }
     if (form.data.bank_account.type === "GuyanaBankAccount" && !form.data.bank_account.bank_code) {
       markFieldInvalid("bank_code");
+    }
+    if (form.data.bank_account.type === "GuyanaBankAccount" && !form.data.bank_account.branch_code) {
+      markFieldInvalid("branch_code");
     }
     if (form.data.bank_account.type === "GuatemalaBankAccount" && !form.data.bank_account.bank_code) {
       markFieldInvalid("bank_code");
@@ -811,6 +815,7 @@ export default function PaymentsPage() {
 
     form.put(Routes.settings_payments_path(), {
       preserveScroll: true,
+      onSuccess: () => setSaveCounter((counter) => counter + 1),
     });
   });
 
@@ -1141,6 +1146,7 @@ export default function PaymentsPage() {
                 canadaBusinessTypes={props.canada_business_types}
                 states={props.states}
                 errorFieldNames={errorFieldNames}
+                saveCounter={saveCounter}
               />
             ) : (
               <StripeConnectSection

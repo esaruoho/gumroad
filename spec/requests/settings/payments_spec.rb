@@ -4,6 +4,14 @@ require "spec_helper"
 require "shared_examples/authorize_called"
 
 describe("Payments Settings Scenario", type: :system, js: true) do
+  def change_masked_tax_field(label)
+    if has_field?(label, disabled: true, wait: 0)
+      field = find_field(label, disabled: true)
+      container = field.find(:xpath, "./ancestor::div[.//button[text()='Change']][1]")
+      container.find("button", text: "Change", match: :first).click
+    end
+  end
+
   describe "PayPal section" do
     let(:user) { create(:user, name: "Gum") }
 
@@ -465,6 +473,31 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         expect(compliance_info.birthday).to eq(Date.new(1980, 1, 1))
         expect(compliance_info.individual_tax_id.decrypt("1234")).to eq("1234")
         expect(@user.active_ach_account).to eq(old_ach_account)
+      end
+
+      it "shows masked SSN with eye icon toggle when tax ID has been entered" do
+        visit settings_payments_path
+
+        # Should show masked field, not an empty input
+        ssn_field = find_field("Last 4 digits of SSN", disabled: true)
+        expect(ssn_field.value).to eq("•••-••-••••")
+        expect(ssn_field).to be_disabled
+
+        # Toggle eye icon to reveal last 4 digits
+        find("button[aria-label='Show last 4 digits']").click
+        ssn_field = find_field("Last 4 digits of SSN", disabled: true)
+        expect(ssn_field.value).to eq("•••-••-1234")
+
+        # Toggle back to hide
+        find("button[aria-label='Hide tax ID']").click
+        ssn_field = find_field("Last 4 digits of SSN", disabled: true)
+        expect(ssn_field.value).to eq("•••-••-••••")
+
+        # Click Change to re-enable editing
+        click_on("Change")
+        ssn_field = find_field("Last 4 digits of SSN")
+        expect(ssn_field).not_to be_disabled
+        expect(ssn_field.value).to eq("")
       end
 
       it "allows the creator to edit their personal info that is locked at Stripe after account verification, and displays an error" do
@@ -1061,6 +1094,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
           select("January", from: "Month")
           select("1980", from: "Year")
           select("India", from: "Nationality")
+          change_masked_tax_field("Emirates ID")
           fill_in("Emirates ID", with: "000000000000000")
 
           expect(page).to have_status(text: "PayPal payouts are subject to a 2% processing fee.")
@@ -1102,6 +1136,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
           select("January", from: "Month")
           select("1980", from: "Year")
           select("India", from: "Nationality")
+          change_masked_tax_field("Emirates ID")
           fill_in("Emirates ID", with: "000000000000000")
 
           expect(page).to have_status(text: "PayPal payouts are subject to a 2% processing fee.")
@@ -1858,6 +1893,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         fill_in("Last name", with: "creator")
         fill_in("Phone number", with: "98765432")
         select("India", from: "Nationality")
+        change_masked_tax_field("Emirates ID")
         fill_in("Emirates ID", with: "000000000000000")
 
         select("1", from: "Day")
@@ -1928,6 +1964,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         select("January", from: "Month")
         select("1980", from: "Year")
         select("India", from: "Nationality")
+        change_masked_tax_field("Emirates ID")
         fill_in("Emirates ID", with: "000000000000000")
 
         expect(page).to have_status(text: "PayPal payouts are subject to a 2% processing fee.")
@@ -1974,6 +2011,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         select("January", from: "Month")
         select("1980", from: "Year")
         select("India", from: "Nationality")
+        change_masked_tax_field("Emirates ID")
         fill_in("Emirates ID", with: "000000000000000")
 
         expect(page).to have_status(text: "PayPal payouts are subject to a 2% processing fee.")
@@ -2010,6 +2048,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         select("January", from: "Month")
         select("1980", from: "Year")
         select("India", from: "Nationality")
+        change_masked_tax_field("Emirates ID")
         fill_in("Emirates ID", with: "000000000000000")
 
         expect(page).not_to have_status(text: "PayPal payouts are subject to a 2% processing fee.")
@@ -4947,6 +4986,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
 
         fill_in("Pay to the order of", with: "Guyana Creator")
         fill_in("SWIFT / BIC Code", with: "AAAAGYGGXYZ")
+        fill_in("Branch code", with: "12345678")
         fill_in("Account #", with: "000123456789")
         fill_in("Confirm account #", with: "000123456789")
 
@@ -4956,7 +4996,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         click_on("Update settings")
 
         expect(page).to have_alert(text: "Thanks! You're all set.")
-        expect(page).to have_content("SWIFT / BIC code")
+        expect(page).to have_content("SWIFT/BIC and branch code")
         compliance_info = @user.alive_user_compliance_info
         expect(compliance_info.first_name).to eq("Guyana")
         expect(compliance_info.last_name).to eq("Creator")
@@ -4966,7 +5006,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
         expect(compliance_info.phone).to eq("+5926291234")
         expect(compliance_info.birthday).to eq(Date.new(1901, 1, 1))
         expect(@user.reload.active_bank_account.send(:account_number_decrypted)).to eq("000123456789")
-        expect(@user.reload.active_bank_account.routing_number).to eq("AAAAGYGGXYZ")
+        expect(@user.reload.active_bank_account.routing_number).to eq("AAAAGYGGXYZ-12345678")
       end
     end
 
@@ -5458,8 +5498,8 @@ describe("Payments Settings Scenario", type: :system, js: true) do
 
         fill_in("Pay to the order of", with: "malagasy creator")
         fill_in("SWIFT / BIC Code", with: "AAAAMGMGXXX")
-        fill_in("Account #", with: "MG4800005000011234567890123")
-        fill_in("Confirm account #", with: "MG4800005000011234567890123")
+        fill_in("IBAN", with: "MG4800005000011234567890123")
+        fill_in("Confirm IBAN", with: "MG4800005000011234567890123")
 
         expect(page).to have_content("Must exactly match the name on your bank account")
         expect(page).to have_content("Payouts will be made in MGA.")

@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
 class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseController
-  SCHEDULED_PAYOUTS_DEFAULT_LIMIT = 20
-  SCHEDULED_PAYOUTS_MAX_LIMIT = 50
-  private_constant :SCHEDULED_PAYOUTS_DEFAULT_LIMIT, :SCHEDULED_PAYOUTS_MAX_LIMIT
+  include Api::Internal::Admin::CursorPaginated
 
-  before_action :fetch_user, only: [:list, :pause, :resume, :issue]
-  before_action :fetch_scheduled_payout, only: [:scheduled_execute, :scheduled_cancel]
+  before_action :fetch_user_for_read, only: [:index]
+  before_action :fetch_user_for_write, only: [:pause, :resume, :issue]
 
-  def list
-    payouts = @user.payments.order(created_at: :desc).limit(5).map { serialize_payout(_1) }
+  def index
+    records, pagination = paginate_with_cursor(@user.payments.includes(:bank_account), order: [[:created_at, :desc], [:id, :desc]])
     payout_note = @user.comments.with_type_payout_note.where(author_id: GUMROAD_ADMIN_ID).last&.content
 
     render json: {
       success: true,
-      last_payouts: payouts,
+      user_id: @user.external_id,
+      recent_payouts: records.map { serialize_payout(_1) },
+      pagination:,
       next_payout_date: @user.next_payout_date,
       balance_for_next_payout: @user.formatted_balance_for_next_payout_date,
       payout_note:
@@ -26,6 +26,7 @@ class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseContro
       if @user.payouts_paused_by_source == User::PAYOUT_PAUSE_SOURCE_ADMIN
         return render json: {
           success: true,
+          user_id: @user.external_id,
           status: "already_paused",
           message: "Payouts are already paused by admin",
           payouts_paused: true
@@ -47,7 +48,8 @@ class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseContro
 
       render json: {
         success: true,
-        message: "Payouts paused for #{@user.email}",
+        user_id: @user.external_id,
+        message: "Payouts paused for #{@user.external_id}",
         payouts_paused: true
       }
     end
@@ -58,6 +60,7 @@ class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseContro
       unless @user.payouts_paused_internally?
         return render json: {
           success: true,
+          user_id: @user.external_id,
           status: "not_paused",
           message: "Payouts are not paused by admin",
           payouts_paused: @user.payouts_paused?
@@ -75,7 +78,8 @@ class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseContro
 
       render json: {
         success: true,
-        message: "Payouts resumed for #{@user.email}",
+        user_id: @user.external_id,
+        message: "Payouts resumed for #{@user.external_id}",
         payouts_paused: @user.reload.payouts_paused?
       }
     end
@@ -115,84 +119,17 @@ class Api::Internal::Admin::PayoutsController < Api::Internal::Admin::BaseContro
           message: payment&.errors&.full_messages&.first || "Payment was not sent."
         }, status: :unprocessable_entity
       else
-        render json: { success: true, payout: serialize_payout(payment) }
+        render json: { success: true, user_id: @user.external_id, payout: serialize_payout(payment) }
       end
-    end
-  end
-
-  def scheduled_list
-    scope = ScheduledPayout.includes(:user, :created_by).order(id: :desc)
-    if params[:status].present?
-      unless ScheduledPayout::STATUSES.include?(params[:status])
-        return render json: { success: false, message: "status is invalid" }, status: :bad_request
-      end
-      scope = scope.where(status: params[:status])
-    end
-
-    limit = params[:limit].to_i
-    limit = SCHEDULED_PAYOUTS_DEFAULT_LIMIT if limit <= 0
-    limit = [limit, SCHEDULED_PAYOUTS_MAX_LIMIT].min
-
-    scheduled_payouts = scope.limit(limit).map { serialize_scheduled_payout(_1) }
-
-    render json: { success: true, scheduled_payouts:, limit: }
-  end
-
-  def scheduled_execute
-    record_admin_write(action: "payouts.scheduled_execute", target: @scheduled_payout) do
-      unless @scheduled_payout.pending? || @scheduled_payout.flagged?
-        next render json: {
-          success: false,
-          message: "Cannot execute a #{@scheduled_payout.status} scheduled payout."
-        }, status: :unprocessable_entity
-      end
-
-      @scheduled_payout.update!(status: "pending") if @scheduled_payout.flagged?
-
-      result = @scheduled_payout.execute!
-      message = case result
-                when :held then "Payout is now on hold for manual release."
-                when :flagged then "Payout was flagged for review instead of executing."
-      end
-
-      render json: {
-        success: true,
-        result: result.to_s,
-        message:,
-        scheduled_payout: serialize_scheduled_payout(@scheduled_payout)
-      }
-    rescue => e
-      render_scheduled_payout_error(e)
-    end
-  end
-
-  def scheduled_cancel
-    record_admin_write(action: "payouts.scheduled_cancel", target: @scheduled_payout) do
-      @scheduled_payout.cancel!
-      render json: { success: true, scheduled_payout: serialize_scheduled_payout(@scheduled_payout) }
-    rescue => e
-      render_scheduled_payout_error(e)
     end
   end
 
   private
-    def fetch_user
-      return render json: { success: false, message: "email is required" }, status: :bad_request if params[:email].blank?
-
-      @user = User.alive.by_email(params[:email]).first
-      render json: { success: false, message: "User not found" }, status: :not_found if @user.blank?
+    def fetch_user_for_read
+      @user = find_internal_admin_user_for_read_or_render
     end
 
-    def fetch_scheduled_payout
-      @scheduled_payout = ScheduledPayout.includes(:user, :created_by).find_by_external_id(params[:id])
-      render json: { success: false, message: "Scheduled payout not found" }, status: :not_found if @scheduled_payout.blank?
-    end
-
-    def serialize_scheduled_payout(scheduled_payout)
-      Admin::ScheduledPayoutPresenter.new(scheduled_payout:).props
-    end
-
-    def render_scheduled_payout_error(error)
-      render json: { success: false, message: error.message }, status: :unprocessable_entity
+    def fetch_user_for_write
+      @user = find_internal_admin_user_for_write_or_render
     end
 end

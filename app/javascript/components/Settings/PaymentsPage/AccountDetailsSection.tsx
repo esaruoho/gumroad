@@ -1,4 +1,4 @@
-import { Store, User as UserIcon } from "@boxicons/react";
+import { Eye, EyeSlash, Store, User as UserIcon } from "@boxicons/react";
 import parsePhoneNumberFromString, { CountryCode } from "libphonenumber-js";
 import * as React from "react";
 import { cast } from "ts-safe-cast";
@@ -45,6 +45,7 @@ const AccountDetailsSection = ({
   canadaBusinessTypes,
   states,
   errorFieldNames,
+  saveCounter,
 }: {
   user: User;
   complianceInfo: ComplianceInfo;
@@ -66,8 +67,18 @@ const AccountDetailsSection = ({
     jp: { value: string; label: string; kana: string }[];
   };
   errorFieldNames: Set<FormFieldName>;
+  saveCounter: number;
 }) => {
   const uid = React.useId();
+  const [isEditingIndividualTaxId, setIsEditingIndividualTaxId] = React.useState(false);
+  const [isEditingBusinessTaxId, setIsEditingBusinessTaxId] = React.useState(false);
+  const [showIndividualTaxId, setShowIndividualTaxId] = React.useState(false);
+  const [showBusinessTaxId, setShowBusinessTaxId] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user.individual_tax_id_entered) setIsEditingIndividualTaxId(false);
+    if (user.business_tax_id_entered) setIsEditingBusinessTaxId(false);
+  }, [saveCounter]);
 
   const formatPhoneNumber = (phoneNumber: string, country_code: string | null): string => {
     const countryCode: CountryCode = cast(country_code);
@@ -370,6 +381,13 @@ const AccountDetailsSection = ({
         </Select>
       </Fieldset>
     );
+  };
+
+  const getMaskedValue = (placeholder: string, lastFour: string | null, showLastFour: boolean): string => {
+    const fullyMasked = placeholder.replace(/[a-zA-Z0-9]/g, "\u2022");
+    if (!showLastFour || !lastFour) return fullyMasked;
+    const maskPrefix = fullyMasked.slice(0, -lastFour.length);
+    return maskPrefix + lastFour;
   };
 
   const businessTypes = getBusinessTypes();
@@ -721,17 +739,49 @@ const AccountDetailsSection = ({
                   </div>
                 ) : null}
               </FieldsetTitle>
-              <Input
-                id={`${uid}-${businessTaxIdConfig.idSuffix}`}
-                type="text"
-                placeholder={user.business_tax_id_entered ? "Hidden for security" : businessTaxIdConfig.placeholder}
-                minLength={businessTaxIdConfig.minLength}
-                maxLength={businessTaxIdConfig.maxLength}
-                required={complianceInfo.is_business}
-                disabled={isFormDisabled}
-                aria-invalid={errorFieldNames.has("business_tax_id")}
-                onChange={(evt) => updateComplianceInfo({ business_tax_id: evt.target.value })}
-              />
+              {user.business_tax_id_entered && !isEditingBusinessTaxId ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id={`${uid}-${businessTaxIdConfig.idSuffix}`}
+                      type="text"
+                      value={getMaskedValue(businessTaxIdConfig.placeholder, user.business_tax_id_last_four, showBusinessTaxId)}
+                      disabled
+                      readOnly
+                    />
+                    {user.business_tax_id_last_four ? (
+                      <button
+                        type="button"
+                        className="border-none bg-transparent p-0 text-muted hover:text-primary"
+                        onClick={() => setShowBusinessTaxId(!showBusinessTaxId)}
+                        aria-label={showBusinessTaxId ? "Hide tax ID" : "Show last 4 digits"}
+                      >
+                        {showBusinessTaxId ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
+                      </button>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    className="cursor-pointer self-start underline all-unset text-sm"
+                    onClick={() => setIsEditingBusinessTaxId(true)}
+                    disabled={isFormDisabled}
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <Input
+                  id={`${uid}-${businessTaxIdConfig.idSuffix}`}
+                  type="text"
+                  placeholder={businessTaxIdConfig.placeholder}
+                  minLength={businessTaxIdConfig.minLength}
+                  maxLength={businessTaxIdConfig.maxLength}
+                  required={complianceInfo.is_business}
+                  disabled={isFormDisabled}
+                  aria-invalid={errorFieldNames.has("business_tax_id")}
+                  onChange={(evt) => updateComplianceInfo({ business_tax_id: evt.target.value })}
+                />
+              )}
             </Fieldset>
           ) : null}
           <Fieldset>
@@ -1187,17 +1237,53 @@ const AccountDetailsSection = ({
             <FieldsetTitle>
               <Label htmlFor={`${uid}-${individualTaxIdConfig.idSuffix}`}>{individualTaxIdConfig.label}</Label>
             </FieldsetTitle>
-            <Input
-              id={`${uid}-${individualTaxIdConfig.idSuffix}`}
-              type="text"
-              minLength={individualTaxIdConfig.minLength}
-              maxLength={individualTaxIdConfig.maxLength}
-              placeholder={user.individual_tax_id_entered ? "Hidden for security" : individualTaxIdConfig.placeholder}
-              required
-              disabled={isFormDisabled}
-              aria-invalid={errorFieldNames.has("individual_tax_id")}
-              onChange={(evt) => updateComplianceInfo({ individual_tax_id: evt.target.value })}
-            />
+            {user.individual_tax_id_entered && !isEditingIndividualTaxId ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id={`${uid}-${individualTaxIdConfig.idSuffix}`}
+                    type="text"
+                    value={getMaskedValue(
+                      complianceInfo.country === "US" ? "•••-••-••••" : individualTaxIdConfig.placeholder,
+                      user.individual_tax_id_last_four,
+                      showIndividualTaxId,
+                    )}
+                    disabled
+                    readOnly
+                  />
+                  {user.individual_tax_id_last_four ? (
+                    <button
+                      type="button"
+                      className="border-none bg-transparent p-0 text-muted hover:text-primary"
+                      onClick={() => setShowIndividualTaxId(!showIndividualTaxId)}
+                      aria-label={showIndividualTaxId ? "Hide tax ID" : "Show last 4 digits"}
+                    >
+                      {showIndividualTaxId ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
+                    </button>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="cursor-pointer self-start underline all-unset text-sm"
+                  onClick={() => setIsEditingIndividualTaxId(true)}
+                  disabled={isFormDisabled}
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <Input
+                id={`${uid}-${individualTaxIdConfig.idSuffix}`}
+                type="text"
+                minLength={individualTaxIdConfig.minLength}
+                maxLength={individualTaxIdConfig.maxLength}
+                placeholder={individualTaxIdConfig.placeholder}
+                required={!user.individual_tax_id_entered}
+                disabled={isFormDisabled}
+                aria-invalid={errorFieldNames.has("individual_tax_id")}
+                onChange={(evt) => updateComplianceInfo({ individual_tax_id: evt.target.value })}
+              />
+            )}
           </div>
         </Fieldset>
       ) : null}
