@@ -1,6 +1,6 @@
 import { ChevronDown, Sparkle } from "@boxicons/react";
 import { Link, useForm, usePage } from "@inertiajs/react";
-import hands from "images/illustrations/hands.png";
+import hands from "$assets/images/illustrations/hands.png";
 import * as React from "react";
 import { useState } from "react";
 import typia from "typia";
