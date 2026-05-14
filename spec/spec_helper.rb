@@ -264,6 +264,10 @@ RSpec.configure do |config|
         end
       }
     ].each(&:join)
+
+    # Build Vite assets up front so :js system specs don't race autoBuild
+    # against Capybara.default_max_wait_time on the first admin request.
+    ViteRuby.commands.build if ViteRuby.instance.config.manifest_paths.empty?
   end
 
   # Stub SsrfFilter globally to allow localhost/minio in tests
