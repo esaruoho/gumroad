@@ -2,7 +2,13 @@
 
 module ApplicationHelper
   def vite_entrypoint_stylesheet_tag(name, **options)
-    entry = ViteRuby.instance.manifest.resolve_entries(name, type: :typescript)
+    # Try typescript entrypoint first (extracts CSS from JS bundle),
+    # fall back to stylesheet entrypoint (CSS-only like design.scss, email.scss)
+    entry = begin
+      ViteRuby.instance.manifest.resolve_entries(name, type: :typescript)
+    rescue ViteRuby::MissingEntrypointError
+      ViteRuby.instance.manifest.resolve_entries(name, type: :stylesheet)
+    end
     stylesheets = entry.fetch(:stylesheets, [])
     return if stylesheets.empty?
     options[:extname] = false if Rails::VERSION::MAJOR >= 7
