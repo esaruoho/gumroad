@@ -32,6 +32,7 @@ jobs:
       DOCKER_BUILDKIT: 1
     outputs:
       test_image_tag: ${{ steps.test_image_tag.outputs.tag }}
+      mysql_image_tag: ${{ steps.mysql_image_tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -170,6 +171,98 @@ jobs:
               fi
             done
           fi
+      - name: Compute content-addressed MySQL image tag
+        id: mysql_image_tag
+        run: |
+          TAG=$(docker/ci/generate_tag_for_mysql_preseeded.sh)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Computed MySQL image tag: $TAG"
+      - name: Build and push pre-seeded MySQL image
+        env:
+          WEB_REPO: gumroadteam/web
+          TEST_IMAGE_TAG: ${{ steps.test_image_tag.outputs.tag }}
+          MYSQL_REPO: gumroadteam/mysql_test
+          MYSQL_TAG: ${{ steps.mysql_image_tag.outputs.tag }}
+        run: |
+          set -e
+          GREEN='\033[0;32m'
+          NC='\033[0m'
+          logger() {
+            echo -e "${GREEN}$(date '+%Y/%m/%d %H:%M:%S') mysql.sh: $1${NC}"
+          }
+
+          if docker manifest inspect $MYSQL_REPO:$MYSQL_TAG > /dev/null 2>&1; then
+            logger "$MYSQL_REPO:$MYSQL_TAG already exists; skipping build"
+          else
+            logger "Building pre-seeded MySQL image..."
+            NETWORK="schema-dump-${{ github.run_id }}"
+            MYSQL_CTR="schema-dump-mysql-${{ github.run_id }}"
+
+            docker network create "$NETWORK"
+            docker run -d --name "$MYSQL_CTR" --network "$NETWORK" \
+              --tmpfs /var/lib/mysql:size=512M \
+              -e MYSQL_ROOT_PASSWORD=password \
+              -e MYSQL_DATABASE=gumroad_test \
+              mysql:8.0.32 \
+              mysqld \
+                --default-authentication-plugin=mysql_native_password \
+                --collation-server=utf8mb4_unicode_ci \
+                --character-set-server=utf8mb4 \
+                --innodb-flush-log-at-trx-commit=0 \
+                --innodb-doublewrite=0 \
+                --sync-binlog=0 \
+                --innodb-flush-method=nosync \
+                --skip-log-bin
+
+            logger "Waiting for MySQL..."
+            until docker exec "$MYSQL_CTR" mysqladmin ping -h localhost -uroot -ppassword --silent 2>/dev/null; do
+              sleep 1
+            done
+
+            logger "Running db:schema:load..."
+            docker run --rm --entrypoint="" --network "$NETWORK" \
+              -e RAILS_ENV=test \
+              -e DATABASE_HOST="$MYSQL_CTR" \
+              -e DATABASE_NAME=gumroad_test \
+              -e DATABASE_PORT=3306 \
+              -e DATABASE_USERNAME=root \
+              -e DATABASE_PASSWORD=password \
+              $WEB_REPO:$TEST_IMAGE_TAG \
+              bundle exec rake db:schema:load
+
+            logger "Dumping schema..."
+            docker exec "$MYSQL_CTR" \
+              mysqldump -uroot -ppassword \
+                --no-data --routines --triggers \
+                --skip-comments --skip-lock-tables \
+                gumroad_test > docker/ci/schema_dump.sql
+
+            logger "Schema dump: $(wc -l < docker/ci/schema_dump.sql) lines"
+
+            docker rm -f "$MYSQL_CTR" 2>/dev/null || true
+            docker network rm "$NETWORK" 2>/dev/null || true
+
+            logger "Building Docker image..."
+            docker build \
+              -t $MYSQL_REPO:$MYSQL_TAG \
+              -f docker/ci/Dockerfile.mysql-preseeded \
+              docker/ci/
+
+            rm -f docker/ci/schema_dump.sql
+
+            logger "Pushing $MYSQL_REPO:$MYSQL_TAG..."
+            for i in {1..3}; do
+              if docker push --quiet $MYSQL_REPO:$MYSQL_TAG; then
+                logger "Pushed $MYSQL_REPO:$MYSQL_TAG"
+                break
+              elif [ $i -eq 3 ]; then
+                logger "Failed to push $MYSQL_REPO:$MYSQL_TAG"
+                exit 1
+              else
+                sleep 5
+              fi
+            done
+          fi
 
   test_fast:
     name: Test Fast ${{ matrix.ci_node_index }}${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository && ' (internal PR noop)' || '' }}
@@ -206,7 +299,8 @@ jobs:
           command: |
             docker pull --quiet $WEB_REPO:${{ needs.build.outputs.test_image_tag }} &
             PULL_PID=$!
-            docker compose -f docker/docker-compose-test-and-ci.yml up -d
+            MYSQL_TEST_IMAGE=${{ needs.build.outputs.mysql_image_tag && format('gumroadteam/mysql_test:{0}', needs.build.outputs.mysql_image_tag) || 'mysql:8.0.32' }} \
+              docker compose -f docker/docker-compose-test-and-ci.yml up -d
             COMPOSE_EXIT=$?
             wait $PULL_PID
             PULL_EXIT=$?
@@ -223,10 +317,14 @@ jobs:
           command: |
             IMG=$WEB_REPO:${{ needs.build.outputs.test_image_tag }}
             NET=${{ env.COMPOSE_PROJECT_NAME }}_default
-            # db:prepare only needs db_test; ES/minio waits run in parallel.
+            MYSQL_TAG="${{ needs.build.outputs.mysql_image_tag }}"
+            # When using a pre-seeded MySQL image, only wait for connection
+            # (schema is already loaded). Otherwise run db:prepare as before.
             (
-              docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306 \
-                && docker run --rm --entrypoint="" --network $NET -e RAILS_ENV=test $IMG bundle exec rake db:prepare
+              docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306
+              if [ -z "$MYSQL_TAG" ]; then
+                docker run --rm --entrypoint="" --network $NET -e RAILS_ENV=test $IMG bundle exec rake db:prepare
+              fi
             ) &
             DB_PID=$!
             docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh elasticsearch 9200 &
@@ -397,7 +495,8 @@ jobs:
           command: |
             docker pull --quiet $WEB_REPO:${{ needs.build.outputs.test_image_tag }} &
             PULL_PID=$!
-            docker compose -f docker/docker-compose-test-and-ci.yml up -d
+            MYSQL_TEST_IMAGE=${{ needs.build.outputs.mysql_image_tag && format('gumroadteam/mysql_test:{0}', needs.build.outputs.mysql_image_tag) || 'mysql:8.0.32' }} \
+              docker compose -f docker/docker-compose-test-and-ci.yml up -d
             COMPOSE_EXIT=$?
             wait $PULL_PID
             PULL_EXIT=$?
@@ -414,10 +513,14 @@ jobs:
           command: |
             IMG=$WEB_REPO:${{ needs.build.outputs.test_image_tag }}
             NET=${{ env.COMPOSE_PROJECT_NAME }}_default
-            # db:prepare only needs db_test; ES/minio waits run in parallel.
+            MYSQL_TAG="${{ needs.build.outputs.mysql_image_tag }}"
+            # When using a pre-seeded MySQL image, only wait for connection
+            # (schema is already loaded). Otherwise run db:prepare as before.
             (
-              docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306 \
-                && docker run --rm --entrypoint="" --network $NET -e RAILS_ENV=test $IMG bundle exec rake db:prepare
+              docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306
+              if [ -z "$MYSQL_TAG" ]; then
+                docker run --rm --entrypoint="" --network $NET -e RAILS_ENV=test $IMG bundle exec rake db:prepare
+              fi
             ) &
             DB_PID=$!
             docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh elasticsearch 9200 &

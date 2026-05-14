@@ -1,6 +1,6 @@
 services:
   db_test:
-    image: mysql:8.0.32
+    image: ${MYSQL_TEST_IMAGE:-mysql:8.0.32}
     tmpfs:
       - /var/lib/mysql:size=512M
     ports:
