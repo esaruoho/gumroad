@@ -15,3 +15,7 @@ logger "Done uploading public/assets to S3"
 logger "Uploading public/packs to S3"
 aws s3 sync /app/public/packs s3://${ASSETS_S3_BUCKET}/packs --acl public-read --cache-control max-age=31536000,immutable
 logger "Done uploading public/packs to S3"
+
+logger "Uploading public/vite to S3"
+aws s3 sync /app/public/vite s3://${ASSETS_S3_BUCKET}/vite --acl public-read --cache-control max-age=31536000,immutable
+logger "Done uploading public/vite to S3"

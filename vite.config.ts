@@ -6,6 +6,25 @@ import { defineConfig, type Plugin } from "vite";
 import RubyPlugin from "vite-plugin-ruby";
 import tsSafeCastPlugin from "./config/vite/plugins/tsSafeCastPlugin.js";
 
+// Custom plugin to strip the CommonJS `module.exports = routes;` line from the
+// js-routes-generated app/javascript/utils/routes.js when Vite transforms it.
+// routes.js intentionally ships BOTH ESM `export const` statements and a CJS
+// `module.exports` assignment so it can be consumed by webpack (CJS) and Vite
+// (ESM) during the side-by-side migration. Vite warns on mixed CJS/ESM and
+// the warning causes admin pages to render blank in CI. We strip the CJS line
+// in-memory only; the on-disk file is unchanged so webpack still works.
+function stripCjsExportsPlugin(): Plugin {
+  return {
+    name: "vite-plugin-strip-cjs-exports",
+    transform(code, id) {
+      if (!id.endsWith("utils/routes.js")) return null;
+      const cleaned = code.replace(/^\s*module\.exports\s*=\s*routes;?\s*$/m, "");
+      if (cleaned !== code) return { code: cleaned, map: null };
+      return null;
+    },
+  };
+}
+
 // Custom plugin to transform webpack's require.context() into Vite-compatible code.
 // This allows shared files to work with both webpack (which natively supports require.context)
 // and Vite (which doesn't) during the side-by-side migration period.
@@ -74,6 +93,7 @@ export default defineConfig({
   plugins: [
     RubyPlugin(),
     react(),
+    stripCjsExportsPlugin(),
     requireContextPlugin(),
     tsSafeCastPlugin(),
     AutoImport({
