@@ -1,10 +1,10 @@
+import UnpluginTypia from "@typia/unplugin/vite";
 import react from "@vitejs/plugin-react";
 import fs from "fs";
 import { resolve } from "path";
 import AutoImport from "unplugin-auto-import/vite";
 import { defineConfig, type Plugin } from "vite";
 import RubyPlugin from "vite-plugin-ruby";
-import tsSafeCastPlugin from "./config/vite/plugins/tsSafeCastPlugin.js";
 
 // Custom plugin to strip the CommonJS `module.exports = routes;` line from the
 // js-routes-generated app/javascript/utils/routes.js when Vite transforms it.
@@ -95,7 +95,7 @@ export default defineConfig({
     react(),
     stripCjsExportsPlugin(),
     requireContextPlugin(),
-    tsSafeCastPlugin(),
+    UnpluginTypia(),
     AutoImport({
       imports: [
         {
