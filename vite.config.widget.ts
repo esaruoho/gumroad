@@ -5,9 +5,6 @@ export default defineConfig({
   build: {
     outDir: "public/js",
     emptyOutDir: false,
-    lib: {
-      formats: ["iife"],
-    },
     rollupOptions: {
       input: {
         'gumroad-embed': resolve(__dirname, 'app/javascript/widget/embed.ts'),

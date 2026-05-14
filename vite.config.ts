@@ -45,7 +45,7 @@ export default defineConfig({
     "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "test"),
     "process.env.RAILS_ENV": JSON.stringify(process.env.RAILS_ENV || "test"),
     "process.env.PROTOCOL": JSON.stringify(process.env.PROTOCOL || "https"),
-    "process.env": "({})",
+    "process.env": "{}",
   },
   css: {
     preprocessorOptions: {
