@@ -104,8 +104,9 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'test'),
     'process.env.RAILS_ENV': JSON.stringify(process.env.RAILS_ENV || 'test'),
     'process.env.PROTOCOL': JSON.stringify(process.env.PROTOCOL || 'https'),
-    // Fallback so any other process.env.FOO won't throw
-    'process.env': '{}',
+    // Fallback so any other process.env.FOO won't throw.
+    // The value is a code expression: {} is an empty object literal.
+    'process.env': '({})',
   },
   css: {
     preprocessorOptions: {
