@@ -9,7 +9,6 @@
     <link rel="dns-prefetch" href="<%= "//#{URI.parse(PUBLIC_STORAGE_CDN_S3_PROXY_HOST).host}" %>">
   <% end %>
   <%= vite_client_tag %>
-  <%= vite_stylesheet_tag "admin", media: "all" %>
   <%= inertia_rendering? ? inertia_meta_tags : erb_meta_tags %>
   <%= yield :style %>
 </head>
