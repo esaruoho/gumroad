@@ -5,6 +5,18 @@ module ApplicationHelper
     render("shared/pack_setup", page:)
   end
 
+  # Renders only the <link rel="stylesheet"> tags for a Vite TypeScript entrypoint.
+  # Use in <head> alongside `vite_typescript_tag("name", skip_style_tags: true)` in <body>
+  # to load CSS early and avoid flash of unstyled content.
+  def vite_entrypoint_stylesheet_tag(name, **options)
+    entry = ViteRuby.instance.manifest.resolve_entries(name, type: :typescript)
+    stylesheets = entry.fetch(:stylesheets, [])
+    return if stylesheets.empty?
+
+    options[:extname] = false if Rails::VERSION::MAJOR >= 7
+    stylesheet_link_tag(*stylesheets, **options)
+  end
+
   def s3_bucket_url
     "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}"
   end
