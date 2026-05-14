@@ -46,6 +46,9 @@ COPY --chown=app:app . ./
 
 # Pre-build Vite assets for test mode so Capybara system tests can load
 # the admin JS/CSS without relying on auto-build at request time.
+# Generate a routes stub (the real file is gitignored, generated at runtime by js-routes).
+# Just needs to be a valid ES module — actual route functions are generated before tests run.
+RUN echo "export default {};" > app/javascript/utils/routes.js
 RUN npx vite build --mode test
 
 # Switch back so subsequent ImageMagick edits and the worker step's `su -c
