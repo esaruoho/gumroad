@@ -80,7 +80,7 @@ export default defineConfig({
     react(),
     stripCjsExportsPlugin(),
     requireContextPlugin(),
-    UnpluginTypia(),
+    UnpluginTypia({ cache: true }),
     AutoImport({
       imports: [
         {
