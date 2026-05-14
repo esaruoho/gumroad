@@ -2,7 +2,7 @@ import typia from "typia";
 
 import { SearchRequest } from "$app/data/search";
 
-const categoryImages = require.context("$assets/images/discover/");
+const categoryImages = import.meta.glob("$assets/images/discover/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
 export type Taxonomy = { key: string; slug: string; label: string; parent_key: string | null };
 
@@ -16,7 +16,7 @@ export function getRootTaxonomyCss(slug: RootTaxonomySlug) {
 }
 
 export function getRootTaxonomyImage(slug: RootTaxonomySlug) {
-  return typia.assert<string>(categoryImages(`./${rootTaxonomies[slug].image}.svg`));
+  return categoryImages[`./${rootTaxonomies[slug].image}.svg`];
 }
 
 const rootTaxonomies = {

@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
-  def load_pack(page)
-    render("shared/pack_setup", page:)
+  def vite_entrypoint_stylesheet_tag(name, **options)
+    entry = ViteRuby.instance.manifest.resolve_entries(name, type: :typescript)
+    stylesheets = entry.fetch(:stylesheets, [])
+    return if stylesheets.empty?
+    options[:extname] = false if Rails::VERSION::MAJOR >= 7
+    stylesheet_link_tag(*stylesheets, **options)
   end
 
   def s3_bucket_url

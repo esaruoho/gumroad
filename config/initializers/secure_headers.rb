@@ -205,10 +205,9 @@ SecureHeaders::Configuration.default do |config|
     config.csp[:connect_src] << "wss://#{ANYCABLE_HOST}:8080" # Required by AnyCable
   elsif Rails.env.development?
     config.csp[:default_src] = ["'self'"]
-    config.csp[:style_src] << "blob:" # Required by Shakapacker to serve CSS
-    config.csp[:script_src] << "localhost:3035" # Required by webpack-dev-server
-    config.csp[:connect_src] << "localhost:3035" # Required by webpack-dev-server
-    config.csp[:connect_src] << "ws://localhost:3035" # Required by webpack-dev-server
+    config.csp[:script_src] << "localhost:3036" # Required by Vite dev server
+    config.csp[:connect_src] << "localhost:3036" # Required by Vite dev server
+    config.csp[:connect_src] << "ws://localhost:3036" # Required by Vite HMR
     cable_scheme = PROTOCOL == "https" ? "wss" : "ws"
     cable_port = PROTOCOL == "https" ? 8081 : 8080
     config.csp[:connect_src] << "#{cable_scheme}://#{ANYCABLE_HOST}:#{cable_port}" # Required by AnyCable

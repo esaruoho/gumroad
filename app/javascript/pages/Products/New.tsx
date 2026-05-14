@@ -33,7 +33,7 @@ import { Tab, Tabs } from "$app/components/ui/Tabs";
 import { Textarea } from "$app/components/ui/Textarea";
 import { WithTooltip } from "$app/components/WithTooltip";
 
-const nativeTypeIcons = require.context("$assets/images/native_types/");
+const nativeTypeIcons = import.meta.glob("$assets/images/native_types/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
 const defaultRecurrence: RecurrenceId = "monthly";
 
@@ -544,7 +544,7 @@ const ProductTypeSelector = ({
             disabled={disabled}
           >
             <img
-              src={typia.assert<string>(nativeTypeIcons(`./${type}.png`))}
+              src={nativeTypeIcons[`./${type}.png`]}
               alt={PRODUCT_TYPES[type].title}
               className="shrink-0"
               width="40"
