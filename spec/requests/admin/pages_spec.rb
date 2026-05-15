@@ -132,7 +132,8 @@ describe "Admin Pages Scenario", type: :system, js: true do
       expect(page).to have_text("product #29")
       expect(page).to have_text("product #28")
       expect(page).not_to have_text("product #0")
-      first("main").scroll_to :bottom
+      page.scroll_to :bottom
+      wait_for_ajax
 
       expect(page).to have_text("product #0")
     end

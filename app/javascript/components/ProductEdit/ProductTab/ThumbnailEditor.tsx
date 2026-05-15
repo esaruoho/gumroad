@@ -10,7 +10,14 @@ import { assertResponseError } from "$app/utils/request";
 import { ImageUploader } from "$app/components/ImageUploader";
 import { showAlert } from "$app/components/server-components/Alert";
 
-const nativeTypeThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const rawThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+const nativeTypeThumbnails = Object.fromEntries(
+  Object.entries(rawThumbnails).map(([key, value]) => [`./${key.split("/").pop()}`, value]),
+);
 
 const MIN_SIDE_DIMENSION = 600;
 const MEGABYTE = 1024 * 1024;

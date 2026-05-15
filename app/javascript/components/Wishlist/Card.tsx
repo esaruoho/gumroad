@@ -14,7 +14,14 @@ import { ProductCard, ProductCardFigure, ProductCardHeader } from "$app/componen
 import { StretchedLink } from "$app/components/ui/StretchedLink";
 import { useFollowWishlist } from "$app/components/Wishlist/FollowButton";
 
-const nativeTypeThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const rawThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+const nativeTypeThumbnails = Object.fromEntries(
+  Object.entries(rawThumbnails).map(([key, value]) => [`./${key.split("/").pop()}`, value]),
+);
 
 export type CardWishlist = {
   id: string;

@@ -33,7 +33,14 @@ import { Tab, Tabs } from "$app/components/ui/Tabs";
 import { Textarea } from "$app/components/ui/Textarea";
 import { WithTooltip } from "$app/components/WithTooltip";
 
-const nativeTypeIcons = import.meta.glob("$assets/images/native_types/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const rawIcons = import.meta.glob("$assets/images/native_types/*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+const nativeTypeIcons = Object.fromEntries(
+  Object.entries(rawIcons).map(([key, value]) => [`./${key.split("/").pop()}`, value]),
+);
 
 const defaultRecurrence: RecurrenceId = "monthly";
 

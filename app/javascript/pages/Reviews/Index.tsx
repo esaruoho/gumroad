@@ -19,7 +19,14 @@ import { useOnChange } from "$app/components/useOnChange";
 
 import placeholderImage from "$assets/images/placeholders/reviews.png";
 
-const nativeTypeThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const rawThumbnails = import.meta.glob("$assets/images/native_types/thumbnails/*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+const nativeTypeThumbnails = Object.fromEntries(
+  Object.entries(rawThumbnails).map(([key, value]) => [`./${key.split("/").pop()}`, value]),
+);
 
 type Product = {
   name: string;
