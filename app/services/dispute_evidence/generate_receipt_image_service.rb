@@ -50,10 +50,11 @@ class DisputeEvidence::GenerateReceiptImageService
       encoded_content = Addressable::URI.encode_component(html, Addressable::URI::CharacterClasses::QUERY)
 
       browser.goto("data:text/html;charset=UTF-8,#{encoded_content}")
+      browser.network.wait_for_idle
 
       # Use a fixed width in order to have a consistent way to determine if is a retina display screenshot
       @width = BREAKPOINT_LG
-      height = browser.evaluate(js_max_height_dimension).to_i
+      height = [browser.evaluate(js_max_height_dimension).to_i, 1].max
 
       browser.resize(width: width, height: height)
       browser.screenshot(format: "png", encoding: :binary)

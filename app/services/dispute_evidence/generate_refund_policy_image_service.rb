@@ -60,6 +60,7 @@ class DisputeEvidence::GenerateRefundPolicyImageService
       browser.network.wait_for_idle
 
       height = calculate_height(browser, open_fine_print_modal:).to_i
+      height = [height, 1].max
 
       browser.resize(width: width, height: height)
       browser.screenshot(format: "png", encoding: :binary)
