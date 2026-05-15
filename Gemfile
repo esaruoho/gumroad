@@ -49,7 +49,6 @@ group :test do
   gem "json_matchers", "~> 0.11", require: "json_matchers/rspec"
   gem "capybara_accessible_selectors", github: "citizensadvice/capybara_accessible_selectors",
                                        ref: "161b8c5b1a0a5408af914d7544956372e9da2c9e"
-  gem "puffing-billy", "~> 4.0.0", require: "billy/capybara/rspec"
   gem "super_diff", "~> 0.12.0", require: false
 end
 

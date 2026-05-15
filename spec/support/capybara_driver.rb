@@ -50,21 +50,6 @@ Capybara.register_driver :cuprite_mobile do |app|
   Capybara::Cuprite::Driver.new(app, **CUPRITE_COMMON_OPTS, window_size: [375, 667])
 end
 
-# ── Billy proxy integration ──────────────────────────────────────────
-Capybara.register_driver :cuprite_billy do |app|
-  billy_opts = CUPRITE_BROWSER_OPTIONS.merge(
-    "ignore-certificate-errors" => nil,
-    "proxy-server" => "#{Billy.proxy.host}:#{Billy.proxy.port}",
-  )
-  Capybara::Cuprite::Driver.new(app,
-    window_size: [1440, 900],
-    browser_options: billy_opts,
-    process_timeout: 30,
-    timeout: 15,
-    js_errors: true,
-    headless: false)
-end
-
 # ── RSpec hooks ──────────────────────────────────────────────────────
 RSpec.configure do |config|
   config.before(:each, type: :system) do
@@ -79,14 +64,16 @@ RSpec.configure do |config|
     driven_by :cuprite_mobile
   end
 
-  config.before(:each, billy: true) do |_example|
-    driven_by :cuprite_billy
-  end
-
   config.before(:each, :tablet_view) do |_example|
     driven_by :cuprite_tablet
   end
 
   # Filter Cuprite/Ferrum internals from backtraces
   config.filter_gems_from_backtrace("capybara", "cuprite", "ferrum")
+
+  # Reset network intercept state between examples (set by stub_external_redirect)
+  config.after(:each, type: :system, js: true) do
+    @external_redirects = nil
+    @intercept_active = nil
+  end
 end

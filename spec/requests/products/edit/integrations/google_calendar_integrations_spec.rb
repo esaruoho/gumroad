@@ -21,7 +21,7 @@ describe("Product Edit Integrations edit - Google Calendar", type: :system, js: 
     let(:calendar_summary) { google_calendar_integration.calendar_summary }
     let(:email) { google_calendar_integration.email }
 
-    context "with proxy", billy: true do
+    context "with proxy" do
       let(:host_with_port) { "127.0.0.1:31337" }
 
       before do
@@ -29,7 +29,7 @@ describe("Product Edit Integrations edit - Google Calendar", type: :system, js: 
       end
 
       it "adds a new integration" do
-        proxy.stub("https://accounts.google.com:443/o/oauth2/auth").and_return(redirect_to: oauth_redirect_integrations_google_calendar_index_url(code: "test_code", host: host_with_port))
+        stub_external_redirect("https://accounts.google.com:443/o/oauth2/auth", redirect_to: oauth_redirect_integrations_google_calendar_index_url(code: "test_code", host: host_with_port))
 
         WebMock.stub_request(:post, "https://oauth2.googleapis.com/token").
           to_return(status: 200,
@@ -70,7 +70,7 @@ describe("Product Edit Integrations edit - Google Calendar", type: :system, js: 
       end
 
       it "shows error if oauth authorization fails" do
-        proxy.stub("https://accounts.google.com:443/o/oauth2/auth").and_return(redirect_to: oauth_redirect_integrations_google_calendar_index_url(error: "error_message", host: host_with_port))
+        stub_external_redirect("https://accounts.google.com:443/o/oauth2/auth", redirect_to: oauth_redirect_integrations_google_calendar_index_url(error: "error_message", host: host_with_port))
 
         visit edit_link_url(@product, host: host_with_port)
         check "Connect with Google Calendar to sync your calls", allow_label_click: true

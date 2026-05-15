@@ -125,6 +125,40 @@ module CapybaraHelpers
     wait_for_ajax
   end
 
+  # Intercepts browser navigation to an external URL and responds with a 302
+  # redirect to a local callback URL. Replaces Puffing Billy's proxy.stub()
+  # for OAuth redirect testing with Cuprite's built-in CDP interception.
+  #
+  # Usage:
+  #   stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize",
+  #                          redirect_to: oauth_redirect_url(code: "test_code"))
+  #   visit(page_url)
+  #   click_on "Connect to Discord"  # browser navigates to Discord, gets redirected locally
+  def stub_external_redirect(url, redirect_to:)
+    @external_redirects ||= {}
+    # Normalize: strip default HTTPS port for matching
+    normalized = url.gsub(":443", "")
+    @external_redirects[normalized] = redirect_to
+
+    return if @intercept_active
+
+    page.driver.browser.network.intercept
+    page.driver.browser.on(:request) do |request|
+      normalized_request_url = request.url.gsub(":443", "")
+      match = @external_redirects&.find { |pattern, _| normalized_request_url.start_with?(pattern) }
+      if match
+        request.respond(
+          responseCode: 302,
+          responseHeaders: { "location" => match.last },
+          body: ""
+        )
+      else
+        request.continue
+      end
+    end
+    @intercept_active = true
+  end
+
   def with_throttled_network(fixture_file, factor: 4)
     throughput = (File.size(fixture_file) * factor)
     page.driver.browser.network.emulate_network_conditions(

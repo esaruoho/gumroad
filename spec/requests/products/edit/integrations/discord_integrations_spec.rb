@@ -20,7 +20,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
     let(:server_name) { discord_integration.server_name }
     let(:username) { discord_integration.username }
 
-    context "with proxy", billy: true do
+    context "with proxy" do
       let(:host_with_port) { "127.0.0.1:31337" }
 
       # Specs are failing on Buildkite when the shared context below replaces the seller login; they pass on local
@@ -32,7 +32,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
       # include_context "with switching account to user as admin for seller", host: "127.0.0.1:31337"
 
       it "adds a new integration" do
-        proxy.stub("https://www.discord.com:443/api/oauth2/authorize").and_return(redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
 
         WebMock.stub_request(:post, DISCORD_OAUTH_TOKEN_URL).
           to_return(status: 200,
@@ -69,7 +69,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
       end
 
       it "shows error if oauth authorization fails" do
-        proxy.stub("https://www.discord.com:443/api/oauth2/authorize").and_return(redirect_to: oauth_redirect_integrations_discord_index_url(error: "error_message", host: host_with_port))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(error: "error_message", host: host_with_port))
 
         visit edit_link_url(@product, host: host_with_port)
         check "Invite your customers to a Discord server", allow_label_click: true
@@ -79,7 +79,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
       end
 
       it "shows error if getting server info fails" do
-        proxy.stub("https://www.discord.com:443/api/oauth2/authorize").and_return(redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
 
         visit edit_link_url(@product, host: host_with_port)
         check "Invite your customers to a Discord server", allow_label_click: true
@@ -89,7 +89,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
       end
 
       it "creates an integration for the product and enables integration for a newly created tier" do
-        proxy.stub("https://www.discord.com:443/api/oauth2/authorize").and_return(redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
 
         WebMock.stub_request(:post, DISCORD_OAUTH_TOKEN_URL).
           to_return(status: 200,
@@ -146,7 +146,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
       end
 
       it "creates an integration for the product and enables integration for a newly created version" do
-        proxy.stub("https://www.discord.com:443/api/oauth2/authorize").and_return(redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
 
         WebMock.stub_request(:post, DISCORD_OAUTH_TOKEN_URL).
           to_return(status: 200,
