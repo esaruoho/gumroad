@@ -3,10 +3,10 @@
 require "spec_helper"
 
 describe SettingsPresenter do
+  let(:seller) { create(:named_seller, purchasing_power_parity_limit: 60) }
   let(:product) do
-    create(:product, purchasing_power_parity_disabled: true, user: create(:named_seller, purchasing_power_parity_limit: 60))
+    create(:product, purchasing_power_parity_disabled: true, user: seller)
   end
-  let(:seller) { product.user }
   let(:user) { seller }
   let(:pundit_user) { SellerContext.new(user:, seller:) }
   let(:presenter) { described_class.new(pundit_user:) }
