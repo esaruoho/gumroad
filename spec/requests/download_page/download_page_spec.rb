@@ -664,7 +664,7 @@ describe("Download Page", type: :system, js: true) do
     within(find_file_row!(name: "chapter1")) do
       click_on "Watch"
     end
-    page.driver.browser.switch_to.window(page.driver.browser.window_handles.last)
+    switch_to_window(windows.last)
     click_on "More Videos"
     expect(page).to_not have_button("1. chapter1")
     expect(page).to have_button("Next Upchapter2")
