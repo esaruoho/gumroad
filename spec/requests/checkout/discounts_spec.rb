@@ -714,7 +714,7 @@ describe("Checkout discounts page", type: :system, js: true) do
     expect(page).to have_unchecked_field("All products")
     find("label", text: "Products").click
     expect(page).to have_combo_box("Products", options: ["Product 1", "Product 2"])
-    find("body").native.send_key("escape") # to dismiss the combo box so the limit quantity checkbox is visible
+    find("body").send_keys(:escape) # to dismiss the combo box so the limit quantity checkbox is visible
     expect(page).to have_checked_field("Limit quantity")
     expect(page).to have_field("Quantity", with: "12")
     expect(page).to have_field("Valid from", with: "#{Time.current.year - 1}-01-01T00:00")
