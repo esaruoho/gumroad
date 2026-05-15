@@ -94,12 +94,34 @@ jobs:
           TAG=test-$(BASE_TEST_SHA=$WEB_BASE_TEST_SHA docker/base/generate_tag_for_test_image.sh)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Computed test image tag: $TAG"
+      - name: Check if test image needs rebuild
+        id: test_image_check
+        env:
+          WEB_REPO: gumroadteam/web
+          TEST_IMAGE_TAG: ${{ steps.test_image_tag.outputs.tag }}
+        run: |
+          if docker manifest inspect $WEB_REPO:$TEST_IMAGE_TAG > /dev/null 2>&1; then
+            echo "needs_build=false" >> $GITHUB_OUTPUT
+            echo "$WEB_REPO:$TEST_IMAGE_TAG already exists; will skip rebuild"
+          else
+            echo "needs_build=true" >> $GITHUB_OUTPUT
+            echo "$WEB_REPO:$TEST_IMAGE_TAG not found; will rebuild"
+          fi
+      - name: Restore asset/webpack cache
+        if: steps.test_image_check.outputs.needs_build == 'true'
+        uses: actions/cache@v4
+        with:
+          path: asset-cache.tar.gz
+          key: asset-cache-v1-${{ hashFiles('package-lock.json', 'patches/**', 'config/shakapacker.yml', 'config/webpack/**', 'postcss.config.js', 'tsconfig.json', 'app/javascript/**', 'app/assets/**') }}
+          restore-keys: |
+            asset-cache-v1-
       - name: Build and push test image
         env:
           WEB_BASE_REPO: gumroadteam/web_base
           WEB_BASE_TEST_REPO: gumroadteam/web_base_test
           WEB_REPO: gumroadteam/web
           TEST_IMAGE_TAG: ${{ steps.test_image_tag.outputs.tag }}
+          TEST_IMAGE_NEEDS_BUILD: ${{ steps.test_image_check.outputs.needs_build }}
         run: |
           set -e
           GREEN='\033[0;32m'
@@ -107,17 +129,15 @@ jobs:
           logger() {
             echo -e "${GREEN}$(date '+%Y/%m/%d %H:%M:%S') build.sh: $1${NC}"
           }
-          docker pull --quiet ruby:$(cat .ruby-version)-slim-bullseye
+          # Ruby image is already local from the base-image step above.
           WEB_BASE_TEST_SHA=$(WEB_BASE_DOCKERFILE_FROM=ruby:$(cat .ruby-version)-slim-bullseye docker/base/generate_tag_for_web_base_test.sh)
-          # Only pull/push test-cache when we're actually going to build.
+          # Only pull test-cache when we're actually going to build.
           # On a manifest-inspect HIT (e.g. doc-only PR, re-run), skip the
           # cache pull entirely — it's ~2m wasted otherwise.
-          if docker manifest inspect $WEB_REPO:$TEST_IMAGE_TAG > /dev/null 2>&1; then
-            TEST_IMAGE_NEEDS_BUILD=false
-            logger "$WEB_REPO:$TEST_IMAGE_TAG already exists; skipping test-cache pull"
-          else
-            TEST_IMAGE_NEEDS_BUILD=true
+          if [ "$TEST_IMAGE_NEEDS_BUILD" = "true" ]; then
             docker pull --quiet $WEB_REPO:test-cache 2>/dev/null || logger "$WEB_REPO:test-cache not yet available; building without registry cache"
+          else
+            logger "$WEB_REPO:$TEST_IMAGE_TAG already exists; skipping test-cache pull"
           fi
           build_and_push() {
             local repo=$1
@@ -127,8 +147,9 @@ jobs:
               logger "building $repo:$tag"
               NEW_BASE_REPO=$WEB_BASE_REPO NEW_WEB_BASE_TEST_REPO=$WEB_BASE_TEST_REPO NEW_WEB_REPO=$WEB_REPO \
                 WEB_BASE_DOCKERFILE_FROM=ruby:$(cat .ruby-version)-slim-bullseye \
-                BRANCH_CACHE_UPLOAD_ENABLED=false \
-                  BRANCH_CACHE_RESTORE_ENABLED=false \
+                BRANCH_CACHE_UPLOAD_ENABLED=true \
+                  BRANCH_CACHE_RESTORE_ENABLED=true \
+                  CACHE_TAR_FILE=asset-cache.tar.gz \
                   NEW_WEB_TAG=${TEST_IMAGE_TAG#test-} \
                   COMPOSE_PROJECT_NAME=web_${{ github.run_id }}_${{ github.run_attempt }} \
                   make $make_target
