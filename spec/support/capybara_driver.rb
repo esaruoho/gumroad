@@ -26,6 +26,9 @@ CUPRITE_COMMON_OPTS = {
   if DOCKER_ENV
     chrome = %w[google-chrome google-chrome-stable chromium chromium-browser chrome].find { |c| system("which #{c} > /dev/null 2>&1") }
     opts[:browser_path] = `which #{chrome}`.strip if chrome
+    # Unset LD_PRELOAD (jemalloc) for Chrome — it conflicts with Chrome's PartitionAlloc
+    # and can prevent the remote debugging port from initializing properly
+    opts[:env] = { "LD_PRELOAD" => nil }
   end
 end.freeze
 
@@ -62,13 +65,36 @@ RSpec.configure do |config|
       if chrome_path
         version = `#{chrome_path} --version 2>&1`.strip
         $stderr.puts "[cuprite] Chrome found: #{chrome_path} → #{version}"
-        # Try launching Chrome to verify it works
-        test_output = `#{chrome_path} --headless --no-sandbox --disable-gpu --dump-dom about:blank 2>&1`.strip
-        $stderr.puts "[cuprite] Chrome headless test: #{test_output.length > 200 ? test_output[0..200] + '...' : test_output}"
-        # Check shared library deps
-        ldd_output = `ldd $(which #{chrome_path}) 2>&1`.strip
-        missing = ldd_output.lines.select { |l| l.include?("not found") }
-        $stderr.puts "[cuprite] Missing shared libs: #{missing.join('; ')}" if missing.any?
+        # Test: launch Chrome with --remote-debugging-port like Ferrum does
+        require "timeout"
+        $stderr.puts "[cuprite] LD_PRELOAD=#{ENV['LD_PRELOAD'].inspect}"
+        $stderr.puts "[cuprite] Testing remote-debugging-port launch (without LD_PRELOAD)..."
+        rd, wr = IO.pipe
+        pid = Process.spawn(
+          { "LD_PRELOAD" => nil },
+          chrome_path,
+          "--headless", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
+          "--remote-debugging-port=0", "about:blank",
+          in: File::NULL, out: wr, err: wr
+        )
+        wr.close
+        output = ""
+        begin
+          Timeout.timeout(10) do
+            while (chunk = rd.read_nonblock(512) rescue nil)
+              output += chunk
+              break if output.include?("DevTools listening")
+              sleep 0.1
+            end
+          end
+        rescue Timeout::Error
+          $stderr.puts "[cuprite] TIMEOUT waiting for DevTools line after 10s"
+        end
+        rd.close
+        Process.kill("TERM", pid) rescue nil
+        Process.wait(pid) rescue nil
+        $stderr.puts "[cuprite] Chrome stderr output (#{output.length} bytes): #{output[0..500]}"
+        $stderr.puts "[cuprite] DevTools line found: #{output.include?('DevTools listening')}"
       else
         $stderr.puts "[cuprite] WARNING: No Chrome binary found on PATH!"
         $stderr.puts "[cuprite] PATH=#{ENV['PATH']}"
