@@ -16,6 +16,16 @@ describe SubscribePreviewGeneratorService, type: :system, js: true do
       expect(images.second).to start_with("\x89PNG".b)
     end
 
+    it "renders at 2x retina resolution for OpenGraph consumers" do
+      images = described_class.generate_pngs([@user1])
+      # PNG IHDR width/height are big-endian 32-bit ints at bytes 16-23 of the file.
+      width, height = images.first.byteslice(16, 8).unpack("N2")
+      expected_width = SubscribePreviewGeneratorService::WIDTH * SubscribePreviewGeneratorService::RETINA_PIXEL_RATIO
+      expected_height = SubscribePreviewGeneratorService::HEIGHT.to_i * SubscribePreviewGeneratorService::RETINA_PIXEL_RATIO
+      expect(width).to eq(expected_width)
+      expect(height).to be_within(SubscribePreviewGeneratorService::RETINA_PIXEL_RATIO).of(expected_height)
+    end
+
     it "always quits the browser on success" do
       expect_any_instance_of(Ferrum::Browser).to receive(:quit)
       described_class.generate_pngs([@user1])

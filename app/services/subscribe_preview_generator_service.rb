@@ -7,6 +7,7 @@ class SubscribePreviewGeneratorService
   WIDTH = 512
   HEIGHT = WIDTH / ASPECT_RATIO
   BROWSER_OPTIONS = {
+    "force-device-scale-factor" => RETINA_PIXEL_RATIO.to_s,
     "headless" => nil,
     "no-sandbox" => nil,
     "disable-setuid-sandbox" => nil,

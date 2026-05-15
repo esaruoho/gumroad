@@ -17,6 +17,7 @@ Capybara.register_driver :cuprite do |app|
     browser_options: CUPRITE_BROWSER_OPTIONS,
     process_timeout: 30,
     timeout: 15,
+    js_errors: true,
     headless: %w[0 false no].exclude?(ENV.fetch("HEADLESS", "true")),
     inspector: !ENV["CI"])
 end
@@ -28,6 +29,7 @@ Capybara.register_driver :cuprite_tablet do |app|
     browser_options: CUPRITE_BROWSER_OPTIONS,
     process_timeout: 30,
     timeout: 15,
+    js_errors: true,
     headless: %w[0 false no].exclude?(ENV.fetch("HEADLESS", "true")),
     inspector: !ENV["CI"])
 end
@@ -39,6 +41,7 @@ Capybara.register_driver :cuprite_mobile do |app|
     browser_options: CUPRITE_BROWSER_OPTIONS,
     process_timeout: 30,
     timeout: 15,
+    js_errors: true,
     headless: %w[0 false no].exclude?(ENV.fetch("HEADLESS", "true")),
     inspector: !ENV["CI"])
 end
@@ -54,6 +57,7 @@ Capybara.register_driver :cuprite_billy do |app|
     browser_options: billy_opts,
     process_timeout: 30,
     timeout: 15,
+    js_errors: true,
     headless: true)
 end
 
