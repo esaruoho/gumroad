@@ -3,7 +3,14 @@
 require "capybara/cuprite"
 
 # ── Shared browser options ────────────────────────────────────────────
+# Chrome 125's old --headless mode doesn't output the DevTools WebSocket URL
+# that Ferrum needs to connect. We must use --headless=new (Chrome's new headless
+# mode) which properly supports CDP remote debugging.
+#
+# Since Ferrum 0.17 only adds --headless (no =new), we set headless: false
+# to prevent Ferrum from adding the flag, then add it ourselves via browser_options.
 CUPRITE_BROWSER_OPTIONS = {
+  "headless" => "new",
   "no-sandbox" => nil,
   "disable-setuid-sandbox" => nil,
   "disable-dev-shm-usage" => nil,
@@ -14,21 +21,17 @@ CUPRITE_BROWSER_OPTIONS = {
 
 DOCKER_ENV = ENV["IN_DOCKER"] == "true"
 
-# In Docker, explicitly set the Chrome path and use Ferrum's dockerize option
 CUPRITE_COMMON_OPTS = {
   browser_options: CUPRITE_BROWSER_OPTIONS,
   process_timeout: DOCKER_ENV ? 60 : 30,
   timeout: DOCKER_ENV ? 30 : 15,
   js_errors: true,
-  headless: DOCKER_ENV || %w[0 false no].exclude?(ENV.fetch("HEADLESS", "true")),
+  headless: false, # We handle headless via browser_options above (--headless=new)
   inspector: !ENV["CI"],
 }.tap do |opts|
   if DOCKER_ENV
     chrome = %w[google-chrome google-chrome-stable chromium chromium-browser chrome].find { |c| system("which #{c} > /dev/null 2>&1") }
     opts[:browser_path] = `which #{chrome}`.strip if chrome
-    # Unset LD_PRELOAD (jemalloc) for Chrome — it conflicts with Chrome's PartitionAlloc
-    # and can prevent the remote debugging port from initializing properly
-    opts[:env] = { "LD_PRELOAD" => nil }
   end
 end.freeze
 
@@ -53,89 +56,17 @@ Capybara.register_driver :cuprite_billy do |app|
     "ignore-certificate-errors" => nil,
     "proxy-server" => "#{Billy.proxy.host}:#{Billy.proxy.port}",
   )
-  Capybara::Cuprite::Driver.new(app, **CUPRITE_COMMON_OPTS, window_size: [1440, 900], browser_options: billy_opts)
+  Capybara::Cuprite::Driver.new(app,
+    window_size: [1440, 900],
+    browser_options: billy_opts,
+    process_timeout: 30,
+    timeout: 15,
+    js_errors: true,
+    headless: false)
 end
 
 # ── RSpec hooks ──────────────────────────────────────────────────────
 RSpec.configure do |config|
-  # Debug: verify Chrome is available on first JS system test
-  config.before(:suite) do
-    if DOCKER_ENV
-      chrome_path = %w[chrome google-chrome google-chrome-stable chromium chromium-browser].find { |cmd| system("which #{cmd} > /dev/null 2>&1") }
-      if chrome_path
-        version = `#{chrome_path} --version 2>&1`.strip
-        $stderr.puts "[cuprite] Chrome found: #{chrome_path} → #{version}"
-        # Test: launch Chrome with --remote-debugging-port like Ferrum does
-        require "timeout"
-        $stderr.puts "[cuprite] LD_PRELOAD=#{ENV['LD_PRELOAD'].inspect}"
-
-        # Test 1: with LD_PRELOAD (as-is)
-        $stderr.puts "[cuprite] Test 1: Chrome with LD_PRELOAD..."
-        rd1, wr1 = IO.pipe
-        pid1 = Process.spawn(
-          chrome_path,
-          "--headless", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
-          "--remote-debugging-port=0",
-          in: File::NULL, out: wr1, err: wr1
-        )
-        wr1.close
-        output1 = ""
-        begin
-          Timeout.timeout(10) do
-            loop do
-              output1 += rd1.read_nonblock(512)
-              break if output1.include?("DevTools listening")
-            rescue IO::WaitReadable
-              rd1.wait_readable(0.5)
-            end
-          end
-        rescue Timeout::Error
-          # timeout
-        end
-        rd1.close
-        Process.kill("TERM", pid1) rescue nil
-        Process.wait(pid1) rescue nil
-        $stderr.puts "[cuprite] Test 1 result (#{output1.length} bytes): #{output1[0..500]}"
-        $stderr.puts "[cuprite] Test 1 DevTools found: #{output1.include?('DevTools listening')}"
-
-        # Test 2: without LD_PRELOAD
-        $stderr.puts "[cuprite] Test 2: Chrome without LD_PRELOAD..."
-        rd2, wr2 = IO.pipe
-        pid2 = Process.spawn(
-          { "LD_PRELOAD" => nil },
-          chrome_path,
-          "--headless", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
-          "--remote-debugging-port=0",
-          in: File::NULL, out: wr2, err: wr2
-        )
-        wr2.close
-        output2 = ""
-        begin
-          Timeout.timeout(10) do
-            loop do
-              output2 += rd2.read_nonblock(512)
-              break if output2.include?("DevTools listening")
-            rescue IO::WaitReadable
-              rd2.wait_readable(0.5)
-            end
-          end
-        rescue Timeout::Error
-          # timeout
-        end
-        rd2.close
-        Process.kill("TERM", pid2) rescue nil
-        Process.wait(pid2) rescue nil
-        $stderr.puts "[cuprite] Test 2 result (#{output2.length} bytes): #{output2[0..500]}"
-        $stderr.puts "[cuprite] Test 2 DevTools found: #{output2.include?('DevTools listening')}"
-      else
-        $stderr.puts "[cuprite] WARNING: No Chrome binary found on PATH!"
-        $stderr.puts "[cuprite] PATH=#{ENV['PATH']}"
-        $stderr.puts "[cuprite] ls /usr/bin/google*: #{`ls /usr/bin/google* 2>&1`.strip}"
-        $stderr.puts "[cuprite] ls /opt/google/: #{`ls -la /opt/google/ 2>&1`.strip}"
-      end
-    end
-  end
-
   config.before(:each, type: :system) do
     driven_by :rack_test
   end
