@@ -302,7 +302,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "VAT" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "IT", zip_code: nil, state: nil, combined_rate: 0.22, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("2.47.255.255")  # Italy
@@ -444,7 +444,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "GST" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "AU", zip_code: nil, state: nil, combined_rate: 0.10, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("103.251.65.149")  # Australia
@@ -545,7 +545,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Singapore GST" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "SG", zip_code: nil, state: nil, combined_rate: 0.08, is_seller_responsible: false, applicable_years: [2023])
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("103.6.151.4")  # Singapore
@@ -662,7 +662,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Norway Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "NO", state: nil, zip_code: nil, combined_rate: 0.25, is_seller_responsible: false)
       create(:zip_tax_rate, country: "NO", state: nil, zip_code: nil, combined_rate: 0.00, is_seller_responsible: false, is_epublication_rate: true)
@@ -737,7 +737,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Iceland Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "IS", state: nil, zip_code: nil, combined_rate: 0.24, is_seller_responsible: false)
       create(:zip_tax_rate, country: "IS", state: nil, zip_code: nil, combined_rate: 0.11, is_seller_responsible: false, is_epublication_rate: true)
@@ -832,7 +832,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Japan Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "JP", zip_code: nil, state: nil, combined_rate: 0.10, is_seller_responsible: false)
 
@@ -911,7 +911,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "New Zealand Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "NZ", state: nil, zip_code: nil, combined_rate: 0.15, is_seller_responsible: false)
 
@@ -988,7 +988,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "South Africa Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "ZA", state: nil, zip_code: nil, combined_rate: 0.15, is_seller_responsible: false)
 
@@ -1065,7 +1065,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Switzerland Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "CH", state: nil, zip_code: nil, combined_rate: 0.081, is_seller_responsible: false)
       create(:zip_tax_rate, country: "CH", state: nil, zip_code: nil, combined_rate: 0.026, is_seller_responsible: false, is_epublication_rate: true)
@@ -1160,7 +1160,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "United Arab Emirates Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "AE", state: nil, zip_code: nil, combined_rate: 0.05, is_seller_responsible: false)
 
@@ -1237,7 +1237,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "India Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "IN", state: nil, zip_code: nil, combined_rate: 0.18, is_seller_responsible: false)
 
@@ -1314,7 +1314,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Bahrain Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "BH", state: nil, zip_code: nil, combined_rate: 0.10, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("77.69.128.1") # Bahrain
@@ -1405,7 +1405,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Belarus Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "BY", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("93.84.113.217") # Belarus
@@ -1498,7 +1498,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Chile Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "CL", state: nil, zip_code: nil, combined_rate: 0.19, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("200.68.0.1") # Chile
@@ -1591,7 +1591,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Colombia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "CO", state: nil, zip_code: nil, combined_rate: 0.19, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("181.49.0.1") # Colombia
@@ -1684,7 +1684,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Costa Rica Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "CR", state: nil, zip_code: nil, combined_rate: 0.13, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("186.15.0.1") # Costa Rica
@@ -1777,7 +1777,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Ecuador Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "EC", state: nil, zip_code: nil, combined_rate: 0.12, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("186.101.88.2") # Ecuador
@@ -1870,7 +1870,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Egypt Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "EG", state: nil, zip_code: nil, combined_rate: 0.14, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("156.208.0.0") # Egypt
@@ -1963,7 +1963,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Georgia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "GE", state: nil, zip_code: nil, combined_rate: 0.18, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("31.146.180.0") # Georgia
@@ -2056,7 +2056,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Kazakhstan Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "KZ", state: nil, zip_code: nil, combined_rate: 0.12, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("2.132.97.1") # Kazakhstan
@@ -2149,7 +2149,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Kenya Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "KE", state: nil, zip_code: nil, combined_rate: 0.16, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("41.90.0.1") # Kenya
@@ -2240,7 +2240,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Malaysia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "MY", state: nil, zip_code: nil, combined_rate: 0.06, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("175.143.0.1") # Malaysia
@@ -2335,7 +2335,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Mexico Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "MX", state: nil, zip_code: nil, combined_rate: 0.16, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("187.189.0.1") # Mexico
@@ -2367,7 +2367,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Moldova Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "MD", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("178.168.0.1") # Moldova
@@ -2460,7 +2460,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Morocco Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "MA", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("105.158.0.1") # Morocco
@@ -2553,7 +2553,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Nigeria Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "NG", state: nil, zip_code: nil, combined_rate: 0.075, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("41.184.122.50") # Nigeria
@@ -2644,7 +2644,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Oman Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "OM", state: nil, zip_code: nil, combined_rate: 0.05, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("5.37.0.0") # Oman
@@ -2733,7 +2733,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Russia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "RU", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("95.167.0.0") # Russia
@@ -2826,7 +2826,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Saudi Arabia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "SA", state: nil, zip_code: nil, combined_rate: 0.15, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("84.235.49.128") # Saudi Arabia
@@ -2919,7 +2919,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Serbia Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "RS", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("178.220.0.1") # Serbia
@@ -3012,7 +3012,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "South Korea Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "KR", state: nil, zip_code: nil, combined_rate: 0.10, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("1.255.49.75") # South Korea
@@ -3105,7 +3105,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Tanzania Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "TZ", state: nil, zip_code: nil, combined_rate: 0.18, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("41.188.156.75") # Tanzania
@@ -3196,7 +3196,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Thailand Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "TH", state: nil, zip_code: nil, combined_rate: 0.07, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("171.96.70.108") # Thailand
@@ -3289,7 +3289,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Turkey Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "TR", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("78.188.0.1") # Turkey
@@ -3382,7 +3382,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Ukraine Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "UA", state: nil, zip_code: nil, combined_rate: 0.20, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("176.36.232.147") # Ukraine
@@ -3475,7 +3475,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Uzbekistan Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "UZ", state: nil, zip_code: nil, combined_rate: 0.15, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("91.196.77.77") # Uzbekistan
@@ -3568,7 +3568,7 @@ describe("Product Page - Tax Scenarios", type: :system, js: true) do
 
   describe "Vietnam Tax" do
     before do
-      Capybara.current_session.driver.browser.manage.delete_all_cookies
+      Capybara.current_session.driver.browser.cookies.clear
 
       create(:zip_tax_rate, country: "VN", state: nil, zip_code: nil, combined_rate: 0.10, is_seller_responsible: false)
       allow_any_instance_of(ActionDispatch::Request).to receive(:remote_ip).and_return("113.161.94.110") # Vietnam

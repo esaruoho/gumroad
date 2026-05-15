@@ -61,7 +61,7 @@ class DisputeEvidence::GenerateRefundPolicyImageService
 
       height = calculate_height(browser, open_fine_print_modal:)
 
-      browser.window.resize(width:, height:)
+      browser.resize(width:, height:)
       browser.screenshot(format: "png", encoding: :binary)
     ensure
       browser&.quit
@@ -75,7 +75,7 @@ class DisputeEvidence::GenerateRefundPolicyImageService
       else
         begin
           Timeout.timeout(ARTICLE_WAIT_TIMEOUT_SECONDS) do
-            loop until browser.evaluate(%{ document.querySelector("article") !== null })
+            sleep 0.05 until browser.evaluate(%{ document.querySelector("article") !== null })
             sleep 0.1
           end
         rescue Timeout::Error

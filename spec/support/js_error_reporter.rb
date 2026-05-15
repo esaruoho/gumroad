@@ -52,6 +52,8 @@ class JSErrorReporter
         ctx.expect(error).to ctx.eq ""
       end
     end
+  rescue Ferrum::ProcessTimeoutError, Ferrum::DeadBrowserError, Ferrum::BrowserError
+    # Browser process is dead — nothing to report
   end
 
   def reset!

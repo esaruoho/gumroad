@@ -137,6 +137,7 @@ def browser_session_corrupted?(exception)
   return false unless exception
   return true if exception.is_a?(Ferrum::DeadBrowserError)
   return true if exception.is_a?(Ferrum::BrowserError)
+  return true if exception.is_a?(Ferrum::ProcessTimeoutError)
   return true if exception.is_a?(Errno::ECONNREFUSED)
   return true if exception.is_a?(NoMethodError) && exception.message.include?("unpack1")
 
@@ -488,7 +489,7 @@ end
 def capture_state_on_failure(example)
   return if example.exception.blank?
 
-  suppress(Capybara::NotSupportedByDriverError) do
+  suppress(Capybara::NotSupportedByDriverError, Ferrum::ProcessTimeoutError, Ferrum::DeadBrowserError, Ferrum::BrowserError) do
     save_path = example.metadata[:example_group][:location]
     Capybara.page.save_page("#{save_path}.html")
     Capybara.page.save_screenshot "#{save_path}.png"

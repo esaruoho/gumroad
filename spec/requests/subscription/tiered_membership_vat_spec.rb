@@ -9,7 +9,7 @@ describe "Tiered Membership VAT Spec", type: :system, js: true do
     setup_subscription
     travel_to(@originally_subscribed_at + 1.month)
     setup_subscription_token
-    Capybara.current_session.driver.browser.manage.delete_all_cookies
+    Capybara.current_session.driver.browser.cookies.clear
 
     create(:zip_tax_rate, country: "IT", zip_code: nil, state: nil, combined_rate: 0.22, is_seller_responsible: false)
     create(:zip_tax_rate, country: "FR", zip_code: nil, state: nil, combined_rate: 0.20, is_seller_responsible: false)

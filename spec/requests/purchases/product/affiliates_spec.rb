@@ -5,7 +5,7 @@ require("spec_helper")
 describe("Product checkout - with affiliate", type: :system, js: true) do
   def set_affiliate_cookie
     browser = Capybara.current_session.driver.browser
-    browser.manage.add_cookie(name: CGI.escape(affiliate.cookie_key), value: {
+    browser.cookies.set(name: CGI.escape(affiliate.cookie_key), value: {
       value: Time.current.to_i,
       expires: affiliate.class.cookie_lifetime.from_now,
       httponly: true,
@@ -25,9 +25,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
 
     it "adds the affiliate's cookie and links to the cart product if the affiliate is alive" do
       visit short_link_path(product.unique_permalink, param_name => affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
-        cookie[:name] == CGI.escape(affiliate.cookie_key)
-      end
+      affiliate_cookie = Capybara.current_session.driver.browser.cookies[CGI.escape(affiliate.cookie_key)]
       expect(affiliate_cookie).to be_present
 
       add_to_cart(product)
@@ -38,9 +36,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
     it "does not add the affiliate's cookie if the affiliate is deleted" do
       affiliate.mark_deleted!
       visit short_link_path(product.unique_permalink, param_name => affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
-        cookie[:name] == CGI.escape(affiliate.cookie_key)
-      end
+      affiliate_cookie = Capybara.current_session.driver.browser.cookies[CGI.escape(affiliate.cookie_key)]
       expect(affiliate_cookie).not_to be_present
     end
 
@@ -80,19 +76,15 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
 
     it "adds the affiliate's cookie if the affiliate is alive" do
       visit affiliate.referral_url_for_product(product)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
-        cookie[:name] == CGI.escape(affiliate.cookie_key)
-      end
+      affiliate_cookie = Capybara.current_session.driver.browser.cookies[CGI.escape(affiliate.cookie_key)]
       expect(affiliate_cookie).to be_present
-      expect(affiliate_cookie[:expires]).to be_within(5.minutes).of(cookie_expiry)
+      expect(affiliate_cookie.expires).to be_within(5.minutes).of(cookie_expiry)
     end
 
     it "does not add the affiliate's cookie if the affiliate is deleted" do
       affiliate.mark_deleted!
       visit affiliate.referral_url_for_product(product)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
-        cookie[:name] == CGI.escape(affiliate.cookie_key)
-      end
+      affiliate_cookie = Capybara.current_session.driver.browser.cookies[CGI.escape(affiliate.cookie_key)]
       expect(affiliate_cookie).not_to be_present
     end
   end

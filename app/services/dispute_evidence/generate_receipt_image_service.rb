@@ -55,7 +55,7 @@ class DisputeEvidence::GenerateReceiptImageService
       @width = BREAKPOINT_LG
       height = browser.evaluate(js_max_height_dimension)
 
-      browser.window.resize(width:, height:)
+      browser.resize(width:, height:)
       browser.screenshot(format: "png", encoding: :binary)
     ensure
       browser&.quit
