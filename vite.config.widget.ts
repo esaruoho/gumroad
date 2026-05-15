@@ -21,7 +21,7 @@ export default defineConfig({
       entry: resolve(__dirname, entry),
       name: target.replace(/-/gu, "_"),
       formats: ["iife"],
-      fileName: () => `${target}.js`,
+      fileName: () => `${target}-bundle.js`,
     },
   },
   define: {
