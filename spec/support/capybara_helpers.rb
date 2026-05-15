@@ -35,7 +35,7 @@ module CapybaraHelpers
     # mount (the #app div gets children) or for non-Inertia pages to load
     # their JS entry points.
     Timeout.timeout(Capybara.default_max_wait_time) do
-      loop until page.evaluate_script(<<~JS)
+      sleep 0.05 until page.evaluate_script(<<~JS)
         (function() {
           var app = document.getElementById('app');
           if (!app) return true;
