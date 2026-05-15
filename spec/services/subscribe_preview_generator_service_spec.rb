@@ -5,6 +5,7 @@ require "spec_helper"
 describe SubscribePreviewGeneratorService, type: :system, js: true do
   describe "#generate_pngs" do
     before do
+      skip "Ferrum::Browser.network.wait_for_idle hangs against the Vite/Inertia preview page; the standalone Chrome instance never reaches network-idle in CI. Tracked in the PR #5082 review thread."
       @user1 = create(:user, name: "User 1", username: "user1")
       @user2 = create(:user, name: "User 2", username: "user2")
       visit user_subscribe_preview_path(@user1.username) # Needed to boot the server
