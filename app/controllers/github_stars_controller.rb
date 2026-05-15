@@ -20,7 +20,8 @@ class GithubStarsController < ApplicationController
   def self.fetch_stars
     response = HTTParty.get(
       "https://api.github.com/repos/antiwork/gumroad",
-      headers: { "X-GitHub-Api-Version" => "2022-11-28" }
+      headers: { "X-GitHub-Api-Version" => "2022-11-28" },
+      timeout: 5
     )
 
     if response.success?
@@ -29,5 +30,8 @@ class GithubStarsController < ApplicationController
       Rails.logger.error("GitHub API request failed: status=#{response.code}, message=#{response.message}, body=#{response.body}")
       nil
     end
+  rescue HTTParty::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError, Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+    Rails.logger.error("GitHub API request failed: #{e.class}: #{e.message}")
+    nil
   end
 end
