@@ -404,7 +404,7 @@ describe("Discover - Filtering scenarios", js: true, type: :system) do
       visit "#{discover_host}/design/wallpapers?max_price=99999&min_price=9999&rating=4&sort=most_reviewed&filetypes=ftx&tags=never"
 
       fill_in "Search products", with: "product"
-      find_field("Search products").native.send_keys(:return)
+      find_field("Search products").send_keys(:return)
 
       expect_product_cards_with_names("product 5 (with tiers)")
     end
@@ -417,7 +417,7 @@ describe("Discover - Filtering scenarios", js: true, type: :system) do
       end
 
       fill_in "Search products", with: "product"
-      find_field("Search products").native.send_keys(:return)
+      find_field("Search products").send_keys(:return)
 
       expect_product_cards_with_names("product 0", "product 1", "product 2", "product 3", "product 4")
     end

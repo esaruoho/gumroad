@@ -326,11 +326,11 @@ describe("Library Scenario", type: :system, js: true) do
       visit("/library")
       search_field = find_field("Search products")
       search_field.fill_in with: "product B"
-      search_field.native.send_keys(:enter)
+      search_field.send_keys(:enter)
       expect(page).to have_product_card(count: 1)
       expect(page).to have_product_card(@b.link)
       search_field.set("product C")
-      search_field.native.send_keys(:enter)
+      search_field.send_keys(:enter)
       expect(page).to have_product_card(count: 1)
       expect(page).to have_product_card(@c.link)
     end
@@ -557,7 +557,7 @@ describe("Library Scenario", type: :system, js: true) do
 
         search_field = find_field("Search products")
         search_field.fill_in with: "Bundle"
-        search_field.native.send_keys(:enter)
+        search_field.send_keys(:enter)
 
         expect(page).to have_selector("[itemprop='name']", text: "Bundle", exact_text: true)
       end
@@ -589,7 +589,7 @@ describe("Library Scenario", type: :system, js: true) do
 
     search_field = find_field("Search products")
     search_field.fill_in with: "Audiobook 1"
-    search_field.native.send_keys(:enter)
+    search_field.send_keys(:enter)
     expect(page).to have_section("Audiobook 1")
     expect(page).to_not have_section("Course 1")
     expect(page).to_not have_section("Course 2")

@@ -174,7 +174,7 @@ describe("Product panel on creator profile - Sort/Filter", type: :system, js: tr
     uncheck "audio (2)"
     expect_product_cards_in_order([@e, @c, @a, @j, @i, @h, @g, @f])
     fill_in("Search products", with: "")
-    find_field("Search products").native.send_keys(:return)
+    find_field("Search products").send_keys(:return)
     sleep 2 # because there's an explicit delay in the javascript handler
     wait_for_ajax
     expect_product_cards_in_order([@e, @c, @a, @b, @j, @i, @h, @g, @f])

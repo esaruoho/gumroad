@@ -546,13 +546,13 @@ describe("File embeds in product content editor", type: :system, js: true) do
     select_tab "Content"
     editor = find("[aria-label='Content editor']")
     rich_text_editor_select_all editor
-    editor.native.send_keys(ctrl_key, "c")
+    editor.send_keys(ctrl_key, "c")
 
     visit edit_link_path(product2)
     select_tab "Content"
     editor = find("[aria-label='Content editor']")
     rich_text_editor_select_all editor
-    editor.native.send_keys(ctrl_key, "v")
+    editor.send_keys(ctrl_key, "v")
     sleep 0.5 # Wait for the editor to update the content
 
     expect(page).to have_text("Paragraph 1")

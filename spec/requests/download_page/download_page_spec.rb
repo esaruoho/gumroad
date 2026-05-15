@@ -764,13 +764,13 @@ describe("Download Page", type: :system, js: true) do
 
       short_answer_field = find_field("Short Answer")
       short_answer_field.fill_in with: "This is a short answer"
-      short_answer_field.native.send_keys(:tab)
+      short_answer_field.send_keys(:tab)
       wait_for_ajax
       expect(page).to have_alert(text: "Response saved!")
 
       long_answer_field = find_field("Long Answer")
       long_answer_field.fill_in with: "This is a longer answer with multiple sentences. It can contain more detailed information."
-      long_answer_field.native.send_keys(:tab)
+      long_answer_field.send_keys(:tab)
       wait_for_ajax
       expect(page).to have_alert(text: "Response saved!")
 
@@ -808,13 +808,13 @@ describe("Download Page", type: :system, js: true) do
 
       short_answer_field = find_field("Short Answer", with: "This is a short answer")
       short_answer_field.fill_in with: "Updated short answer"
-      short_answer_field.native.send_keys(:tab)
+      short_answer_field.send_keys(:tab)
       wait_for_ajax
       expect(page).to have_alert(text: "Response saved!")
 
       long_answer_field = find_field("Long Answer", with: "This is a longer answer with multiple sentences. It can contain more detailed information.")
       long_answer_field.fill_in with: "This is an updated longer answer. It now contains different information."
-      long_answer_field.native.send_keys(:tab)
+      long_answer_field.send_keys(:tab)
       wait_for_ajax
       expect(page).to have_alert(text: "Response saved!")
 

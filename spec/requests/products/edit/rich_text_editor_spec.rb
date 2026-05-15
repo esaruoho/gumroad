@@ -348,8 +348,8 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
     click_on "Add link"
 
     expect(page).to_not have_alert(text: "Please enter a valid URL.")
-    rich_text_editor_input.native.send_keys(:control, "e") # Move cursor to end of line
-    rich_text_editor_input.native.send_keys(:enter)
+    rich_text_editor_input.send_keys(:control, "e") # Move cursor to end of line
+    rich_text_editor_input.send_keys(:enter)
     click_on "Insert link"
     within_modal do
       fill_in "Enter text", with: "Valid link 2"
@@ -358,8 +358,8 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
     end
 
     expect(page).to_not have_alert(text: "Please enter a valid URL.")
-    rich_text_editor_input.native.send_keys(:control, "e") # Move cursor to end of line
-    rich_text_editor_input.native.send_keys(:enter)
+    rich_text_editor_input.send_keys(:control, "e") # Move cursor to end of line
+    rich_text_editor_input.send_keys(:enter)
     click_on "Insert link"
     within_modal do
       fill_in "Enter text", with: "Valid link 3"
@@ -457,7 +457,7 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
     expect(page).to have_selector("[aria-label='Redo last undone change']")
 
     rich_text_editor_input = find("[aria-label='Description']")
-    rich_text_editor_input.native.clear
+    rich_text_editor_input.set("")
 
     expect(rich_text_editor_input).to have_content("")
     expect(page).to have_selector("[aria-label='Undo last change']")
@@ -987,13 +987,13 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
 
       toggle_file_group("Folder 1")
       find_embed(name: "Second file").click
-      rich_text_editor_input.native.send_keys([ctrl_key, :arrow_down])
+      rich_text_editor_input.send_keys([ctrl_key, :arrow_down])
 
       find_embed(name: "First file").click
-      rich_text_editor_input.native.send_keys([ctrl_key, :arrow_down])
+      rich_text_editor_input.send_keys([ctrl_key, :arrow_down])
 
       find_embed(name: "Posts (emails) sent to customers of this product will appear here").click
-      rich_text_editor_input.native.send_keys([ctrl_key, :arrow_up], [ctrl_key, :arrow_up])
+      rich_text_editor_input.send_keys([ctrl_key, :arrow_up], [ctrl_key, :arrow_up])
 
       save_change
 

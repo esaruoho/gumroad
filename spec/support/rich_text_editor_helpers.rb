@@ -2,12 +2,12 @@
 
 module RichTextEditorHelpers
   def set_rich_text_editor_input(node, to_text:)
-    node.native.clear
+    node.set("")
     node.base.send_keys(to_text)
   end
 
   def rich_text_editor_select_all(node)
-    node.native.send_keys(ctrl_key, "a")
+    node.send_keys([ctrl_key, "a"])
   end
 
   def drag_file_embed_to(name:, to:)

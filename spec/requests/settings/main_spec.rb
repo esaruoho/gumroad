@@ -47,7 +47,7 @@ describe("Main Settings Scenario", type: :system, js: true) do
       click_on("Update settings")
 
       within_section "User details", section_element: :section do
-        validation_message = find_field("Email").native.attribute("validationMessage")
+        validation_message = find_field("Email").evaluate_script("this.validationMessage")
         expect(validation_message).to eq "Please fill out this field."
       end
     end
