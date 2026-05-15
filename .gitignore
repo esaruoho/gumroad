@@ -33,7 +33,7 @@
 /public/vite-test
 /vendor/bundle
 app/javascript/json_schemas
-app/javascript/utils/routes.*
+# app/javascript/utils/routes.* — now tracked (required by Vite auto-import at build time)
 docker/base/Gemfile*
 dump.rdb
 jhw*.html
