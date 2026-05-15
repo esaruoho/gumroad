@@ -65,11 +65,12 @@ RUN cd /tmp \
   ttf-wqy-zenhei \
   # update font cache to load installed fonts
   && fc-cache -f -v \
-  # wkhtmltopdf
+  # wkhtmltopdf + wkhtmltoimage
   && wget --quiet https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz -O mktemp.tar.xz \
   && tar xf mktemp.tar.xz \
   && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf \
-  && chmod +x /usr/local/bin/wkhtmltopdf \
+  && cp wkhtmltox/bin/wkhtmltoimage /usr/local/bin/wkhtmltoimage \
+  && chmod +x /usr/local/bin/wkhtmltopdf /usr/local/bin/wkhtmltoimage \
   && rm -rf mktemp.tar.xz wkhtmltox \
   # dumb-init
   && wget --quiet -O /usr/local/bin/dumb-init "https://github.com/Yelp/dumb-init/releases/download/v${DUMB_INIT_VERSION}/dumb-init_${DUMB_INIT_VERSION}_amd64" \

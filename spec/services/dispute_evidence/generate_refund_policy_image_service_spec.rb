@@ -2,41 +2,6 @@
 
 require "spec_helper"
 
-describe DisputeEvidence::GenerateRefundPolicyImageService do
-  describe "#calculate_height" do
-    let(:service) { described_class.new("https://example.com", mobile_purchase: false, open_fine_print_modal: false, max_size_allowed: 5_000_000) }
-    let(:browser) { instance_double(Ferrum::Browser) }
-    let(:document_height) { 1_000 }
-    let(:article_height) { 1_500 }
-
-    before do
-      allow(browser).to receive(:evaluate).with(/Math\.max/).and_return(document_height)
-    end
-
-    context "when the <article> element is mounted before the timeout" do
-      before do
-        allow(browser).to receive(:evaluate).with(/article.*!== null/).and_return(true)
-        allow(browser).to receive(:evaluate).with(/parentElement\?\.scrollHeight/).and_return(article_height)
-      end
-
-      it "returns the larger of the article and document heights" do
-        expect(service.send(:calculate_height, browser, open_fine_print_modal: false)).to eq(article_height)
-      end
-    end
-
-    context "when the <article> element never mounts" do
-      before do
-        allow(browser).to receive(:evaluate).with(/article.*!== null/).and_return(false)
-      end
-
-      it "falls back to the document height without raising" do
-        expect(service.send(:calculate_height, browser, open_fine_print_modal: false)).to eq(document_height)
-        expect(browser).not_to have_received(:evaluate).with(/parentElement/)
-      end
-    end
-  end
-end
-
 describe DisputeEvidence::GenerateRefundPolicyImageService, type: :system, js: true do
   let(:purchase) { create(:purchase) }
   let(:url) do
@@ -54,7 +19,6 @@ describe DisputeEvidence::GenerateRefundPolicyImageService, type: :system, js: t
 
   describe ".perform" do
     it "generates a JPG image" do
-      expect_any_instance_of(Ferrum::Browser).to receive(:quit)
       binary_data = described_class.perform(url:, mobile_purchase: false, open_fine_print_modal: false, max_size_allowed: 3_000_000.bytes)
       expect(binary_data).to start_with("\xFF\xD8".b)
       expect(binary_data).to end_with("\xFF\xD9".b)
@@ -62,7 +26,6 @@ describe DisputeEvidence::GenerateRefundPolicyImageService, type: :system, js: t
 
     context "when the image is too large" do
       it "raises an error" do
-        expect_any_instance_of(Ferrum::Browser).to receive(:quit)
         expect do
           described_class.perform(url:, mobile_purchase: false, open_fine_print_modal: false, max_size_allowed: 1_000.bytes)
         end.to raise_error(DisputeEvidence::GenerateRefundPolicyImageService::ImageTooLargeError)

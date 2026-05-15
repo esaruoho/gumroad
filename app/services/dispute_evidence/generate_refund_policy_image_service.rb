@@ -29,74 +29,21 @@ class DisputeEvidence::GenerateRefundPolicyImageService
   end
 
   private
-    BROWSER_OPTIONS = {
-      "headless" => nil,
-      "no-sandbox" => nil,
-      "disable-setuid-sandbox" => nil,
-      "disable-dev-shm-usage" => nil,
-      "user-data-dir" => "/tmp/chrome",
-      "disable-scrollbars" => nil,
-    }.freeze
-
     # Should match $breakpoints definitions from app/javascript/stylesheets/_definitions.scss
     BREAKPOINT_SM = 640
     BREAKPOINT_LG = 1024
 
     IMAGE_RESIZE_FACTOR = 2
     IMAGE_QUALITY = 80
-    ARTICLE_WAIT_TIMEOUT_SECONDS = 5
 
     attr_reader :url, :width, :open_fine_print_modal, :max_size_allowed
 
     def generate_screenshot
-      browser = Ferrum::Browser.new(
-        browser_options: BROWSER_OPTIONS,
-        window_size: [width, width],
-        process_timeout: 30,
-        timeout: 10,
-      )
-
-      browser.goto(url)
-      browser.network.wait_for_idle
-
-      height = calculate_height(browser, open_fine_print_modal:).to_i
-      height = [height, 1].max
-
-      browser.resize(width: width, height: height)
-      browser.screenshot(format: "png", encoding: :binary)
-    ensure
-      browser&.quit
-    end
-
-    def calculate_height(browser, open_fine_print_modal:)
-      document_height = browser.evaluate(js_max_height_dimension).to_i
-      if open_fine_print_modal
-        modal_height = browser.evaluate(%{ document.querySelector("dialog").scrollHeight }).to_i
-        [modal_height, document_height].max
-      else
-        begin
-          Timeout.timeout(ARTICLE_WAIT_TIMEOUT_SECONDS) do
-            sleep 0.05 until browser.evaluate(%{ document.querySelector("article") !== null })
-            sleep 0.1
-          end
-        rescue Timeout::Error
-          return document_height
-        end
-        content_height = browser.evaluate(%{ document.querySelector("article")?.parentElement?.scrollHeight ?? 0 }).to_i
-        [content_height, document_height].max
-      end
-    end
-
-    def js_max_height_dimension
-      %{
-        Math.max(
-          document.body.scrollHeight,
-          document.body.offsetHeight,
-          document.documentElement.clientHeight,
-          document.documentElement.scrollHeight,
-          document.documentElement.offsetHeight
-        )
-      }
+      kit = IMGKit.new(url, width: width, quality: 100, format: "png",
+                            "javascript-delay": 2000,
+                            "no-stop-slow-scripts": true,
+                            "enable-javascript": true)
+      kit.to_png
     end
 
     def optimize_image(binary_data)

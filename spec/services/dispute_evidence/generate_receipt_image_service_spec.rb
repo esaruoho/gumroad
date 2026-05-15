@@ -2,12 +2,11 @@
 
 require "spec_helper"
 
-describe DisputeEvidence::GenerateReceiptImageService, type: :system, js: true do
+describe DisputeEvidence::GenerateReceiptImageService do
   let(:purchase) { create(:purchase) }
 
   describe ".perform" do
     it "generates a JPG receipt image" do
-      expect_any_instance_of(Ferrum::Browser).to receive(:quit)
       binary_data = described_class.perform(purchase)
       expect(binary_data).to start_with("\xFF\xD8".b)
       expect(binary_data).to end_with("\xFF\xD9".b)
