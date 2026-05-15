@@ -1,5 +1,37 @@
 # frozen_string_literal: true
 
+USE_CUPRITE = ENV["USE_CUPRITE"] == "true"
+
+if USE_CUPRITE
+  require "capybara/cuprite"
+
+  cuprite_browser_options = {
+    "no-sandbox" => nil,
+    "disable-dev-shm-usage" => nil,
+    "disable-gpu" => nil,
+    "disable-setuid-sandbox" => nil,
+    "disable-site-isolation-trials" => nil,
+    "lang" => "en-US",
+  }
+
+  cuprite_driver_factory = lambda do |app, width:, height:, mobile: false|
+    Capybara::Cuprite::Driver.new(
+      app,
+      window_size: [width, height],
+      browser_options: cuprite_browser_options,
+      process_timeout: 30,
+      timeout: 25,
+      headless: true,
+      js_errors: false,
+      mobile: mobile,
+    )
+  end
+
+  Capybara.register_driver(:cuprite_chrome) { |app| cuprite_driver_factory.call(app, width: 1440, height: 900) }
+  Capybara.register_driver(:cuprite_tablet_chrome) { |app| cuprite_driver_factory.call(app, width: 800, height: 1024) }
+  Capybara.register_driver(:cuprite_mobile_chrome) { |app| cuprite_driver_factory.call(app, width: 375, height: 667, mobile: true) }
+end
+
 webdriver_client = Selenium::WebDriver::Remote::Http::Default.new(open_timeout: 120, read_timeout: 120)
 
 Capybara.register_driver :chrome do |app|
@@ -123,11 +155,19 @@ RSpec.configure do |config|
   end
 
   config.before(:each, type: :system, js: true) do
-    driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_chrome : :chrome
+    if USE_CUPRITE
+      driven_by :cuprite_chrome
+    else
+      driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_chrome : :chrome
+    end
   end
 
   config.before(:each, :mobile_view) do |example|
-    driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_mobile_chrome : :mobile_chrome
+    if USE_CUPRITE
+      driven_by :cuprite_mobile_chrome
+    else
+      driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_mobile_chrome : :mobile_chrome
+    end
   end
 
   config.before(:each, billy: true) do |example|
@@ -135,6 +175,10 @@ RSpec.configure do |config|
   end
 
   config.before(:each, :tablet_view) do |example|
-    driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_tablet_chrome : :tablet_chrome
+    if USE_CUPRITE
+      driven_by :cuprite_tablet_chrome
+    else
+      driven_by ENV["IN_DOCKER"] == "true" ? :docker_headless_tablet_chrome : :tablet_chrome
+    end
   end
 end

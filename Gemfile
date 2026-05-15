@@ -34,6 +34,8 @@ end
 
 group :test do
   gem "capybara", "~> 3.38"
+  gem "ci-queue", "~> 0.95", require: false
+  gem "cuprite", "~> 0.17", require: false
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.1"
   gem "rspec", "~> 3.12"
