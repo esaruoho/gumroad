@@ -5,11 +5,7 @@ module ApplicationHelper
     entry = ViteRuby.instance.manifest.resolve_entries(name, type: :typescript)
     options[:extname] = false if Rails::VERSION::MAJOR >= 7
     stylesheets = entry.fetch(:stylesheets, [])
-    if stylesheets.empty?
-      scripts = entry.fetch(:scripts, [])
-      return if scripts.empty?
-      return javascript_include_tag(*scripts, type: "module", **options)
-    end
+    return vite_stylesheet_tag("entrypoints/#{name}.scss", **options) if stylesheets.empty?
     stylesheet_link_tag(*stylesheets, **options)
   end
 
