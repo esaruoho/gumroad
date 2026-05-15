@@ -29,6 +29,20 @@ module CapybaraHelpers
     Timeout.timeout(Capybara.default_max_wait_time) do
       loop until page.evaluate_script("document.readyState") == "complete"
     end
+    # With Vite, JS is loaded via ESM (type="module") which is deferred —
+    # modules execute after DOMContentLoaded but may not have finished by
+    # the time readyState == "complete". Wait for the Inertia React app to
+    # mount (the #app div gets children) or for non-Inertia pages to load
+    # their JS entry points.
+    Timeout.timeout(Capybara.default_max_wait_time) do
+      loop until page.evaluate_script(<<~JS)
+        (function() {
+          var app = document.getElementById('app');
+          if (!app) return true;
+          return app.children.length > 0;
+        })()
+      JS
+    end
     wait_for_ajax
   end
 
