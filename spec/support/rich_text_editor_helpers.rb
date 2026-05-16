@@ -2,7 +2,10 @@
 
 module RichTextEditorHelpers
   def set_rich_text_editor_input(node, to_text:)
-    node.set("")
+    # Tiptap editors are contenteditable divs. Cuprite's Node#set("") on
+    # contenteditable calls Ferrum::Keyboard#type("") which raises ArgumentError
+    # for empty keys. Clear via select-all + backspace instead.
+    node.send_keys([ctrl_key, "a"], :backspace)
     node.base.send_keys(to_text)
   end
 

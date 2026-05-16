@@ -457,7 +457,7 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
     expect(page).to have_selector("[aria-label='Redo last undone change']")
 
     rich_text_editor_input = find("[aria-label='Description']")
-    rich_text_editor_input.set("")
+    rich_text_editor_input.send_keys([ctrl_key, "a"], :backspace)
 
     expect(rich_text_editor_input).to have_content("")
     expect(page).to have_selector("[aria-label='Undo last change']")
@@ -987,13 +987,13 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
 
       toggle_file_group("Folder 1")
       find_embed(name: "Second file").click
-      rich_text_editor_input.send_keys([ctrl_key, :arrow_down])
+      rich_text_editor_input.send_keys([ctrl_key, :down])
 
       find_embed(name: "First file").click
-      rich_text_editor_input.send_keys([ctrl_key, :arrow_down])
+      rich_text_editor_input.send_keys([ctrl_key, :down])
 
       find_embed(name: "Posts (emails) sent to customers of this product will appear here").click
-      rich_text_editor_input.send_keys([ctrl_key, :arrow_up], [ctrl_key, :arrow_up])
+      rich_text_editor_input.send_keys([ctrl_key, :up], [ctrl_key, :up])
 
       save_change
 

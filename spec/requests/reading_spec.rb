@@ -94,7 +94,7 @@ describe "Reading Scenario", type: :system, js: true do
       visit("/read/fake_url_redirect_id/fake_read_id")
       cookie_id = CGI.escape(@product.product_files.first.external_id)
       browser = Capybara.current_session.driver.browser
-      browser.cookies.remove(name: cookie_id)
+      page.driver.remove_cookie(cookie_id)
       browser.cookies.set(name: cookie_id, value: { location: 3, timestamp: Time.current }.to_json)
 
       expect_any_instance_of(SignedUrlHelper).to receive(:signed_download_url_for_s3_key_and_filename).and_return(@product.product_files.first.url)
@@ -118,7 +118,7 @@ describe "Reading Scenario", type: :system, js: true do
                                 product_file_id: @product.product_files.first.id, product_id: @product.id, location: 2)
         cookie_id = CGI.escape(@url_redirect.external_id)
         browser = Capybara.current_session.driver.browser
-        browser.cookies.remove(name: cookie_id)
+        page.driver.remove_cookie(cookie_id)
         browser.cookies.set(name: cookie_id, value: { location: 3, timestamp: }.to_json)
 
         expect_any_instance_of(SignedUrlHelper).to receive(:signed_download_url_for_s3_key_and_filename).and_return(@product.product_files.first.url)
@@ -133,7 +133,7 @@ describe "Reading Scenario", type: :system, js: true do
                                 product_file_id: @product.product_files.first.id, product_id: @product.id, location: 2)
         cookie_id = CGI.escape(@product.product_files.first.external_id)
         browser = Capybara.current_session.driver.browser
-        browser.cookies.remove(name: cookie_id)
+        page.driver.remove_cookie(cookie_id)
         browser.cookies.set(name: cookie_id, value: { location: 3, timestamp: timestamp + 1.second }.to_json)
 
         expect_any_instance_of(SignedUrlHelper).to receive(:signed_download_url_for_s3_key_and_filename).and_return(@product.product_files.first.url)
@@ -154,7 +154,7 @@ describe "Reading Scenario", type: :system, js: true do
       visit("/read/fake_url_redirect_id/fake_read_id")
       cookie_id = CGI.escape(@url_redirect.external_id)
       browser = Capybara.current_session.driver.browser
-      browser.cookies.remove(name: cookie_id)
+      page.driver.remove_cookie(cookie_id)
       browser.cookies.set(name: cookie_id, value: { location: 6, timestamp: Time.current }.to_json)
       expect_any_instance_of(SignedUrlHelper).to receive(:signed_download_url_for_s3_key_and_filename).and_return(@product.product_files.first.url)
       visit("/read/#{@url_redirect.token}/#{@product.product_files.first.external_id}")
