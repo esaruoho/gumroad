@@ -22,7 +22,7 @@ describe("Product Edit Integrations edit - Google Calendar", type: :system, js: 
     let(:email) { google_calendar_integration.email }
 
     context "with proxy" do
-      let(:host_with_port) { "127.0.0.1:31337" }
+      let(:host_with_port) { "#{ENV.fetch('APP_HOST', '127.0.0.1')}:#{Capybara.server_port}" }
 
       before do
         login_as seller

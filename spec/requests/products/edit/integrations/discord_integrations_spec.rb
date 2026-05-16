@@ -21,7 +21,7 @@ describe("Product Edit Integrations edit - Discord", type: :system, js: true) do
     let(:username) { discord_integration.username }
 
     context "with proxy" do
-      let(:host_with_port) { "127.0.0.1:31337" }
+      let(:host_with_port) { "#{ENV.fetch('APP_HOST', '127.0.0.1')}:#{Capybara.server_port}" }
 
       # Specs are failing on Buildkite when the shared context below replaces the seller login; they pass on local
       # The issue is related to using Puffing Billy as the specs within `without proxy` work with the shared context
