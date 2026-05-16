@@ -40,10 +40,10 @@ class CreatorAnalytics::CachingProxy
 
     ActiveRecord::Base.connection.cache do
       [:date, :state, :referral].each do |type|
-        Makara::Context.release_all
-        uncached_dates(dates, by: type).each do |date|
-          Makara::Context.release_all
-          fetch_data(date, by: type)
+        DatabaseRoleHelper.read_from_replica do
+          uncached_dates(dates, by: type).each do |date|
+            fetch_data(date, by: type)
+          end
         end
       end
     end

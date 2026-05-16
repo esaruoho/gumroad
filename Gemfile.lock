@@ -531,8 +531,6 @@ GEM
       net-imap
       net-pop
       net-smtp
-    makara (0.6.0.pre)
-      activerecord (>= 5.2.0)
     marcel (1.1.0)
     matrix (0.4.2)
     maxmind-db (1.2.0)
@@ -1190,7 +1188,6 @@ DEPENDENCIES
   knapsack_pro (~> 7.0)
   koala (~> 3.3)
   lograge (~> 0.12)
-  makara (= 0.6.0.pre)
   maxmind-geoip2 (~> 1.1)
   mime-types (~> 3.4)
   mini_magick (~> 4.12)

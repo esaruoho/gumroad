@@ -15,8 +15,9 @@ class SendPostBlastEmailsJob
 
     @filters = @post.audience_members_filter_params
     # The filter query can be expensive to run, it's better to run it on the replica DB.
-    Makara::Context.release_all
-    @members = AudienceMember.filter(seller_id: @post.seller_id, params: @filters, with_ids: true).select(:id, :email, :purchase_id, :follower_id, :affiliate_id).to_a
+    @members = DatabaseRoleHelper.read_from_replica do
+      AudienceMember.filter(seller_id: @post.seller_id, params: @filters, with_ids: true).select(:id, :email, :purchase_id, :follower_id, :affiliate_id).to_a
+    end
 
     # We will check each batch of emails to see if they were already messaged,
     # but we can already remove all of the ones we know have already been emailed, ahead of time (faster).
