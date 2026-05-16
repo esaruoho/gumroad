@@ -5,25 +5,14 @@ require "capybara/cuprite"
 # ── Remote Chrome detection ──────────────────────────────────────────
 # In Docker/CI, Chrome runs as a separate service (browserless/chrome)
 # accessible via CHROME_URL. Locally, Cuprite launches Chrome directly.
+# We trust the env var — no Socket probe, since DNS may not resolve yet
+# when this file loads during bundle exec startup.
 REMOTE_CHROME_URL = ENV["CHROME_URL"]
-REMOTE_CHROME_HOST, REMOTE_CHROME_PORT =
-  if REMOTE_CHROME_URL
+REMOTE_CHROME = !REMOTE_CHROME_URL.nil? && !REMOTE_CHROME_URL.empty?
+REMOTE_CHROME_HOST =
+  if REMOTE_CHROME
     require "uri"
-    uri = URI.parse(REMOTE_CHROME_URL)
-    [uri.host, uri.port]
-  end
-
-REMOTE_CHROME =
-  begin
-    if REMOTE_CHROME_URL.nil?
-      false
-    else
-      require "socket"
-      Socket.tcp(REMOTE_CHROME_HOST, REMOTE_CHROME_PORT, connect_timeout: 2).close
-      true
-    end
-  rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, SocketError
-    false
+    URI.parse(REMOTE_CHROME_URL).host
   end
 
 # ── Shared driver options ────────────────────────────────────────────
