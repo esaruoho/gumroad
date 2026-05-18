@@ -3,6 +3,8 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery
 
+  # test comment
+
   include LoggedInUser
   include PunditAuthorization
   include AffiliateQueryParams
