@@ -69,6 +69,7 @@ describe("Download Page", type: :system, js: true) do
     let(:product) { create(:product, active_integrations: [integration]) }
     let(:purchase) { create(:purchase, link: product) }
     let(:url_redirect) { create(:url_redirect, purchase:) }
+    let(:host_with_port) { "#{ENV.fetch('APP_HOST', '127.0.0.1')}:#{Capybara.server_port}" }
 
     describe "Join Discord" do
       it "shows the join discord button if integration is present on purchased product" do
@@ -86,7 +87,7 @@ describe("Download Page", type: :system, js: true) do
 
       it "adds customer to discord if oauth successful" do
         # TODO: Use the below commented out line instead, after removing the :custom_domain_download feature flag (curtiseinsmann)
-        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: UrlService.domain_with_protocol))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
         # stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: product.user.subdomain_with_protocol))
 
         WebMock.stub_request(:post, DISCORD_OAUTH_TOKEN_URL).
@@ -119,7 +120,7 @@ describe("Download Page", type: :system, js: true) do
 
       it "shows error if oauth fails while adding customer to discord" do
         # TODO: Use the below commented out line instead, after removing the :custom_domain_download feature flag (curtiseinsmann)
-        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(error: "error_message", host: UrlService.domain_with_protocol))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(error: "error_message", host: host_with_port))
         # stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(error: "error_message", host: product.user.subdomain_with_protocol))
 
         visit("/d/#{url_redirect.token}")
@@ -134,7 +135,7 @@ describe("Download Page", type: :system, js: true) do
 
       it "shows error if adding customer to discord fails" do
         # TODO: Use the below commented out line instead, after removing the :custom_domain_download feature flag (curtiseinsmann)
-        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: UrlService.domain_with_protocol))
+        stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: host_with_port))
         # stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize", redirect_to: oauth_redirect_integrations_discord_index_url(code: "test_code", host: product.user.subdomain_with_protocol))
 
         WebMock.stub_request(:post, DISCORD_OAUTH_TOKEN_URL).

@@ -30,7 +30,7 @@ class DisputeEvidence::GenerateRefundPolicyImageService
 
   private
     BROWSER_OPTIONS = {
-      "headless" => nil,
+      "headless" => "new",
       "no-sandbox" => nil,
       "disable-setuid-sandbox" => nil,
       "disable-dev-shm-usage" => nil,
@@ -50,6 +50,7 @@ class DisputeEvidence::GenerateRefundPolicyImageService
     def generate_screenshot
       browser = Ferrum::Browser.new(
         browser_options: BROWSER_OPTIONS,
+        headless: false,
         window_size: [width, width],
         process_timeout: 30,
         timeout: 10,
