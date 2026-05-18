@@ -44,7 +44,12 @@ configuration_by_env = {
     discover_domain: "test.gumroad.com:31337",
     api_domain: "api.test.gumroad.com:31337",
     third_party_analytics_domain: "analytics.test.gumroad.com",
-    valid_request_hosts: ["127.0.0.1", "app.test.gumroad.com", "test.gumroad.com"],
+    valid_request_hosts: [
+      "127.0.0.1",
+      "app.test.gumroad.com",
+      "test.gumroad.com",
+      ENV.fetch("APP_HOST", "test-app"),
+    ],
     valid_api_request_hosts: ["api.test.gumroad.com"],
     valid_discover_host: "test.gumroad.com",
     valid_cors_origins: ["help.test.gumroad.com", "customers.test.gumroad.com"],

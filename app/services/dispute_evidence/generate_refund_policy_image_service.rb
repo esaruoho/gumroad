@@ -85,15 +85,13 @@ class DisputeEvidence::GenerateRefundPolicyImageService
     end
 
     def js_max_height_dimension
-      %{
-        Math.max(
+      %{Math.max(
           document.body.scrollHeight,
           document.body.offsetHeight,
           document.documentElement.clientHeight,
           document.documentElement.scrollHeight,
-          document.documentElement.offsetHeight,
-        );
-      }
+          document.documentElement.offsetHeight
+        )}
     end
 
     def optimize_image(binary_data)
