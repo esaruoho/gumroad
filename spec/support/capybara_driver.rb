@@ -9,15 +9,10 @@ require "capybara/cuprite"
 # when this file loads during bundle exec startup.
 REMOTE_CHROME_URL = ENV["CHROME_URL"]
 REMOTE_CHROME = !REMOTE_CHROME_URL.nil? && !REMOTE_CHROME_URL.empty?
-REMOTE_CHROME_HOST =
-  if REMOTE_CHROME
-    require "uri"
-    URI.parse(REMOTE_CHROME_URL).host
-  end
 
 # ── Shared driver options ────────────────────────────────────────────
 CUPRITE_COMMON_OPTS = {
-  process_timeout: REMOTE_CHROME ? 30 : 30,
+  process_timeout: 30,
   timeout: REMOTE_CHROME ? 30 : 15,
   js_errors: true,
 }.tap do |opts|

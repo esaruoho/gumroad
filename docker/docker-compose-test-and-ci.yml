@@ -114,7 +114,7 @@ services:
           echo \"Error: '$$file' not found in fixtures directory\";
           exit 1;
         fi;
-      done < /fixture-files-public.txt; echo \\\"Fixture files copied successfully\\\"; exit 0; "
+      done < /fixture-files-public.txt; echo \"Fixture files copied successfully\"; exit 0; "
 
   chrome:
     image: browserless/chrome:latest
