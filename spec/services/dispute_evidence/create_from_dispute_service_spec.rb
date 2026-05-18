@@ -235,7 +235,7 @@ describe DisputeEvidence::CreateFromDisputeService, :vcr, :versioning do
 
     context "when the refund policy image generation raises an unexpected error" do
       let(:js_error) do
-        RuntimeError.new("wkhtmltoimage: Cannot read properties of null (reading 'parentElement')")
+        Ferrum::TimeoutError.new("timed out waiting for page render")
       end
 
       before do

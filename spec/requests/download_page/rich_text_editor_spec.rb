@@ -235,7 +235,7 @@ describe("Download Page – Rich Text Editor Content", type: :system, js: true) 
       product_rich_content.update!(title: "Page 1", position: 0, description: [{ "type" => "paragraph", "content" => [{ "type" => "text", "text" => "Page 1 content" }] }])
       page_2 = create(:rich_content, entity: @product, title: "Page 2", position: 1, description: [{ "type" => "paragraph", "content" => [{ "type" => "text", "text" => "Page 2 content" }] }])
 
-      cdp_id = page.driver.browser.command(
+      cdp_id = page.driver.browser.page.command(
         "Page.addScriptToEvaluateOnNewDocument",
         source: <<~JS
           window._messages = [];
@@ -303,7 +303,7 @@ describe("Download Page – Rich Text Editor Content", type: :system, js: true) 
       expect(page).to_not have_button("Next")
       expect(page).to_not have_button("Previous")
 
-      page.driver.browser.command("Page.removeScriptToEvaluateOnNewDocument", identifier: cdp_id)
+      page.driver.browser.page.command("Page.removeScriptToEvaluateOnNewDocument", identifier: cdp_id)
     end
 
     it "renders the customized download page for the purpose of embedding inside webview in the mobile apps" do

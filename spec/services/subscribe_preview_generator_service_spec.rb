@@ -5,7 +5,6 @@ require "spec_helper"
 describe SubscribePreviewGeneratorService, type: :system, js: true do
   describe "#generate_pngs" do
     before do
-      skip "Ferrum::Browser.network.wait_for_idle hangs against the Vite/Inertia preview page; the standalone Chrome instance never reaches network-idle in CI. Tracked in the PR #5082 review thread."
       @user1 = create(:user, name: "User 1", username: "user1")
       @user2 = create(:user, name: "User 2", username: "user2")
       visit user_subscribe_preview_path(@user1.username) # Needed to boot the server
@@ -28,14 +27,21 @@ describe SubscribePreviewGeneratorService, type: :system, js: true do
     end
 
     it "always quits the browser on success" do
-      expect_any_instance_of(Ferrum::Browser).to receive(:quit)
+      browser = instance_double(Ferrum::Browser)
+      allow(Ferrum::Browser).to receive(:new).and_return(browser)
+      allow(browser).to receive(:goto)
+      allow(browser).to receive(:screenshot).and_return("\x89PNG".b)
+      expect(browser).to receive(:quit)
       described_class.generate_pngs([@user1])
     end
 
     it "always quits the browser on error" do
-      error = "FAILURE"
-      expect_any_instance_of(Ferrum::Browser).to receive(:quit)
-      allow_any_instance_of(Ferrum::Browser).to receive(:screenshot).and_raise(error)
+      error = RuntimeError.new("FAILURE")
+      browser = instance_double(Ferrum::Browser)
+      allow(Ferrum::Browser).to receive(:new).and_return(browser)
+      allow(browser).to receive(:goto)
+      allow(browser).to receive(:screenshot).and_raise(error)
+      expect(browser).to receive(:quit)
       expect { described_class.generate_pngs([@user2]) }.to raise_error(error)
     end
   end

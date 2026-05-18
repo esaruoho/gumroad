@@ -20,7 +20,6 @@ CUPRITE_COMMON_OPTS = {
   process_timeout: REMOTE_CHROME ? 30 : 30,
   timeout: REMOTE_CHROME ? 30 : 15,
   js_errors: true,
-  inspector: !ENV["CI"],
 }.tap do |opts|
   if REMOTE_CHROME
     # Connect to remote Chrome service — no local browser launch needed.
@@ -63,13 +62,15 @@ end
 # ── Capybara server config for remote Chrome ─────────────────────────
 # When Chrome runs in a separate container, it needs to reach the test
 # server. Bind to 0.0.0.0 and set app_host to the container hostname.
-if REMOTE_CHROME
-  Capybara.server_host = "0.0.0.0"
-  Capybara.app_host = "http://#{ENV.fetch('APP_HOST', `hostname`.strip&.downcase || '0.0.0.0')}"
-end
-
 # ── RSpec hooks ──────────────────────────────────────────────────────
 RSpec.configure do |config|
+  config.before(:suite) do
+    if REMOTE_CHROME
+      Capybara.server_host = "0.0.0.0"
+      Capybara.app_host = "http://#{ENV.fetch("APP_HOST", "test-app")}:#{Capybara.server_port}"
+    end
+  end
+
   config.before(:each, type: :system) do
     driven_by :rack_test
   end
@@ -89,9 +90,7 @@ RSpec.configure do |config|
   # Filter Cuprite/Ferrum internals from backtraces
   config.filter_gems_from_backtrace("capybara", "cuprite", "ferrum")
 
-  # Reset network intercept state between examples (set by stub_external_redirect)
   config.after(:each, type: :system, js: true) do
-    @external_redirects = nil
-    @intercept_active = nil
+    clear_external_redirects if respond_to?(:clear_external_redirects)
   end
 end

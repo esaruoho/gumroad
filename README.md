@@ -124,9 +124,9 @@ We use [pdftk](https://www.pdflabs.com/tools/pdftk-server/) to stamp PDF files w
   - **Note:** pdftk may be blocked by Apple's firewall. If this happens, go to Settings > Privacy & Security and click "Open Anyways" to allow the installation.
 - For Linux: `sudo apt-get install pdftk`
 
-#### wkhtmltopdf
+#### wkhtmltopdf and wkhtmltoimage
 
-While generating invoices, to convert HTML to PDF, PDFKit expects [wkhtmltopdf](https://wkhtmltopdf.org/) to be installed on your system. [Download](https://wkhtmltopdf.org/downloads.html) and install the version 0.12.6 for your platform.
+While generating invoices and server-rendered images, PDFKit and IMGKit expect [wkhtmltopdf](https://wkhtmltopdf.org/) and wkhtmltoimage to be installed on your system. [Download](https://wkhtmltopdf.org/downloads.html) and install the version 0.12.6 for your platform.
 
 - **Note** similar to pdftk, this may also be blocked by Apple's firewall on MacOS. Follow a similar process as above.
 
@@ -241,7 +241,7 @@ RAILS_ENV=test bin/rails js:export  # generate JS constants for the test environ
 
 ### Integration tests
 
-Integration specs use Capybara with Selenium driving Chrome. Install Chrome from [google.com/chrome](https://www.google.com/chrome/).
+Integration specs use Capybara with Cuprite driving Chrome. Install Chrome from [google.com/chrome](https://www.google.com/chrome/).
 
 See [docs/testing.md](docs/testing.md) for details on preventing flaky specs, VCR cassettes, debugging widgets, and purchase testing with Stripe/PayPal.
 

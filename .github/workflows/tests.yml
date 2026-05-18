@@ -427,11 +427,13 @@ jobs:
           chmod 777 ./capybara-artifacts
           mkdir -p ./test-logs
           chmod 777 ./test-logs
+          chmod 777 ./spec/support/fixtures
 
           docker run --rm --entrypoint="" --network ${{ env.COMPOSE_PROJECT_NAME }}_default \
             --hostname test-app \
             -v "$(pwd)/capybara-artifacts:/app/tmp/capybara" \
             -v "$(pwd)/test-logs:/app/log" \
+            -v "$(pwd)/spec/support/fixtures:/app/spec/support/fixtures" \
             -e RUBY_YJIT_ENABLE \
             -e KNAPSACK_PRO_TEST_SUITE_TOKEN_RSPEC \
             -e KNAPSACK_PRO_CI_NODE_TOTAL \

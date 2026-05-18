@@ -136,7 +136,6 @@ end
 def browser_session_corrupted?(exception)
   return false unless exception
   return true if exception.is_a?(Ferrum::DeadBrowserError)
-  return true if exception.is_a?(Ferrum::BrowserError)
   return true if exception.is_a?(Ferrum::ProcessTimeoutError)
   return true if exception.is_a?(Errno::ECONNREFUSED)
   return true if exception.is_a?(NoMethodError) && exception.message.include?("unpack1")
@@ -257,14 +256,14 @@ RSpec.configure do |config|
     [
       Thread.new { prepare_mysql },
       Thread.new { ElasticsearchSetup.prepare_test_environment },
-      Thread.new {
+      Thread.new do
         routes_dir = Rails.root.join("app", "javascript", "utils")
         routes_file = routes_dir.join("routes.js")
         unless routes_file.exist?
           JsRoutes.generate!(routes_file)
           JsRoutes.definitions!(routes_dir.join("routes.d.ts"))
         end
-      }
+      end
     ].each(&:join)
 
     # Build Vite assets up front so :js system specs don't race autoBuild

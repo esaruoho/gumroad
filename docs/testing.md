@@ -45,7 +45,7 @@ $ bin/rspec spec/requests/dashboard_spec.rb:75
 
 ### Integration testing
 
-We use capybara with selenium (webdriver) for our integration specs.
+We use Capybara with Cuprite for our integration specs.
 
 - We add e2e (also called request) specs for new features.
   - They should cover at least the "happy path".
@@ -60,12 +60,12 @@ We use capybara with selenium (webdriver) for our integration specs.
   - ARIA attributes (might need to be added) for things that do not have a textual representation of their own
   - In case none of the above works, a class name selector might be used. Ideally, not a `js-*` one.
 - For clicks, `click_on "Text"` or, if that doesn't work, `find_and_click "selector", text: "Text"`, are preferred.
-- We prefer `fill_in "locator", with: "value"` or `find("locator").fill_in(with: "value")` over `x.native.send_keys("...")`.
+- We prefer `fill_in "locator", with: "value"` or `find("locator").fill_in(with: "value")` over driver-specific native APIs.
 - If there's an existing test that can be updated, that's preferred over a new test (which takes more lines of code and test suite running time)
 
 #### Google Chrome
 
-For integration specs, we use Chrome and [chromedriver](https://sites.google.com/chromium.org/driver/).
+For integration specs, we use Chrome. Cuprite talks to Chrome over CDP, so chromedriver is not required.
 
 For Linux:
 
@@ -122,15 +122,6 @@ RAILS_ENV=test bin/rails js:export
 
 The `bin/dev` script automatically generates JS constants for the development domain, so without this command the tests will try to navigate to that instead of the test domain.
 
-#### Cannot get chromedriver connection?
-
-If you're running an integration spec and it times out with this error:
-
-```text
-Selenium::WebDriver::Error::WebDriverError:
-       unable to obtain stable chromedriver connection in 60 seconds (127.0.0.1:7055)
-```
-
 #### Rack times out
 
 If you're running an integration spec and it times out with this error:
@@ -175,12 +166,12 @@ If your code change causes a spec to follow a **new HTTP code path** (e.g., remo
 
 ### Common scenarios
 
-| Scenario | What to do |
-|----------|------------|
-| Removed a guard clause (e.g., admin login block) | Test now reaches an API call it didn't before. Run locally to record new cassette. |
-| Changed API parameters | Old cassette won't match. Delete it, run locally to re-record. |
-| New test in an existing `:vcr` describe block | Just run locally. VCR auto-records. |
-| Test passes locally but fails in CI with VCR error | You forgot to commit the cassette file. |
+| Scenario                                           | What to do                                                                         |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Removed a guard clause (e.g., admin login block)   | Test now reaches an API call it didn't before. Run locally to record new cassette. |
+| Changed API parameters                             | Old cassette won't match. Delete it, run locally to re-record.                     |
+| New test in an existing `:vcr` describe block      | Just run locally. VCR auto-records.                                                |
+| Test passes locally but fails in CI with VCR error | You forgot to commit the cassette file.                                            |
 
 ## Previewing Emails
 

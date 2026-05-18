@@ -29,21 +29,70 @@ class DisputeEvidence::GenerateRefundPolicyImageService
   end
 
   private
-    # Should match $breakpoints definitions from app/javascript/stylesheets/_definitions.scss
+    BROWSER_OPTIONS = {
+      "headless" => nil,
+      "no-sandbox" => nil,
+      "disable-setuid-sandbox" => nil,
+      "disable-dev-shm-usage" => nil,
+      "user-data-dir" => "/tmp/chrome",
+      "disable-scrollbars" => nil,
+    }.freeze
+
     BREAKPOINT_SM = 640
     BREAKPOINT_LG = 1024
 
     IMAGE_RESIZE_FACTOR = 2
     IMAGE_QUALITY = 80
+    ARTICLE_WAIT_TIMEOUT_SECONDS = 5
 
     attr_reader :url, :width, :open_fine_print_modal, :max_size_allowed
 
     def generate_screenshot
-      kit = IMGKit.new(url, width: width, quality: 100, format: "png",
-                            "javascript-delay": 2000,
-                            "no-stop-slow-scripts": true,
-                            "enable-javascript": true)
-      kit.to_png
+      browser = Ferrum::Browser.new(
+        browser_options: BROWSER_OPTIONS,
+        window_size: [width, width],
+        process_timeout: 30,
+        timeout: 10,
+      )
+      browser.goto(url)
+      browser.resize(width: width, height: calculate_height(browser))
+      browser.screenshot(format: "png", encoding: :binary)
+    ensure
+      browser&.quit
+    end
+
+    def calculate_height(browser)
+      document_height = (browser.evaluate(js_max_height_dimension) || 0).to_i
+      if open_fine_print_modal
+        wait_for_selector(browser, "dialog")
+        modal_height = (browser.evaluate(%{(() => { const dialog = document.querySelector("dialog"); return dialog ? dialog.scrollHeight : 0; })()}) || 0).to_i
+        [modal_height, document_height].max
+      else
+        wait_for_selector(browser, "article")
+        content_height = (browser.evaluate(%{(() => { const article = document.querySelector("article"); return article?.parentElement ? article.parentElement.scrollHeight : 0; })()}) || 0).to_i
+        [content_height, document_height].max
+      end
+    end
+
+    def wait_for_selector(browser, selector)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + ARTICLE_WAIT_TIMEOUT_SECONDS
+      loop do
+        return if browser.evaluate(%{document.querySelector(#{selector.to_json}) !== null})
+        return if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        sleep 0.05
+      end
+    end
+
+    def js_max_height_dimension
+      %{
+        Math.max(
+          document.body.scrollHeight,
+          document.body.offsetHeight,
+          document.documentElement.clientHeight,
+          document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight,
+        );
+      }
     end
 
     def optimize_image(binary_data)

@@ -21,7 +21,7 @@ describe("Product edit multiple-preview Scenario", type: :system, js: true) do
     upload_image
     within "[role=tablist][aria-label='Product covers']" do
       img = first("img")
-      expect(img.style("max-width")).to eq("100%")
+      expect(img.style("max-width")["max-width"]).to eq("100%")
       find(:tab_button).hover
       expect(page).to have_selector("[aria-label='Remove cover']")
     end
@@ -35,7 +35,7 @@ describe("Product edit multiple-preview Scenario", type: :system, js: true) do
     click_on "Upload"
     within "[role=tablist][aria-label='Product covers']" do
       img = first("img")
-      expect(img.style("max-width")).to eq("100%")
+      expect(img.style("max-width")["max-width"]).to eq("100%")
       find(:tab_button).hover
       expect(page).to have_selector("[aria-label='Remove cover']")
     end

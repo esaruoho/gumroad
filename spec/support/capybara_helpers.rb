@@ -125,38 +125,30 @@ module CapybaraHelpers
     wait_for_ajax
   end
 
-  # Intercepts browser navigation to an external URL and responds with a 302
-  # redirect to a local callback URL. Replaces Puffing Billy's proxy.stub()
-  # for OAuth redirect testing with Cuprite's built-in CDP interception.
+  # Rewrites OAuth popup URLs to local callback URLs. Replaces Puffing Billy's
+  # proxy.stub() for OAuth redirect testing without binding a CDP network
+  # interceptor to only one browser target.
   #
   # Usage:
   #   stub_external_redirect("https://www.discord.com:443/api/oauth2/authorize",
   #                          redirect_to: oauth_redirect_url(code: "test_code"))
   #   visit(page_url)
-  #   click_on "Connect to Discord"  # browser navigates to Discord, gets redirected locally
+  #   click_on "Connect to Discord"  # popup opens the local redirect URL
   def stub_external_redirect(url, redirect_to:)
     @external_redirects ||= {}
-    # Normalize: strip default HTTPS port for matching
-    normalized = url.gsub(":443", "")
-    @external_redirects[normalized] = redirect_to
+    @external_redirects[normalize_external_redirect_url(url)] = redirect_to
+    install_external_redirect_script
+  end
 
-    return if @intercept_active
-
-    page.driver.browser.network.intercept
-    page.driver.browser.on(:request) do |request|
-      normalized_request_url = request.url.gsub(":443", "")
-      match = @external_redirects&.find { |pattern, _| normalized_request_url.start_with?(pattern) }
-      if match
-        request.respond(
-          responseCode: 302,
-          responseHeaders: { "location" => match.last },
-          body: ""
-        )
-      else
-        request.continue
-      end
+  def clear_external_redirects
+    Array(@external_redirect_script_ids).each do |identifier|
+      page.driver.browser.page.command("Page.removeScriptToEvaluateOnNewDocument", identifier:)
+    rescue StandardError
+      nil
     end
-    @intercept_active = true
+    @external_redirects = nil
+    @external_redirect_script_ids = nil
+    @external_redirect_script_fingerprint = nil
   end
 
   def with_throttled_network(fixture_file, factor: 4)
@@ -177,5 +169,53 @@ module CapybaraHelpers
       page.execute_script(DISABLE_ANIMATIONS_JS)
     rescue StandardError
       nil
+    end
+
+    def install_external_redirect_script
+      redirects = @external_redirects.to_a
+      fingerprint = redirects.to_json
+      return if @external_redirect_script_fingerprint == fingerprint
+
+      Array(@external_redirect_script_ids).each do |identifier|
+        page.driver.browser.page.command("Page.removeScriptToEvaluateOnNewDocument", identifier:)
+      rescue StandardError
+        nil
+      end
+      @external_redirect_script_ids = []
+
+      script = <<~JS
+        (() => {
+          window.__externalRedirects = #{fingerprint};
+          window.__originalOpen = window.__originalOpen || window.open;
+          window.open = function(url, target, features) {
+            const normalizeUrl = (value) => {
+              try {
+                const parsed = new URL(value, window.location.href);
+                if (parsed.protocol === "https:" && parsed.port === "443") parsed.port = "";
+                return parsed.href;
+              } catch {
+                return String(value).replace(":443", "");
+              }
+            };
+            const normalizedUrl = normalizeUrl(url);
+            const redirect = window.__externalRedirects.find(([pattern]) => normalizedUrl.startsWith(pattern));
+            return window.__originalOpen.call(window, redirect ? redirect[1] : url, target, features);
+          };
+        })();
+      JS
+
+      result = page.driver.browser.page.command("Page.addScriptToEvaluateOnNewDocument", source: script)
+      @external_redirect_script_ids ||= []
+      @external_redirect_script_ids << result.fetch("identifier")
+      @external_redirect_script_fingerprint = fingerprint
+      begin
+        page.execute_script(script)
+      rescue StandardError
+        nil
+      end
+    end
+
+    def normalize_external_redirect_url(url)
+      url.gsub(":443", "")
     end
 end

@@ -14,6 +14,7 @@ class SubscribePreviewGeneratorService
     "disable-dev-shm-usage" => nil,
     "user-data-dir" => "/tmp/chrome",
   }.freeze
+  SCREENSHOT_AREA = { x: 0, y: 0, width: WIDTH, height: HEIGHT }.freeze
 
   def self.generate_pngs(users)
     browser = Ferrum::Browser.new(
@@ -29,8 +30,7 @@ class SubscribePreviewGeneratorService
         protocol: PROTOCOL,
       )
       browser.goto(url)
-      browser.network.wait_for_idle
-      browser.screenshot(format: "png", encoding: :binary)
+      browser.screenshot(format: "png", encoding: :binary, area: SCREENSHOT_AREA.dup)
     end
   ensure
     browser&.quit
