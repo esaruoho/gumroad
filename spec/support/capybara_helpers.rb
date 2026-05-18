@@ -33,7 +33,7 @@ module CapybaraHelpers
   JS
 
   def visit(url)
-    page.visit(url)
+    page.visit(remote_chrome_url(url))
     return if Capybara.current_driver == :rack_test
     Timeout.timeout(Capybara.default_max_wait_time) do
       loop do
@@ -169,6 +169,27 @@ module CapybaraHelpers
       page.execute_script(DISABLE_ANIMATIONS_JS)
     rescue StandardError
       nil
+    end
+
+    def remote_chrome_url(url)
+      return url unless defined?(REMOTE_CHROME) && REMOTE_CHROME
+      return url unless url.is_a?(String)
+
+      parsed_url = URI.parse(url)
+      return url unless parsed_url.absolute? && gumroad_test_host?(parsed_url.host)
+
+      parsed_url.host = ENV.fetch("APP_HOST", "127.0.0.1")
+      parsed_url.port = Capybara.server_port
+      parsed_url.to_s
+    rescue URI::InvalidURIError
+      url
+    end
+
+    def gumroad_test_host?(host)
+      return false if host.blank?
+
+      root_domain = URI.parse("#{PROTOCOL}://#{ROOT_DOMAIN}").host
+      host == URI.parse(Capybara.app_host).host || host == root_domain || host.end_with?(".#{root_domain}")
     end
 
     def install_external_redirect_script

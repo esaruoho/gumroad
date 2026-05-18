@@ -6,7 +6,7 @@ module RichTextEditorHelpers
     # contenteditable calls Ferrum::Keyboard#type("") which raises ArgumentError
     # for empty keys. Clear via select-all + backspace instead.
     node.send_keys([ctrl_key, "a"], :backspace)
-    node.base.send_keys(to_text)
+    node.base.send_keys(to_text) unless to_text.empty?
   end
 
   def rich_text_editor_select_all(node)
@@ -48,6 +48,6 @@ module RichTextEditorHelpers
   end
 
   def ctrl_key
-    RbConfig::CONFIG["host_os"] =~ /darwin/ ? :command : :control
+    RbConfig::CONFIG["host_os"].include?("darwin") ? :command : :control
   end
 end
