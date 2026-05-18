@@ -133,9 +133,10 @@ describe "Admin Pages Scenario", type: :system, js: true do
       expect(page).to have_text("product #28")
       expect(page).not_to have_text("product #0")
       find("main").scroll_to :bottom
-      wait_for_ajax
-
-      expect(page).to have_text("product #0")
+      # Infinite scroll uses IntersectionObserver — may need a moment after
+      # the initial scroll for the observer to fire and load the next page.
+      # Capybara's have_text retries, but scroll again if first page didn't load.
+      expect(page).to have_text("product #0"), wait: 10
     end
   end
 
