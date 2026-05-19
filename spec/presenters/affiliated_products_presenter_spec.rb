@@ -550,4 +550,23 @@ describe AffiliatedProductsPresenter do
       expect(described_class.new(seller).affiliated_products_page_props[:archived_tab_visible]).to eq(false)
     end
   end
+
+  describe "#affiliated_products_page_props when the seller archives an affiliated product" do
+    let(:seller) { create(:user) }
+    let(:affiliate_user) { create(:affiliate_user) }
+    let!(:active_product) { create(:product, name: "Active Product", user: seller) }
+    let!(:archived_product) { create(:product, name: "Archived Product", user: seller, archived: true) }
+    let!(:direct_affiliate) do
+      affiliate = create(:direct_affiliate, affiliate_user:, seller:, affiliate_basis_points: 10_00, apply_to_all_products: true)
+      create(:product_affiliate, affiliate:, product: active_product, affiliate_basis_points: 10_00)
+      create(:product_affiliate, affiliate:, product: archived_product, affiliate_basis_points: 10_00)
+      affiliate
+    end
+
+    it "excludes archived products from the affiliated products list" do
+      props = described_class.new(affiliate_user).affiliated_products_page_props
+      product_names = props[:affiliated_products].map { _1[:product_name] }
+      expect(product_names).to contain_exactly("Active Product")
+    end
+  end
 end

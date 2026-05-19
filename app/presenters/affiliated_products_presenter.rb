@@ -109,6 +109,7 @@ class AffiliatedProductsPresenter
         joins(:affiliate).
         where(affiliate_id: Affiliate.direct_or_global_affiliates.alive.where(affiliate_user_id: user.id).pluck(:id)).
         where(links: { deleted_at: nil, banned_at: nil }).
+        merge(Link.not_archived).
         select(select_columns).
         group(group_by).
         order(order_by)
