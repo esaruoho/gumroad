@@ -335,6 +335,7 @@ jobs:
 
           docker run --rm --entrypoint="" --network ${{ env.COMPOSE_PROJECT_NAME }}_default \
             --hostname test-app \
+            --network-alias test-app \
             -v "$(pwd)/capybara-artifacts:/app/tmp/capybara" \
             -v "$(pwd)/test-logs:/app/log" \
             -v "$(pwd)/spec/support/fixtures:/app/spec/support/fixtures" \
@@ -527,6 +528,7 @@ jobs:
 
           docker run --rm --entrypoint="" --network ${{ env.COMPOSE_PROJECT_NAME }}_default \
             --hostname test-app \
+            --network-alias test-app \
             -v "$(pwd)/capybara-artifacts:/app/tmp/capybara" \
             -v "$(pwd)/test-logs:/app/log" \
             -v "$(pwd)/spec/support/fixtures:/app/spec/support/fixtures" \
