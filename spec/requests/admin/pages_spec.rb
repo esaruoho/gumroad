@@ -134,11 +134,11 @@ describe "Admin Pages Scenario", type: :system, js: true do
       expect(page).not_to have_text("product #0")
       # IntersectionObserver needs time to fire after scroll, then AJAX
       # loads the next page. Scroll multiple times — CI runners can be slow.
-      3.times do
+      5.times do
         find("main").scroll_to :bottom
         break if page.has_text?("product #0", wait: 5)
       end
-      expect(page).to have_text("product #0", wait: 15)
+      expect(page).to have_text("product #0", wait: 20)
     end
   end
 
