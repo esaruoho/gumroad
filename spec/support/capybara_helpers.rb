@@ -207,6 +207,15 @@ module CapybaraHelpers
       return unless defined?(REMOTE_CHROME) && REMOTE_CHROME
       return unless page.driver.respond_to?(:headers)
 
+      update_remote_chrome_forwarded_host(forwarded_host)
+    rescue StandardError => e
+      raise unless browser_session_corrupted?(e)
+
+      force_browser_restart!
+      update_remote_chrome_forwarded_host(forwarded_host)
+    end
+
+    def update_remote_chrome_forwarded_host(forwarded_host)
       headers = page.driver.headers.dup
       if forwarded_host
         headers["X-Forwarded-Host"] = forwarded_host
