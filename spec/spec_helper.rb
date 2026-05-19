@@ -122,6 +122,15 @@ end
 DB_CORRUPTION_PATTERN = /SAVEPOINT.*does not exist|Lost connection|gone away/i
 BROWSER_CORRUPTION_PATTERN = /unpack1|no such window|invalid session id|failed to find (?:browser )?context/i
 
+def exception_tree(exception)
+  return [] unless exception
+
+  exceptions = [exception]
+  exceptions.concat(exception.all_exceptions) if exception.respond_to?(:all_exceptions)
+  exceptions.concat(exception_tree(exception.cause)) if exception.cause
+  exceptions.compact.uniq
+end
+
 def reset_db_connection(example)
   return unless example.exception&.message&.match?(DB_CORRUPTION_PATTERN)
 
@@ -134,15 +143,13 @@ rescue StandardError => e
 end
 
 def browser_session_corrupted?(exception)
-  return false unless exception
-  return true if exception.is_a?(Ferrum::DeadBrowserError)
-  return true if exception.is_a?(Ferrum::ProcessTimeoutError)
-  return true if exception.is_a?(Errno::ECONNREFUSED)
-  return true if exception.is_a?(NoMethodError) && exception.message.include?("unpack1")
-
-  msg = exception.message
-  msg = "#{msg} #{exception.cause.message}" if exception.cause
-  msg.match?(BROWSER_CORRUPTION_PATTERN)
+  exception_tree(exception).any? do |error|
+    error.is_a?(Ferrum::DeadBrowserError) ||
+      error.is_a?(Ferrum::ProcessTimeoutError) ||
+      error.is_a?(Errno::ECONNREFUSED) ||
+      (error.is_a?(NoMethodError) && error.message.include?("unpack1")) ||
+      error.message.match?(BROWSER_CORRUPTION_PATTERN)
+  end
 end
 
 def force_browser_restart!
@@ -150,9 +157,14 @@ def force_browser_restart!
   return unless driver.is_a?(Capybara::Cuprite::Driver)
 
   begin
-    Capybara.current_session.driver.quit
+    driver.restart
   rescue StandardError
-    nil
+    begin
+      driver.quit
+    rescue StandardError
+      nil
+    end
+    driver.remove_instance_variable(:@browser) if driver.instance_variable_defined?(:@browser)
   end
   Capybara.reset_sessions!
 rescue StandardError => e
