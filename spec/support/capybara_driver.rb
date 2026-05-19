@@ -20,7 +20,6 @@ CUPRITE_COMMON_OPTS = {
     # Connect to remote Chrome service — no local browser launch needed.
     # browserless/chrome handles its own headless mode.
     opts[:url] = REMOTE_CHROME_URL
-    opts[:browser_options] = { "no-sandbox" => nil }
   else
     # Local development — launch Chrome directly.
     # Chrome 125's old --headless doesn't output DevTools WS URL.
