@@ -33,7 +33,9 @@ module CapybaraHelpers
   JS
 
   def visit(url)
-    page.visit(remote_chrome_url(url))
+    url, forwarded_host = remote_chrome_url_and_forwarded_host(url)
+    set_remote_chrome_forwarded_host(forwarded_host)
+    page.visit(url)
     return if Capybara.current_driver == :rack_test
     Timeout.timeout(Capybara.default_max_wait_time) do
       loop do
@@ -171,18 +173,33 @@ module CapybaraHelpers
       nil
     end
 
-    def remote_chrome_url(url)
-      return url unless defined?(REMOTE_CHROME) && REMOTE_CHROME
-      return url unless url.is_a?(String)
+    def remote_chrome_url_and_forwarded_host(url)
+      return [url, nil] unless defined?(REMOTE_CHROME) && REMOTE_CHROME
+      return [url, nil] unless url.is_a?(String)
 
       parsed_url = URI.parse(url)
-      return url unless parsed_url.absolute? && gumroad_test_host?(parsed_url.host)
+      return [url, nil] unless parsed_url.absolute? && gumroad_test_host?(parsed_url.host)
 
+      forwarded_host = parsed_url.host
+      forwarded_host = "#{forwarded_host}:#{parsed_url.port}" unless [nil, parsed_url.default_port].include?(parsed_url.port)
       parsed_url.host = ENV.fetch("APP_HOST", "127.0.0.1")
       parsed_url.port = Capybara.server_port
-      parsed_url.to_s
+      [parsed_url.to_s, forwarded_host]
     rescue URI::InvalidURIError
-      url
+      [url, nil]
+    end
+
+    def set_remote_chrome_forwarded_host(forwarded_host)
+      return unless defined?(REMOTE_CHROME) && REMOTE_CHROME
+      return unless page.driver.respond_to?(:headers)
+
+      headers = page.driver.headers.dup
+      if forwarded_host
+        headers["X-Forwarded-Host"] = forwarded_host
+      else
+        headers.delete("X-Forwarded-Host")
+      end
+      page.driver.headers = headers
     end
 
     def gumroad_test_host?(host)
