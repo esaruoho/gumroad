@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copies BlockedObject documents from Mongo to the MySQL `blocked_objects` table.
+# Copies BlockedObject documents from Mongo to the MySQL `platform_blocks` table.
 #
 # The app keeps reading/writing Mongo while this runs. Re-run with the
 # `updated_at` watermark from the previous run to pick up changes; the upsert
@@ -8,10 +8,10 @@
 #
 # Expired records (expires_at <= now) are skipped.
 #
-#   Onetime::SyncBlockedObjectsToMysql.process
-#   Onetime::SyncBlockedObjectsToMysql.process(since: Time.parse("2026-05-19 12:00:00 UTC"))
+#   Onetime::SyncPlatformBlocksFromMongo.process
+#   Onetime::SyncPlatformBlocksFromMongo.process(since: Time.parse("2026-05-19 12:00:00 UTC"))
 module Onetime
-  class SyncBlockedObjectsToMysql
+  class SyncPlatformBlocksFromMongo
     BATCH_SIZE = 2_000
 
     def self.process(since: nil, batch_size: BATCH_SIZE)
@@ -41,11 +41,11 @@ module Onetime
         upsert_batch(batch)
         total += batch.size
         last_updated_at = batch.last.updated_at
-        puts "BlockedObject sync: #{total} upserted (last updated_at: #{last_updated_at.iso8601(6)})"
+        puts "PlatformBlock sync: #{total} upserted (last updated_at: #{last_updated_at.iso8601(6)})"
       end
 
       puts "Done. Upserted #{total} records. To resume from this point: " \
-           "Onetime::SyncBlockedObjectsToMysql.process(since: Time.parse(\"#{last_updated_at&.iso8601(6)}\"))"
+           "Onetime::SyncPlatformBlocksFromMongo.process(since: Time.parse(\"#{last_updated_at&.iso8601(6)}\"))"
       last_updated_at
     end
 
@@ -69,7 +69,7 @@ module Onetime
         # `unique_by:` isn't supported by the Makara MySQL adapter, but MySQL's
         # ON DUPLICATE KEY UPDATE triggers on any unique-index conflict, so the
         # (object_type, object_value) unique index handles dedup either way.
-        BlockedObjectRecord.upsert_all(
+        PlatformBlock.upsert_all(
           rows,
           update_only: %i[blocked_at expires_at blocked_by updated_at]
         )

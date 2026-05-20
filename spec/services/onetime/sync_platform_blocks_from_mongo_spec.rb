@@ -2,8 +2,8 @@
 
 require "spec_helper"
 
-describe Onetime::SyncBlockedObjectsToMysql do
-  before { BlockedObjectRecord.delete_all }
+describe Onetime::SyncPlatformBlocksFromMongo do
+  before { PlatformBlock.delete_all }
 
   def silence_stdout
     original = $stdout
@@ -36,7 +36,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
       silence_stdout { described_class.process }
 
-      row = BlockedObjectRecord.find_by!(object_type: BLOCKED_OBJECT_TYPES[:email], object_value: "blocked@example.com")
+      row = PlatformBlock.find_by!(object_type: BLOCKED_OBJECT_TYPES[:email], object_value: "blocked@example.com")
       expect(row.blocked_at).to be_within(1.second).of(blocked_at)
       expect(row.expires_at).to be_within(1.second).of(expires_at)
       expect(row.blocked_by).to eq(42)
@@ -62,7 +62,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
       silence_stdout { described_class.process }
 
-      expect(BlockedObjectRecord.pluck(:object_value)).to contain_exactly("active@example.com")
+      expect(PlatformBlock.pluck(:object_value)).to contain_exactly("active@example.com")
     end
 
     it "imports records with no expires_at (permanent blocks)" do
@@ -76,7 +76,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
       silence_stdout { described_class.process }
 
-      row = BlockedObjectRecord.find_by!(object_value: "example.org")
+      row = PlatformBlock.find_by!(object_value: "example.org")
       expect(row.expires_at).to be_nil
     end
 
@@ -92,7 +92,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
       silence_stdout { described_class.process }
 
-      row = BlockedObjectRecord.find_by!(object_value: "tombstone@example.com")
+      row = PlatformBlock.find_by!(object_value: "tombstone@example.com")
       expect(row.blocked_at).to be_nil
       expect(row.expires_at).to be_nil
     end
@@ -126,7 +126,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
         silence_stdout { described_class.process }
         silence_stdout { described_class.process }
 
-        expect(BlockedObjectRecord.where(object_value: "idempotent@example.com").count).to eq(1)
+        expect(PlatformBlock.where(object_value: "idempotent@example.com").count).to eq(1)
       end
 
       it "does not overwrite created_at on existing rows" do
@@ -138,10 +138,10 @@ describe Onetime::SyncBlockedObjectsToMysql do
         )
 
         silence_stdout { described_class.process }
-        original_created_at = BlockedObjectRecord.find_by!(object_value: "preserve-created@example.com").created_at
+        original_created_at = PlatformBlock.find_by!(object_value: "preserve-created@example.com").created_at
 
         silence_stdout { described_class.process }
-        expect(BlockedObjectRecord.find_by!(object_value: "preserve-created@example.com").created_at)
+        expect(PlatformBlock.find_by!(object_value: "preserve-created@example.com").created_at)
           .to eq(original_created_at)
       end
 
@@ -160,7 +160,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
         silence_stdout { described_class.process }
 
-        row = BlockedObjectRecord.find_by!(object_value: "mutating@example.com")
+        row = PlatformBlock.find_by!(object_value: "mutating@example.com")
         expect(row.blocked_by).to eq(99)
         expect(row.expires_at).to be_within(1.second).of(2.hours.from_now)
       end
@@ -178,7 +178,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
         silence_stdout { described_class.process }
 
-        row = BlockedObjectRecord.find_by!(object_value: "to-unblock@example.com")
+        row = PlatformBlock.find_by!(object_value: "to-unblock@example.com")
         expect(row.blocked_at).to be_nil
         expect(row.expires_at).to be_nil
       end
@@ -186,10 +186,8 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
     context "with a since: watermark" do
       it "syncs only records updated at or after the watermark" do
-        older = nil
-        newer = nil
         travel_to 3.hours.ago do
-          older = BlockedObject.create!(
+          BlockedObject.create!(
             object_type: BLOCKED_OBJECT_TYPES[:email],
             object_value: "older@example.com",
             blocked_at: Time.current,
@@ -197,7 +195,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
           )
         end
         travel_to 1.hour.ago do
-          newer = BlockedObject.create!(
+          BlockedObject.create!(
             object_type: BLOCKED_OBJECT_TYPES[:email],
             object_value: "newer@example.com",
             blocked_at: Time.current,
@@ -207,7 +205,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
         silence_stdout { described_class.process(since: 2.hours.ago) }
 
-        expect(BlockedObjectRecord.pluck(:object_value)).to contain_exactly("newer@example.com")
+        expect(PlatformBlock.pluck(:object_value)).to contain_exactly("newer@example.com")
       end
 
       it "re-syncs the boundary record (>= semantics, not >)" do
@@ -223,7 +221,7 @@ describe Onetime::SyncBlockedObjectsToMysql do
         # sharing the same microsecond updated_at.
         silence_stdout { described_class.process(since: boundary.updated_at) }
 
-        expect(BlockedObjectRecord.find_by(object_value: "boundary@example.com")).to be_present
+        expect(PlatformBlock.find_by(object_value: "boundary@example.com")).to be_present
       end
     end
 
@@ -239,9 +237,9 @@ describe Onetime::SyncBlockedObjectsToMysql do
 
       output = capture_stdout { described_class.process(batch_size: 2) }
 
-      expect(BlockedObjectRecord.where("object_value LIKE 'batched-%'").count).to eq(5)
+      expect(PlatformBlock.where("object_value LIKE 'batched-%'").count).to eq(5)
       # 3 batches of size 2, 2, 1 → cumulative log lines printed
-      expect(output.scan(/BlockedObject sync:/).size).to eq(3)
+      expect(output.scan(/PlatformBlock sync:/).size).to eq(3)
     end
   end
 end
