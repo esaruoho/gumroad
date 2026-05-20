@@ -132,15 +132,14 @@ describe "Admin Pages Scenario", type: :system, js: true do
       expect(page).to have_text("product #29")
       expect(page).to have_text("product #28")
       expect(page).not_to have_text("product #0")
-      # IntersectionObserver needs the sentinel to enter the viewport.
-      # Use window.scrollTo to ensure the full page scrolls, not just an
-      # element's overflow. Repeat — CI runners can be slow to fire the
-      # observer callback and complete the AJAX fetch.
-      5.times do
-        page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-        break if page.has_text?("product #0", wait: 5)
-      end
-      expect(page).to have_text("product #0", wait: 20)
+      # Scroll the WhenVisible sentinel (renders a LoadingSpinner with
+      # role="progressbar") directly into view so the IntersectionObserver
+      # fires reliably — window.scrollTo(0, document.body.scrollHeight) is
+      # racy because scrollHeight can be stale on slow CI runners.
+      page.execute_script(<<~JS)
+        document.querySelector('[role="progressbar"]')?.scrollIntoView({ block: 'center' });
+      JS
+      expect(page).to have_text("product #0", wait: 30)
     end
   end
 
