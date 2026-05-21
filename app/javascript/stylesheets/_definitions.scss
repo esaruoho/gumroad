@@ -140,7 +140,7 @@ $z-indices: (
   @return rgb(var(--#{$name}));
 }
 
-@function box-shadow($index, $color: full-color(color)) {
+@function box-shadow($index, $color: rgb(0 0 0)) {
   @return nth($box-shadows, $index) $color;
 }
 
@@ -163,7 +163,7 @@ $light-body-bg: #f4f4f0 !default;
     --border-radius-#{$i}: #{nth($border-radii, $i)};
   }
   @for $i from 1 through length($box-shadows) {
-    --box-shadow-#{$i}: #{nth($box-shadows, $i)} var(--color);
+    --box-shadow-#{$i}: #{nth($box-shadows, $i)} rgb(0 0 0);
   }
   @each $name, $z-index in $z-indices {
     --z-index-#{$name}: #{$z-index};

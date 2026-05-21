@@ -52,8 +52,8 @@
   --color-warning-foreground: rgb(var(--contrast-warning));
   --color-info: rgb(var(--info));
 
-  --shadow: 0.25rem 0.25rem 0 currentColor;
-  --shadow-lg: 0.5rem 0.5rem 0 currentColor;
+  --shadow: 0.25rem 0.25rem 0 black;
+  --shadow-lg: 0.5rem 0.5rem 0 black;
 
   --spacing-product-page: 75.25rem;
   --grid-cols-sidebar: 1fr 3fr;
