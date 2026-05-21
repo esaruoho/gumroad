@@ -112,8 +112,10 @@ class Order::CreateService
       if order.persisted?
         cart.order = order
         cart.mark_deleted!
+        create_replacement_cart(cart) if all_items_handled
       elsif all_items_handled
         cart.mark_deleted!
+        create_replacement_cart(cart)
       end
     end
 
@@ -198,5 +200,15 @@ class Order::CreateService
       return unless valid_product_url_domains.any? { |product_url_domain| params[:referrer].starts_with?(product_url_domain) }
 
       CGI.parse(URI.parse(params[:referrer]).query).transform_values { |values| values.length <= 1 ? values.first : values }.to_json
+    end
+
+    def create_replacement_cart(cart)
+      Cart.create!(
+        user: cart.user,
+        browser_guid: cart.browser_guid,
+        ip_address: cart.ip_address,
+        email: cart.email,
+        return_url: cart.return_url
+      )
     end
 end
