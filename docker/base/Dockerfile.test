@@ -67,3 +67,6 @@ RUN echo 'app ALL=NOPASSWD: ALL' >> /etc/sudoers.d/50-app
 RUN mkdir -p /tmp/test-results/ \
   && chmod -R 2777 /tmp/test-results/
 
+# Install Playwright browsers (chromium) for system specs
+RUN npx playwright install --with-deps chromium
+

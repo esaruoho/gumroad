@@ -157,7 +157,7 @@ module CheckoutHelpers
           elsif page.has_text?("You entered this address:", wait: 5) && page.has_text?("We recommend using this format:", wait: 5)
             click_on "No, continue"
           end
-        rescue Capybara::ElementNotFound, Selenium::WebDriver::Error::StaleElementReferenceError
+        rescue Capybara::ElementNotFound
           # Page may still be loading after payment processing or Chrome may be unstable; continue to success assertion
         end
       end

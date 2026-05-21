@@ -135,8 +135,6 @@ end
 
 def browser_session_corrupted?(exception)
   return false unless exception
-  return true if exception.is_a?(Selenium::WebDriver::Error::NoSuchWindowError)
-  return true if exception.is_a?(Selenium::WebDriver::Error::InvalidSessionIdError)
   return true if exception.is_a?(Errno::ECONNREFUSED)
   return true if exception.is_a?(NoMethodError) && exception.message.include?("unpack1")
   return true if exception.is_a?(Capybara::ElementNotFound) && exception.message.include?("Upload still in progress")
@@ -147,8 +145,6 @@ def browser_session_corrupted?(exception)
 end
 
 def force_browser_restart!
-  return unless Capybara.current_session.driver.is_a?(Capybara::Selenium::Driver)
-
   begin
     Capybara.current_session.driver.quit
   rescue StandardError
@@ -349,9 +345,7 @@ RSpec.configure do |config|
     capture_state_on_failure(example)
     begin
       Capybara.reset_sessions!
-    rescue Selenium::WebDriver::Error::NoSuchWindowError,
-           Selenium::WebDriver::Error::InvalidSessionIdError,
-           Errno::ECONNREFUSED => e
+    rescue Errno::ECONNREFUSED => e
       Rails.logger.warn("[RSpec] Browser session corrupted during reset: #{e.class}: #{e.message}. Restarting driver.")
       force_browser_restart!
     rescue NoMethodError => e

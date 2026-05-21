@@ -31,7 +31,7 @@ module ProductFileListHelpers
       begin
         page.scroll_to row, align: :center
         row.find("h4").hover
-      rescue Selenium::WebDriver::Error::StaleElementReferenceError
+      rescue Capybara::ExpectationNotMet
         # React re-renders the embed during upload progress, causing stale references
         raise Capybara::ElementNotFound, "Embed element went stale during upload, retrying"
       end

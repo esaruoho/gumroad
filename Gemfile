@@ -34,6 +34,7 @@ end
 
 group :test do
   gem "capybara", "~> 3.38"
+  gem "capybara-playwright-driver", "~> 0.5"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.1"
   gem "rspec", "~> 3.12"

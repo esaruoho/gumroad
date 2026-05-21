@@ -218,6 +218,10 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
+    capybara-playwright-driver (0.5.9)
+      addressable
+      capybara
+      playwright-ruby-client (>= 1.16.0)
     cgi (0.5.1)
     chunky_png (1.4.0)
     closure_tree (7.4.0)
@@ -693,6 +697,10 @@ GEM
       ttfunk
     pdfkit (0.8.7.3)
     phony (2.20.12)
+    playwright-ruby-client (1.60.0)
+      base64
+      concurrent-ruby (>= 1.1.6)
+      mime-types (>= 3.0)
     pp (0.6.3)
       prettyprint
     prawn (2.5.0)
@@ -1135,6 +1143,7 @@ DEPENDENCIES
   bundler
   byebug (~> 11.1)
   capybara (~> 3.38)
+  capybara-playwright-driver (~> 0.5)
   capybara_accessible_selectors!
   closure_tree (~> 7.4)
   colorize (~> 1.0)

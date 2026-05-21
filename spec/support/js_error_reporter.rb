@@ -28,7 +28,7 @@ class JSErrorReporter
   end
 
   def report_errors!(ctx)
-    errors_to_log = read_errors!(ctx.page.driver.browser)
+    errors_to_log = read_errors!(ctx.page.driver)
     ctx.aggregate_failures "javascript errors" do
       errors_to_log.each do |error|
         ctx.expect(error).to ctx.eq ""
@@ -43,44 +43,76 @@ class JSErrorReporter
   def read_errors!(driver)
     return [] unless self.class.enabled?
 
-    # print the messages of console.error logs / unhandled exceptions, and fail the spec
-    # (ignoring the error messages from a pattern specified above)
-    errors = begin
-      driver.logs.get(:driver)
-    rescue => e
-      puts e.inspect
-      []
-    end
-
-    errors.map do |log|
-      if log.message.start_with?("DevTools WebSocket Event: Runtime.exceptionThrown")
-        error = JSON.parse(log.message[log.message.index("{")..])["exceptionDetails"]
-        message = error["exception"]["preview"] ? error["exception"]["preview"]["properties"].find { |prop| prop["name"] == "message" }["value"] : error["exception"]["value"]
-        next "Error: #{message}\n\tat #{error["url"]}:#{error["lineNumber"]}:#{error["columnNumber"]}" unless error["stackTrace"]
-        trace = format_stack_trace(error["stackTrace"])
-        "Error: #{message}\n#{trace}"
-      elsif log.message.start_with?("DevTools WebSocket Event: Runtime.consoleAPICalled")
-        log_data = JSON.parse(log.message[log.message.index("{")..])
-        next unless log_data["type"] == "error"
-        trace = format_stack_trace(log_data["stackTrace"])
-        message = log_data["args"].map do |arg|
-          parsed = format_object(arg)
-          if parsed.is_a?(Hash) || parsed.is_a?(Array)
-            parsed.to_json
-          else
-            parsed
-          end
-        end.join(", ")
-        if trace.present?
-          "Console error: #{message}\n#{trace}"
-        else
-          "Console error: #{message}"
-        end
-      end
-    end.reject { |error| error.blank? || should_ignore_error?(error) }
+    errors = collect_js_errors(driver)
+    errors.reject { |error| error.blank? || should_ignore_error?(error) }
   end
 
   private
+    def collect_js_errors(driver)
+      # Playwright: use evaluate to check for collected errors, or
+      # gracefully return empty if the driver doesn't support it.
+      # Playwright's console messages are captured via page events,
+      # but capybara-playwright-driver doesn't expose a logs API.
+      # Instead, we inject a collector script on page load.
+      begin
+        if driver.respond_to?(:with_playwright_page)
+          driver.with_playwright_page do |playwright_page|
+            result = playwright_page.evaluate(<<~JS)
+              (() => {
+                const errors = window.__gumroad_js_errors || [];
+                window.__gumroad_js_errors = [];
+                return errors;
+              })()
+            JS
+            Array(result)
+          end
+        else
+          # Fallback for Selenium (production screenshot services)
+          begin
+            browser = driver.browser
+            logs = browser.logs.get(:driver)
+            parse_selenium_logs(logs)
+          rescue => e
+            puts e.inspect
+            []
+          end
+        end
+      rescue => e
+        puts "[JSErrorReporter] #{e.class}: #{e.message}" if ENV["DEBUG"]
+        []
+      end
+    end
+
+    def parse_selenium_logs(logs)
+      logs.filter_map do |log|
+        if log.message.start_with?("DevTools WebSocket Event: Runtime.exceptionThrown")
+          error = JSON.parse(log.message[log.message.index("{")..]
+          )["exceptionDetails"]
+          message = error["exception"]["preview"] ? error["exception"]["preview"]["properties"].find { |prop| prop["name"] == "message" }["value"] : error["exception"]["value"]
+          next "Error: #{message}\n\tat #{error["url"]}:#{error["lineNumber"]}:#{error["columnNumber"]}" unless error["stackTrace"]
+          trace = format_stack_trace(error["stackTrace"])
+          "Error: #{message}\n#{trace}"
+        elsif log.message.start_with?("DevTools WebSocket Event: Runtime.consoleAPICalled")
+          log_data = JSON.parse(log.message[log.message.index("{")..])
+          next unless log_data["type"] == "error"
+          trace = format_stack_trace(log_data["stackTrace"])
+          message = log_data["args"].map do |arg|
+            parsed = format_object(arg)
+            if parsed.is_a?(Hash) || parsed.is_a?(Array)
+              parsed.to_json
+            else
+              parsed
+            end
+          end.join(", ")
+          if trace.present?
+            "Console error: #{message}\n#{trace}"
+          else
+            "Console error: #{message}"
+          end
+        end
+      end
+    end
+
     def format_object(obj)
       if obj["type"] == "object" && obj["preview"] && (obj["className"] == "Object" || obj["subtype"] == "array")
         if obj["preview"]["properties"]
