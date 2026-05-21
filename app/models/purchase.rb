@@ -3162,6 +3162,9 @@ class Purchase < ApplicationRecord
         description = "You bought #{link.long_url}!"
         mandate_options = mandate_options_for_stripe
 
+        # For recurring charges, use the buyer's original currency if set
+        charge_currency = buyer_currency.presence || "usd"
+
         charge_intent = ChargeProcessor.create_payment_intent_or_charge!(self.merchant_account,
                                                                          chargeable,
                                                                          amount_cents,
@@ -3172,7 +3175,8 @@ class Purchase < ApplicationRecord
                                                                          transfer_group: id,
                                                                          off_session:,
                                                                          setup_future_charges:,
-                                                                         mandate_options:)
+                                                                         mandate_options:,
+                                                                         currency: charge_currency)
 
         if charge_intent.id.present?
           if processor_payment_intent.present?

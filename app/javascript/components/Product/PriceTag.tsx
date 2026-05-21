@@ -25,6 +25,10 @@ type Props = {
   isSalesLimited: boolean;
   creatorName?: string | undefined;
   tooltipPosition?: "top" | "right";
+  buyerLocalPrice?: {
+    currency_code: CurrencyCode;
+    price_cents: number;
+  } | null;
 };
 
 export const PriceTag = ({
@@ -37,6 +41,7 @@ export const PriceTag = ({
   isSalesLimited,
   creatorName,
   tooltipPosition = "right",
+  buyerLocalPrice,
 }: Props) => {
   const formattedAmount = formatPriceCentsWithCurrencySymbol(currencyCode, price, { symbolFormat: "long" });
 
@@ -81,6 +86,11 @@ export const PriceTag = ({
       <div itemProp="priceCurrency" className="hidden">
         {currencyCode}
       </div>
+      {buyerLocalPrice ? (
+        <span className="ml-2 text-xs text-muted">
+          ≈ {formatPriceCentsWithCurrencySymbol(buyerLocalPrice.currency_code, buyerLocalPrice.price_cents, { symbolFormat: "long" })}
+        </span>
+      ) : null}
       {creatorName ? (
         <div itemProp="seller" itemType="https://schema.org/Person" className="hidden">
           <div itemProp="name" className="hidden">

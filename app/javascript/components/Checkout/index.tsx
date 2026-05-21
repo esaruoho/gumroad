@@ -5,7 +5,7 @@ import { computeOfferDiscount } from "$app/data/offer_code";
 import { CardProduct, COMMISSION_DEPOSIT_PROPORTION } from "$app/parsers/product";
 import { isOpenTuple } from "$app/utils/array";
 import { classNames } from "$app/utils/classNames";
-import { formatUSDCentsWithExpandedCurrencySymbol } from "$app/utils/currency";
+import { formatUSDCentsWithExpandedCurrencySymbol, formatPriceCentsWithCurrencySymbol, CurrencyCode } from "$app/utils/currency";
 import { formatCallDate } from "$app/utils/date";
 import { variantLabel } from "$app/utils/labels";
 import { calculateFirstInstallmentPaymentPriceCents } from "$app/utils/price";
@@ -99,11 +99,13 @@ export const Checkout = ({
   cart,
   updateCart,
   recommendedProducts,
+  buyerCurrency,
 }: {
   discoverUrl: string;
   cart: CartState;
   updateCart: (updated: Partial<CartState>) => void;
   recommendedProducts?: CardProduct[] | null;
+  buyerCurrency?: CurrencyCode | null;
 }) => {
   const [state] = useState();
   const [newDiscountCode, setNewDiscountCode] = React.useState("");
@@ -344,6 +346,11 @@ export const Checkout = ({
                   <>
                     <footer className="grid gap-4 border-t border-border p-4 sm:px-5">
                       <CartPriceItem title="Total" price={formatPrice(total)} variant="large" />
+                      {buyerCurrency && buyerCurrency !== "usd" ? (
+                        <p className="text-xs text-muted">
+                          You&apos;ll be charged in {buyerCurrency.toUpperCase()} — your card will be billed at the current exchange rate.
+                        </p>
+                      ) : null}
                     </footer>
                     {commissionCompletionTotal > 0 || futureInstallmentsWithoutTipsTotal > 0 ? (
                       <div className="grid gap-4 border-t border-border p-4">
@@ -675,7 +682,13 @@ const CartItemComponent = ({
       </CartItemMain>
       <CartItemEnd>
         <span className="current-price text-base font-bold sm:text-lg" aria-label="Price">
-          {formatPrice(convertToUSD(item, price))}
+          {item.product.buyer_local_price
+            ? formatPriceCentsWithCurrencySymbol(
+                item.product.buyer_local_price.currency_code,
+                Math.floor(item.product.buyer_local_price.price_cents * item.quantity),
+                { symbolFormat: "long", noCentsIfWhole: true },
+              )
+            : formatPrice(convertToUSD(item, price))}
         </span>
         {hasFreeTrial(item, isGift) && item.product.free_trial ? (
           <>

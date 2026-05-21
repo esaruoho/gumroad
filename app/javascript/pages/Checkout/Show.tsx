@@ -79,6 +79,7 @@ type CheckoutIndexPageProps = {
   checkout: {
     add_products: ProductToAdd[];
     address: { street: string | null; city: string | null; zip: string | null } | null;
+    buyer_currency: CurrencyCode | null;
     ca_provinces: string[];
     cart_save_debounce_ms: number;
     clear_cart: boolean;
@@ -679,6 +680,7 @@ const CheckoutIndexPage = () => {
           cart={cartForm.data.cart}
           updateCart={(updated) => cartForm.setData((prev) => ({ cart: { ...prev.cart, ...updated } }))}
           recommendedProducts={props.recommended_products ?? null}
+          buyerCurrency={checkout.buyer_currency}
         />
       )}
       {currentOffer && surchargesIfAccepted ? (

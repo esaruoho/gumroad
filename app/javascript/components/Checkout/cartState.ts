@@ -48,6 +48,11 @@ export type Product = {
   rental: Rental | null;
   shippable_country_codes: string[];
   ppp_details: PurchasingPowerParityDetails | null;
+  buyer_local_price: {
+    currency_code: CurrencyCode;
+    price_cents: number;
+    suggested_price_cents: number | null;
+  } | null;
   upsell: Upsell | null;
   cross_sells: CrossSell[];
   archived: boolean;
