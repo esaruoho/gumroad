@@ -107,7 +107,8 @@ describe Charge::CreateService, :vcr do
                                                                                  off_session:,
                                                                                  setup_future_charges:,
                                                                                  metadata: purchase_details,
-                                                                                 mandate_options:).and_call_original
+                                                                                 mandate_options:,
+                                                                                 currency: "usd").and_call_original
 
       expect do
         expect do
@@ -181,7 +182,8 @@ describe Charge::CreateService, :vcr do
                                                                                  off_session:,
                                                                                  setup_future_charges:,
                                                                                  metadata: purchase_details,
-                                                                                 mandate_options:).and_call_original
+                                                                                 mandate_options:,
+                                                                                 currency: "usd").and_call_original
 
       expect do
         expect do
