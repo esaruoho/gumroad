@@ -350,8 +350,13 @@ class CheckoutPresenter
     # differs from the seller's. Used for Apple-style localized price display.
     def buyer_local_price_for(product)
       return nil if @buyer_currency.blank?
-      seller_currency = product.price_currency_type.downcase
+      seller_currency = product.price_currency_type.to_s.downcase
       return nil if @buyer_currency == seller_currency
+
+      exchange_rate = BuyerCurrencyService.exchange_rate(
+        from_currency: seller_currency,
+        to_currency: @buyer_currency
+      )
 
       {
         currency_code: @buyer_currency,
@@ -360,6 +365,7 @@ class CheckoutPresenter
           from_currency: seller_currency,
           to_currency: @buyer_currency
         ),
+        exchange_rate: exchange_rate,
         suggested_price_cents: product.customizable_price && product.suggested_price_cents.to_i > 0 ?
           BuyerCurrencyService.convert_price(
             product.suggested_price_cents,

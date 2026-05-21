@@ -1901,17 +1901,17 @@ class Purchase < ApplicationRecord
     # Multi-currency: if a buyer_currency was detected (from IP geolocation),
     # convert the seller's price into the buyer's local currency for Stripe presentment.
     # The USD amount (price_cents) remains the canonical internal accounting value.
+    # NOTE: total_transaction_cents is always kept in USD — buyer_currency_amount_cents
+    # is a separate field used by Charge::CreateService for the Stripe charge amount.
     if buyer_currency.present? && buyer_currency != "usd"
       self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
         displayed_price_cents,
-        from_currency: displayed_price_currency_type,
+        from_currency: displayed_price_currency_type.to_s,
         to_currency: buyer_currency
       )
       self.buyer_currency_exchange_rate = get_rate(buyer_currency)
-      self.total_transaction_cents = buyer_currency_amount_cents
-    else
-      self.total_transaction_cents = self.price_cents
     end
+    self.total_transaction_cents = self.price_cents
 
     self.affiliate_credit_cents = determine_affiliate_balance_cents
     self.tax_cents = 0
@@ -2974,6 +2974,17 @@ class Purchase < ApplicationRecord
       # Actually add the shipping amount to price cents and update total transaction cents
       self.price_cents += shipping_cents
       self.total_transaction_cents += shipping_cents
+
+      # Multi-currency: recalculate buyer_currency_amount_cents to include taxes + shipping.
+      # Convert the full USD total_transaction_cents to buyer currency so the Stripe charge
+      # amount matches what the buyer actually owes (price + tax + shipping).
+      if buyer_currency.present? && buyer_currency != "usd"
+        self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
+          total_transaction_cents,
+          from_currency: "usd",
+          to_currency: buyer_currency
+        )
+      end
 
       calculate_fees
 

@@ -66,9 +66,10 @@ describe BuyerCurrencyService do
       end
 
       it "rounds to X4.99 or X9.99 for $100-$500 range" do
-        # $123.45 → $124.99 (nearest 499 increment)
-        result = described_class.smart_round(12345, "usd")
-        expect(result % 499).to eq(0).or eq(result).and be_between(10000, 50000)
+        # $123.45 → round to nearest $5 → $125.00 → -1 → $124.99
+        expect(described_class.smart_round(12345, "usd")).to eq(12499)
+        # $200.00 → round to nearest $5 → $200.00 → -1 → $199.99
+        expect(described_class.smart_round(20000, "usd")).to eq(19999)
       end
 
       it "returns 0 for zero amounts" do

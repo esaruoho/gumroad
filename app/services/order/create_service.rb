@@ -155,13 +155,14 @@ class Order::CreateService
       if params[:demo]
         purchase_params.delete(:price_range)
       else
+        geo = GeoIp.lookup(params[:ip_address])
         purchase_params.merge!(
           session_id: params[:session_id],
-          ip_country: GeoIp.lookup(params[:ip_address]).try(:country_name),
-          ip_state: GeoIp.lookup(params[:ip_address]).try(:region_name),
+          ip_country: geo.try(:country_name),
+          ip_state: geo.try(:region_name),
           is_mobile: params[:is_mobile],
           browser_guid: params[:browser_guid],
-          buyer_currency: BuyerCurrencyService.detect_currency(params[:ip_address])
+          buyer_currency: BuyerCurrencyService::COUNTRY_TO_CURRENCY[geo&.country_code&.upcase]
         )
       end
 

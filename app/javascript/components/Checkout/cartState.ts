@@ -51,6 +51,7 @@ export type Product = {
   buyer_local_price: {
     currency_code: CurrencyCode;
     price_cents: number;
+    exchange_rate: number;
     suggested_price_cents: number | null;
   } | null;
   upsell: Upsell | null;

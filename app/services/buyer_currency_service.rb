@@ -71,8 +71,8 @@ class BuyerCurrencyService
     [999,    99],     # $1–$9.99: snap to $X.99
     [4999,   99],     # $10–$49.99: snap to $XX.99
     [9999,   99],     # $50–$99.99: snap to $XX.99
-    [49999,  499],    # $100–$499: snap to $XX4.99 / $XX9.99
-    [nil,    999],    # $500+: snap to $XX9.99
+    [49999,  500],    # $100–$499: snap to nearest $5, then -1 → $X4.99 / $X9.99
+    [nil,    1000],   # $500+: snap to nearest $10, then -1 → $XX9.99
   ].freeze
 
   # For zero-decimal (single-unit) currencies like JPY and KRW, the rounding
@@ -107,6 +107,34 @@ class BuyerCurrencyService
     COUNTRY_TO_CURRENCY[geo.country_code.upcase]
   end
 
+  # Get the raw exchange rate between two currencies (without rounding).
+  # Used by the frontend to dynamically convert PWYW/variant-adjusted prices.
+  def self.exchange_rate(from_currency:, to_currency:)
+    from_currency = from_currency.to_s.downcase
+    to_currency = to_currency.to_s.downcase
+    return 1.0 if from_currency == to_currency
+
+    service = new
+    # Rate: 1 unit of from_currency = X units of to_currency
+    usd_per_from = from_currency == "usd" ? 1.0 : (1.0 / service.get_rate(from_currency))
+    usd_per_to = to_currency == "usd" ? 1.0 : (1.0 / service.get_rate(to_currency))
+    (usd_per_from / usd_per_to).round(6)
+  end
+
+  # Get the raw exchange rate between two currencies (without rounding).
+  # Used by the frontend to dynamically convert PWYW/variant-adjusted prices.
+  def self.exchange_rate(from_currency:, to_currency:)
+    from_currency = from_currency.to_s.downcase
+    to_currency = to_currency.to_s.downcase
+    return 1.0 if from_currency == to_currency
+
+    service = new
+    # Rate: 1 unit of from_currency = X units of to_currency
+    usd_per_from = from_currency == "usd" ? 1.0 : (1.0 / service.get_rate(from_currency))
+    usd_per_to = to_currency == "usd" ? 1.0 : (1.0 / service.get_rate(to_currency))
+    (usd_per_from / usd_per_to).round(6)
+  end
+
   # Convert a price from one currency to another with Apple-style smart rounding.
   #
   # @param amount_cents [Integer] price in source currency minor units
@@ -114,6 +142,8 @@ class BuyerCurrencyService
   # @param to_currency [String] target currency code (e.g. "eur")
   # @return [Integer] rounded price in target currency minor units
   def self.convert_price(amount_cents, from_currency:, to_currency:)
+    from_currency = from_currency.to_s.downcase
+    to_currency = to_currency.to_s.downcase
     return amount_cents if from_currency == to_currency
     return 0 if amount_cents == 0
 
@@ -144,13 +174,22 @@ class BuyerCurrencyService
               end
             end
 
+    is_zero_decimal = %w[jpy krw].include?(currency) || single_unit
+
     increment = tiers.find { |threshold, _| threshold.nil? || amount_cents <= threshold }&.last || tiers.last.last
 
-    if !single_unit && increment == 99
+    if !is_zero_decimal && increment == 99
       # For .99 rounding: round up to next dollar, then subtract 1 cent
       # e.g. 1423 → round up to 1500 → 1499
       dollars = (amount_cents / 100.0).ceil
       (dollars * 100) - 1
+    elsif !is_zero_decimal && (increment == 500 || increment == 1000)
+      # For $5/$10 tier rounding with .99 endings:
+      # Round to nearest $5 or $10, then subtract 1 cent
+      # e.g. increment=500: 12300 → round to 12500 → 12499 ($124.99)
+      # e.g. increment=1000: 52300 → round to 52000 → 51999 ($519.99)
+      rounded = ((amount_cents.to_f / increment).round * increment).to_i
+      rounded - 1
     else
       # Standard rounding: round to nearest increment
       ((amount_cents.to_f / increment).round * increment).to_i

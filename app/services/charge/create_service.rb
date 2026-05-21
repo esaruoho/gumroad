@@ -38,9 +38,10 @@ class Charge::CreateService
     charge_intent = with_charge_processor_error_handler do
       # Determine charge currency: use buyer's local currency if set, else USD
       charge_currency = determine_charge_currency
+      charge_amount = determine_charge_amount_cents
       ChargeProcessor.create_payment_intent_or_charge!(merchant_account,
                                                        chargeable,
-                                                       amount_cents,
+                                                       charge_amount,
                                                        gumroad_amount_cents,
                                                        "#{Charge::COMBINED_CHARGE_PREFIX}#{charge.external_id}",
                                                        "Gumroad Charge #{charge.external_id}",
@@ -158,6 +159,19 @@ class Charge::CreateService
       buyer_currencies.first
     else
       "usd"
+    end
+  end
+
+  # Compute the charge amount in the buyer's currency.
+  # When charging in a non-USD buyer currency, sum buyer_currency_amount_cents
+  # (which includes the converted price + taxes + shipping in buyer currency).
+  # Falls back to the USD total_transaction_cents when buyer currency is USD or unavailable.
+  def determine_charge_amount_cents
+    charge_currency = determine_charge_currency
+    if charge_currency != "usd"
+      purchases.sum { |p| p.buyer_currency_amount_cents || p.total_transaction_cents }
+    else
+      amount_cents
     end
   end
 end

@@ -74,6 +74,23 @@ function formatPrice(price: number) {
   return formatUSDCentsWithExpandedCurrencySymbol(Math.floor(price));
 }
 
+// Format a price in the buyer's local currency using the exchange rate from the server.
+// Falls back to USD formatting if no buyer currency info is available.
+function formatLocalPrice(
+  usdCents: number,
+  buyerCurrency?: CurrencyCode | null,
+  exchangeRate?: number | null,
+): string {
+  if (buyerCurrency && buyerCurrency !== "usd" && exchangeRate) {
+    const localCents = Math.round(usdCents * exchangeRate);
+    return formatPriceCentsWithCurrencySymbol(buyerCurrency, localCents, {
+      symbolFormat: "long",
+      noCentsIfWhole: true,
+    });
+  }
+  return formatPrice(usdCents);
+}
+
 const nameOfSalesTaxForCountry = (countryCode: string) => {
   switch (countryCode) {
     case "US":
@@ -345,10 +362,18 @@ export const Checkout = ({
                 {total != null ? (
                   <>
                     <footer className="grid gap-4 border-t border-border p-4 sm:px-5">
-                      <CartPriceItem title="Total" price={formatPrice(total)} variant="large" />
+                      <CartPriceItem
+                        title="Total"
+                        price={formatLocalPrice(
+                          total,
+                          buyerCurrency,
+                          cart.items[0]?.product.buyer_local_price?.exchange_rate,
+                        )}
+                        variant="large"
+                      />
                       {buyerCurrency && buyerCurrency !== "usd" ? (
                         <p className="text-xs text-muted">
-                          You&apos;ll be charged in {buyerCurrency.toUpperCase()} — your card will be billed at the current exchange rate.
+                          You&apos;ll be charged in {buyerCurrency.toUpperCase()}.
                         </p>
                       ) : null}
                     </footer>
@@ -682,11 +707,11 @@ const CartItemComponent = ({
       </CartItemMain>
       <CartItemEnd>
         <span className="current-price text-base font-bold sm:text-lg" aria-label="Price">
-          {item.product.buyer_local_price
-            ? formatPriceCentsWithCurrencySymbol(
+          {item.product.buyer_local_price?.exchange_rate
+            ? formatLocalPrice(
+                convertToUSD(item, price),
                 item.product.buyer_local_price.currency_code,
-                Math.floor(item.product.buyer_local_price.price_cents * item.quantity),
-                { symbolFormat: "long", noCentsIfWhole: true },
+                item.product.buyer_local_price.exchange_rate,
               )
             : formatPrice(convertToUSD(item, price))}
         </span>
