@@ -10,35 +10,14 @@ require "capybara/cuprite"
 REMOTE_CHROME_URL = ENV["CHROME_URL"]
 REMOTE_CHROME = !REMOTE_CHROME_URL.nil? && !REMOTE_CHROME_URL.empty?
 
-if REMOTE_CHROME
-  module RemoteChromeDownloads
-    def set_behavior(save_path:, behavior: :allow)
-      raise ArgumentError unless Ferrum::Downloads::VALID_BEHAVIOR.include?(behavior.to_sym)
-      raise Ferrum::Error, "supply absolute path for `:save_path` option" unless Pathname.new(save_path.to_s).absolute?
-
-      @page.command("Browser.setDownloadBehavior",
-                    downloadPath: save_path,
-                    behavior:,
-                    eventsEnabled: true)
-    end
-  end
-
-  Ferrum::Downloads.prepend(RemoteChromeDownloads)
-end
-
 # ── Shared driver options ────────────────────────────────────────────
 CUPRITE_COMMON_OPTS = {
-  process_timeout: 60,
-  timeout: 60,
+  process_timeout: 30,
+  timeout: REMOTE_CHROME ? 30 : 15,
   js_errors: true,
-  pending_connection_errors: false,
 }.tap do |opts|
   if REMOTE_CHROME
-    if REMOTE_CHROME_URL.start_with?("ws://", "wss://")
-      opts[:ws_url] = REMOTE_CHROME_URL
-    else
-      opts[:url] = REMOTE_CHROME_URL
-    end
+    opts[:url] = REMOTE_CHROME_URL
   else
     # Local development — launch Chrome directly.
     # Chrome 125's old --headless doesn't output DevTools WS URL.

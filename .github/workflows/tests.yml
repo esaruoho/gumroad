@@ -316,7 +316,7 @@ jobs:
             ES_PID=$!
             docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh minio 9000 &
             MINIO_PID=$!
-            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh chrome 3000 &
+            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh chrome 3333 &
             CHROME_PID=$!
             wait $DB_PID || exit 1
             wait $ES_PID || exit 1
@@ -386,7 +386,7 @@ jobs:
           KNAPSACK_PRO_PROJECT_DIR: /app
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
           CI: true
-          CHROME_URL: ws://chrome:3000?launch=eyJhcmdzIjpbIi0taG9zdC1yZXNvbHZlci1ydWxlcz1NQVAgKi50ZXN0Lmd1bXJvYWQuY29tIHRlc3QtYXBwLE1BUCB0ZXN0Lmd1bXJvYWQuY29tIHRlc3QtYXBwLEVYQ0xVREUgbG9jYWxob3N0Il19
+          CHROME_URL: http://chrome:3333
           APP_HOST: test-app
           VITE_RUBY_AUTO_BUILD: "false"
           WEB_REPO: gumroadteam/web
@@ -521,7 +521,7 @@ jobs:
             ES_PID=$!
             docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh minio 9000 &
             MINIO_PID=$!
-            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh chrome 3000 &
+            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh chrome 3333 &
             CHROME_PID=$!
             wait $DB_PID || exit 1
             wait $ES_PID || exit 1
@@ -579,7 +579,7 @@ jobs:
           KNAPSACK_PRO_PROJECT_DIR: /app
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
           CI: true
-          CHROME_URL: ws://chrome:3000?launch=eyJhcmdzIjpbIi0taG9zdC1yZXNvbHZlci1ydWxlcz1NQVAgKi50ZXN0Lmd1bXJvYWQuY29tIHRlc3QtYXBwLE1BUCB0ZXN0Lmd1bXJvYWQuY29tIHRlc3QtYXBwLEVYQ0xVREUgbG9jYWxob3N0Il19
+          CHROME_URL: http://chrome:3333
           APP_HOST: test-app
           VITE_RUBY_AUTO_BUILD: "false"
           WEB_REPO: gumroadteam/web

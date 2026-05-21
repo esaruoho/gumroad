@@ -117,18 +117,19 @@ services:
       done < /fixture-files-public.txt; echo \"Fixture files copied successfully\"; exit 0; "
 
   chrome:
-    image: ghcr.io/browserless/chrome
+    image: browserless/chrome:latest
     ports:
-      - "3000"
+      - "3333"
     # Mount source code so Chrome can access files for attach_file uploads.
     # Specs use absolute paths like /app/spec/support/fixtures/... which must
     # exist inside the Chrome container at the same path as in the test container.
     volumes:
       - ../spec/support/fixtures:/app/spec/support/fixtures:ro
     environment:
-      TOKEN: ""
-      CONCURRENT: 5
+      PORT: 3333
+      CONNECTION_TIMEOUT: 900000
       TIMEOUT: 900000
+      MAX_CONCURRENT_SESSIONS: 5
     shm_size: "2gb"
 
 volumes:
