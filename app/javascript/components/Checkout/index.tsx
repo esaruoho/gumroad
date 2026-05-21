@@ -221,6 +221,21 @@ export const Checkout = ({
     ) + computeTip(state);
 
   const total = getTotalPrice(state);
+
+  // Compute local-currency total by summing smart-rounded local prices per item.
+  // This ensures the total matches the sum of displayed line-item prices.
+  const localTotal = (() => {
+    const exchangeRate = cart.items[0]?.product.buyer_local_price?.exchange_rate;
+    if (!buyerCurrency || buyerCurrency === "usd" || !exchangeRate) return null;
+    return cart.items.reduce((sum, item) => {
+      const localPrice = item.product.buyer_local_price;
+      if (localPrice?.price_cents != null) {
+        return sum + localPrice.price_cents * item.quantity;
+      }
+      // Fallback: convert USD price at exchange rate for items without smart-rounded price
+      return sum + Math.round(convertToUSD(item, item.price) * exchangeRate) * item.quantity;
+    }, 0) + Math.round(computeTip(state) * exchangeRate);
+  })();
   const visibleDiscounts = cart.discountCodes.filter(
     (code) =>
       !code.fromUrl ||
@@ -375,14 +390,12 @@ export const Checkout = ({
                     <footer className="grid gap-4 border-t border-border p-4 sm:px-5">
                       <CartPriceItem
                         title="Total"
-                        price={formatLocalPrice(
-                          total,
-                          buyerCurrency,
-                          cart.items[0]?.product.buyer_local_price?.exchange_rate,
-                        )}
+                        price={localTotal != null && buyerCurrency
+                          ? formatPriceCentsWithCurrencySymbol(buyerCurrency, localTotal, { symbolFormat: "long", noCentsIfWhole: true })
+                          : formatPrice(total)}
                         variant="large"
                       />
-                      {buyerCurrency && buyerCurrency !== "usd" ? (
+                      {localTotal != null && buyerCurrency && buyerCurrency !== "usd" ? (
                         <p className="text-xs text-muted">
                           You&apos;ll be charged in {buyerCurrency.toUpperCase()}.
                         </p>

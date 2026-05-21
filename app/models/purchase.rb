@@ -1909,7 +1909,10 @@ class Purchase < ApplicationRecord
         from_currency: displayed_price_currency_type.to_s,
         to_currency: buyer_currency
       )
-      self.buyer_currency_exchange_rate = get_rate(buyer_currency)
+      self.buyer_currency_exchange_rate = BuyerCurrencyService.exchange_rate(
+        from_currency: displayed_price_currency_type.to_s,
+        to_currency: buyer_currency
+      )
     end
     self.total_transaction_cents = self.price_cents
 

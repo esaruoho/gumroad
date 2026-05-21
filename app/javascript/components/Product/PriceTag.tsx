@@ -57,7 +57,7 @@ export const PriceTag = ({
     <>
       {oldPrice != null ? (
         <>
-          <s>{formatPriceCentsWithCurrencySymbol(displayCurrency, buyerLocalPrice ? Math.round(oldPrice * (buyerLocalPrice.price_cents / price)) : oldPrice, { symbolFormat: "long" })}</s>{" "}
+          <s>{formatPriceCentsWithCurrencySymbol(displayCurrency, buyerLocalPrice && price > 0 ? Math.round(oldPrice * (buyerLocalPrice.price_cents / price)) : oldPrice, { symbolFormat: "long" })}</s>{" "}
         </>
       ) : null}
       {formattedAmount}

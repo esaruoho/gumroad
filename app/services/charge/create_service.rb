@@ -40,9 +40,11 @@ class Charge::CreateService
       charge_currency = determine_charge_currency
       charge_amount = determine_charge_amount_cents
       # Convert Gumroad fee to charge currency — Stripe requires application_fee_amount
-      # and transfer_data.amount in the same currency as the charge
+      # and transfer_data.amount in the same currency as the charge.
+      # Use convert_price_raw (no smart rounding) since fees are internal amounts,
+      # not consumer-facing price points.
       fee_amount = if charge_currency != "usd"
-                     BuyerCurrencyService.convert_price(
+                     BuyerCurrencyService.convert_price_raw(
                        gumroad_amount_cents,
                        from_currency: "usd",
                        to_currency: charge_currency

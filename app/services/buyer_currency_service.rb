@@ -64,8 +64,8 @@ class BuyerCurrencyService
   #   $1.00–$9.99   →  round to nearest $0.99
   #   $10–$49.99    →  round to nearest $0.99
   #   $50–$99.99    →  round to nearest $0.99
-  #   $100–$499.99  →  round to nearest $4.99
-  #   $500+         →  round to nearest $9.99
+  #   $100–$499.99  →  round to nearest $5, then -1¢ → $XX4.99 / $XX9.99
+  #   $500+         →  round to nearest $10, then -1¢ → $XX9.99
   DECIMAL_TIERS = [
     [99,     99],     # under $1: snap to $0.49 or $0.99
     [999,    99],     # $1–$9.99: snap to $X.99
@@ -140,6 +140,20 @@ class BuyerCurrencyService
     raw_target_cents = service.usd_cents_to_currency(to_currency, usd_cents)
 
     smart_round(raw_target_cents, to_currency)
+  end
+
+  # Convert a price without smart rounding — plain rate multiplication.
+  # Used for internal amounts (platform fees, tax amounts) that should not
+  # be snapped to consumer-facing price points.
+  def self.convert_price_raw(amount_cents, from_currency:, to_currency:)
+    from_currency = from_currency.to_s.downcase
+    to_currency = to_currency.to_s.downcase
+    return amount_cents if from_currency == to_currency
+    return 0 if amount_cents == 0
+
+    service = new
+    usd_cents = service.get_usd_cents(from_currency, amount_cents)
+    service.usd_cents_to_currency(to_currency, usd_cents).round
   end
 
   # Apple-style smart rounding: snap a raw converted price to the nearest
