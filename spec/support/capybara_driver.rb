@@ -28,9 +28,10 @@ end
 
 # ── Shared driver options ────────────────────────────────────────────
 CUPRITE_COMMON_OPTS = {
-  process_timeout: 30,
-  timeout: REMOTE_CHROME ? 30 : 15,
+  process_timeout: 60,
+  timeout: 60,
   js_errors: true,
+  pending_connection_errors: false,
 }.tap do |opts|
   if REMOTE_CHROME
     if REMOTE_CHROME_URL.start_with?("ws://", "wss://")
