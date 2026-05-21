@@ -422,7 +422,7 @@ jobs:
           command: |
             docker pull --quiet $WEB_REPO:${{ needs.build.outputs.test_image_tag }} &
             PULL_PID=$!
-            docker compose -f docker/docker-compose-test-and-ci.yml up -d db_test
+            docker compose -f docker/docker-compose-test-and-ci.yml up -d db_test redis
             COMPOSE_EXIT=$?
             wait $PULL_PID
             PULL_EXIT=$?
@@ -430,7 +430,7 @@ jobs:
         env:
           COMPOSE_HTTP_TIMEOUT: "300"
           WEB_REPO: gumroadteam/web
-      - name: Wait for database and prepare schema
+      - name: Wait for services and prepare schema
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 5
@@ -439,7 +439,12 @@ jobs:
           command: |
             IMG=$WEB_REPO:${{ needs.build.outputs.test_image_tag }}
             NET=${{ env.COMPOSE_PROJECT_NAME }}_default
-            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306
+            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh db_test 3306 &
+            DB_PID=$!
+            docker run --rm --entrypoint="" --network $NET $IMG docker/ci/wait_on_connection.sh redis 6379 &
+            REDIS_PID=$!
+            wait $DB_PID || exit 1
+            wait $REDIS_PID || exit 1
             docker run --rm --entrypoint="" --network $NET -e RAILS_ENV=test $IMG bundle exec rake db:prepare
         env:
           WEB_REPO: gumroadteam/web
