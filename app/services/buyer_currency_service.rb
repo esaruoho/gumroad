@@ -115,24 +115,11 @@ class BuyerCurrencyService
     return 1.0 if from_currency == to_currency
 
     service = new
-    # Rate: 1 unit of from_currency = X units of to_currency
-    usd_per_from = from_currency == "usd" ? 1.0 : (1.0 / service.get_rate(from_currency))
-    usd_per_to = to_currency == "usd" ? 1.0 : (1.0 / service.get_rate(to_currency))
-    (usd_per_from / usd_per_to).round(6)
-  end
-
-  # Get the raw exchange rate between two currencies (without rounding).
-  # Used by the frontend to dynamically convert PWYW/variant-adjusted prices.
-  def self.exchange_rate(from_currency:, to_currency:)
-    from_currency = from_currency.to_s.downcase
-    to_currency = to_currency.to_s.downcase
-    return 1.0 if from_currency == to_currency
-
-    service = new
-    # Rate: 1 unit of from_currency = X units of to_currency
-    usd_per_from = from_currency == "usd" ? 1.0 : (1.0 / service.get_rate(from_currency))
-    usd_per_to = to_currency == "usd" ? 1.0 : (1.0 / service.get_rate(to_currency))
-    (usd_per_from / usd_per_to).round(6)
+    # Convert 10000 base units through the same path as convert_price to get the rate
+    base = 10_000
+    usd_cents = service.get_usd_cents(from_currency, base)
+    target_cents = service.usd_cents_to_currency(to_currency, usd_cents)
+    (target_cents.to_f / base).round(6)
   end
 
   # Convert a price from one currency to another with Apple-style smart rounding.

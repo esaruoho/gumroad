@@ -178,6 +178,10 @@ class ProductPresenter::ProductProps
           from_currency: seller_currency,
           to_currency: buyer_currency
         ),
+        exchange_rate: BuyerCurrencyService.exchange_rate(
+          from_currency: seller_currency,
+          to_currency: buyer_currency
+        ),
         suggested_price_cents: product.customizable_price && product.suggested_price_cents.to_i > 0 ?
           BuyerCurrencyService.convert_price(
             product.suggested_price_cents,
