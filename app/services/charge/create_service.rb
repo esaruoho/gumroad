@@ -39,10 +39,21 @@ class Charge::CreateService
       # Determine charge currency: use buyer's local currency if set, else USD
       charge_currency = determine_charge_currency
       charge_amount = determine_charge_amount_cents
+      # Convert Gumroad fee to charge currency — Stripe requires application_fee_amount
+      # and transfer_data.amount in the same currency as the charge
+      fee_amount = if charge_currency != "usd"
+                     BuyerCurrencyService.convert_price(
+                       gumroad_amount_cents,
+                       from_currency: "usd",
+                       to_currency: charge_currency
+                     )
+                   else
+                     gumroad_amount_cents
+                   end
       ChargeProcessor.create_payment_intent_or_charge!(merchant_account,
                                                        chargeable,
                                                        charge_amount,
-                                                       gumroad_amount_cents,
+                                                       fee_amount,
                                                        "#{Charge::COMBINED_CHARGE_PREFIX}#{charge.external_id}",
                                                        "Gumroad Charge #{charge.external_id}",
                                                        statement_description:,
