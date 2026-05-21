@@ -5,7 +5,7 @@ class ProductPresenter::Card
   include ProductsHelper
 
   ASSOCIATIONS = [
-    :alive_prices, :product_review_stat, :tiers, :variant_categories_alive, :default_offer_code,
+    :alive_prices, :product_review_stat, :tiers, { variant_categories_alive: :alive_variants }, :default_offer_code,
     {
       user: [:avatar_attachment, :avatar_blob],
       thumbnail_alive: { file_attachment: { blob: { variant_records: { image_attachment: :blob } } } },
@@ -19,7 +19,7 @@ class ProductPresenter::Card
     @product = product
   end
 
-  def for_web(request: nil, recommended_by: nil, recommender_model_name: nil, target: nil, show_seller: true, affiliate_id: nil, query: nil, offer_code: nil, compute_description: true, compute_inventory: true)
+  def for_web(request: nil, recommended_by: nil, recommender_model_name: nil, target: nil, show_seller: true, affiliate_id: nil, query: nil, offer_code: nil, compute_description: true, compute_inventory: true, domain_user: nil)
     default_recurrence = product.default_price_recurrence
     base_price_cents = product.display_price_cents(for_default_duration: true)
     price_cents = compute_discounted_price_cents(base_price_cents)
@@ -40,7 +40,7 @@ class ProductPresenter::Card
       price_cents:,
       currency_code: product.price_currency_type.downcase,
       is_pay_what_you_want: product.has_customizable_price_option?,
-      url: url_for_product_page(product, request:, recommended_by:, recommender_model_name:, layout: target, affiliate_id:, query:, offer_code:),
+      url: url_for_product_page(product, request:, recommended_by:, recommender_model_name:, layout: target, affiliate_id:, query:, offer_code:, domain_user:),
       duration_in_months: product.duration_in_months,
       recurrence: default_recurrence&.recurrence,
     }

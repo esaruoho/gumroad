@@ -14,13 +14,14 @@ class ProfileSectionsPresenter
 
   def props(request:, pundit_user:, seller_custom_domain_url:)
     sections = query.to_a
+    domain_user = resolve_domain_user(request)
 
     props = {
       currency_code: pundit_user.user&.currency_type || Currency::USD,
       show_ratings_filter: seller.links.alive.any?(&:display_product_reviews?),
       creator_profile: ProfilePresenter.new(seller:, pundit_user:).creator_profile,
       sections: cached_sections.map do |props|
-        section_props(sections.find { _1.external_id == props[:id] }, cached_props: props, request:, pundit_user:, seller_custom_domain_url:)
+        section_props(sections.find { _1.external_id == props[:id] }, cached_props: props, request:, pundit_user:, seller_custom_domain_url:, domain_user:)
       end
     }
     if pundit_user.seller == seller
@@ -69,7 +70,12 @@ class ProfileSectionsPresenter
   private
     attr_reader :seller, :query
 
-    def section_props(section, cached_props:, request:, pundit_user:, seller_custom_domain_url:)
+    def resolve_domain_user(request)
+      return false unless request
+      Subdomain.find_seller_by_hostname(request.host) || CustomDomain.find_by_host(request.host)&.user || false
+    end
+
+    def section_props(section, cached_props:, request:, pundit_user:, seller_custom_domain_url:, domain_user: nil)
       is_owner = pundit_user.seller == seller
       params = request.query_parameters
       if is_owner
@@ -99,7 +105,7 @@ class ProfileSectionsPresenter
           cached_props[:search_results][:total] -= filtered_count
         end
         cached_props[:search_results][:products] = products.map do |product|
-          ProductPresenter.card_for_web(product:, request:, recommended_by: params[:recommended_by], target: Product::Layout::PROFILE, show_seller: false, compute_description: false, compute_inventory: false)
+          ProductPresenter.card_for_web(product:, request:, recommended_by: params[:recommended_by], target: Product::Layout::PROFILE, show_seller: false, compute_description: false, compute_inventory: false, domain_user:)
         end
       when "SellerProfilePostsSection"
         if is_owner

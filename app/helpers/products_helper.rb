@@ -52,10 +52,11 @@ module ProductsHelper
     sentence
   end
 
-  def url_for_product_page(product, request:, recommended_by: nil, recommender_model_name: nil, layout: nil, affiliate_id: nil, query: nil, offer_code: nil)
+  def url_for_product_page(product, request:, recommended_by: nil, recommender_model_name: nil, layout: nil, affiliate_id: nil, query: nil, offer_code: nil, domain_user: nil)
     options = {}
     options[:code] = offer_code if offer_code.present?
-    if request.present? && user_by_domain(request.host) == product.user
+    resolved_domain_user = domain_user.nil? ? (request.present? ? user_by_domain(request.host) : nil) : domain_user
+    if request.present? && resolved_domain_user == product.user
       options.merge!(host: request.host_with_port, protocol: request.protocol)
       options[:recommended_by] = recommended_by if recommended_by.present?
       options[:recommender_model_name] = recommender_model_name if recommender_model_name.present?
