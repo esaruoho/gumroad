@@ -68,8 +68,7 @@ ENV DATABASE_HOST="db" \
   MONGO_DATABASE_PASSWORD="password" \
   MONGO_REPLICA_SET="empty_replica_set" \
   ELASTICSEARCH_HOST=http://elasticsearch:9200 \
-  MEMCACHE_SERVERS=memcached \
-  IN_DOCKER="true"
+  MEMCACHE_SERVERS=memcached
 
 WORKDIR $APP_DIR
 

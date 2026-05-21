@@ -45,7 +45,6 @@ CUPRITE_COMMON_OPTS = {
     # then add --headless=new ourselves via browser_options.
     opts[:headless] = false
     opts[:browser_options] = {
-      "headless" => "new",
       "no-sandbox" => nil,
       "disable-setuid-sandbox" => nil,
       "disable-dev-shm-usage" => nil,
@@ -53,6 +52,7 @@ CUPRITE_COMMON_OPTS = {
       "disable-site-isolation-trials" => nil,
       "disable-gpu" => nil,
     }
+    opts[:browser_options]["headless"] = "new" unless ENV["HEADLESS"] == "false"
   end
 end.freeze
 
