@@ -42,8 +42,10 @@ module PlaywrightChooseFallback
     end
 
     # Strategy 2b: click role="radio" by aria-label (e.g. star ratings with icon-only content)
+    # Escape single quotes so CSS attribute selector doesn't break on labels like "Don't show"
+    escaped = locator.to_s.gsub("'", "\\\\'")
     begin
-      find(:css, "[role='radio'][aria-label='#{locator}'], [role='menuitemradio'][aria-label='#{locator}']", **clean_opts).click
+      find(:css, "[role='radio'][aria-label='#{escaped}'], [role='menuitemradio'][aria-label='#{escaped}']", **clean_opts).click
       return
     rescue Capybara::ElementNotFound
       # continue to next strategy
@@ -70,7 +72,7 @@ module PlaywrightChooseFallback
 
     # Strategy 5: find by aria-label (elements with icon-only content)
     begin
-      find(:css, "[aria-label='#{locator.to_s}']", **clean_opts).click
+      find(:css, "[aria-label='#{escaped}']", **clean_opts).click
       return
     rescue Capybara::ElementNotFound
       # continue to final strategy
