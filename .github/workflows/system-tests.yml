@@ -122,6 +122,33 @@ jobs:
         timeout-minutes: 5
         run: npx --yes playwright@1.60.0 install --with-deps chromium
 
+      - name: Start Vite dev server
+        # Long-running dev daemon — matches local dev (`foreman start`).
+        # autoBuild=true (config/vite.json test env) spawns a fresh build
+        # subprocess per request; under CI's pipe semantics those subprocesses
+        # close their stdout mid-stream and the vite_ruby IO threads die with
+        # "stream closed in another thread", which knocks out subsequent
+        # requests and times out Playwright. A persistent `bin/vite dev`
+        # keeps the pipes open and serves chunks incrementally, exactly like
+        # local development. vite_ruby auto-detects the running dev server
+        # on port 3037 and routes asset URLs through it.
+        run: |
+          mkdir -p log tmp
+          nohup bin/vite dev --mode test > log/vite-dev.log 2>&1 &
+          echo $! > tmp/vite-dev.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3037/vite-test/@vite/client > /dev/null; then
+              echo "vite dev ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "vite dev failed to start in 60s"
+          cat log/vite-dev.log
+          exit 1
+        env:
+          RAILS_ENV: test
+
       - name: Run system tests
         timeout-minutes: 10
         run: bin/test-system
