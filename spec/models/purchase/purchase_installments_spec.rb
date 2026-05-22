@@ -508,7 +508,8 @@ describe "PurchaseInstallments", :vcr do
         posts = 3.times.map do |i|
           post = create(:installment, link: product, published_at: (i + 1).days.ago)
           create(:product_file, installment: post, link: product)
-          url_redirect = post.generate_url_redirect_for_purchase(purchase)
+          # url_redirect is created as a side-effect (persisted to DB); `_` prefix avoids lint.
+          _url_redirect = post.generate_url_redirect_for_purchase(purchase)
           create(:creator_contacting_customers_email_info_sent, purchase:, installment: post, sent_at: i.hours.ago)
           post
         end
@@ -528,6 +529,10 @@ describe "PurchaseInstallments", :vcr do
         expect(result.size).to eq(3)
         expect(result.map { |p| p[:external_id] }).to match_array(posts.map(&:external_id))
 
+        # The `!q.include?("IN")` check distinguishes per-row queries (`installment_id = ?`)
+        # from the bulk `IN (...)` query. This relies on having >1 post; with a single post
+        # the bulk query also uses `=` and the counter would always be 0 regardless of
+        # whether the N+1 has regressed. The test creates 3 posts to keep this meaningful.
         per_installment_url_redirect_queries = queries.count { |q| q.include?("url_redirects") && q.include?("installment_id") && !q.include?("IN") }
         per_installment_product_file_queries = queries.count { |q| q.include?("product_files") && q.include?("installment_id") && !q.include?("IN") }
         per_installment_email_info_queries = queries.count { |q| q.include?("email_infos") && q.include?("installment_id") && !q.include?("IN") }

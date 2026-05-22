@@ -294,8 +294,7 @@ class Installment < ApplicationRecord
     end
     released_at = if purchase.present?
       if preloaded_purchase_email_info != :not_preloaded
-        action_at = preloaded_purchase_email_info.present? ? preloaded_purchase_email_info.sent_at || preloaded_purchase_email_info.delivered_at || preloaded_purchase_email_info.opened_at : published_at
-        action_at || Time.current
+        action_at_from_email_info(preloaded_purchase_email_info)
       else
         action_at_for_purchase(purchase.original_purchase)
       end
@@ -716,6 +715,10 @@ class Installment < ApplicationRecord
 
   def action_at_for_purchases(purchase_ids)
     email_info = CreatorContactingCustomersEmailInfo.where(installment_id: id, purchase_id: purchase_ids).last
+    action_at_from_email_info(email_info)
+  end
+
+  def action_at_from_email_info(email_info)
     action_at = email_info.present? ? email_info.sent_at || email_info.delivered_at || email_info.opened_at : published_at
     action_at || Time.current
   end

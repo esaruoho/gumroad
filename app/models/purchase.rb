@@ -2302,8 +2302,12 @@ class Purchase < ApplicationRecord
 
     post_ids = posts.map(&:id)
 
+    # `.order(:id)` matches the original `purchase_url_redirect(...).first` semantics
+    # (lowest-id wins) and ensures `index_by` is deterministic when multiple
+    # url_redirects exist for the same (purchase_id, installment_id) pair.
     url_redirects_by_installment_id = UrlRedirect
       .where(purchase_id: id, installment_id: post_ids)
+      .order(:id)
       .index_by(&:installment_id)
 
     product_files_by_installment_id = ProductFile
