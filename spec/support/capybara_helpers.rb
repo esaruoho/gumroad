@@ -193,13 +193,13 @@ module CapybaraHelpers
   def get_all_cookies
     if page.driver.respond_to?(:with_playwright_page)
       page.driver.with_playwright_page do |pw_page|
-pw_page.context.cookies.map do |c|
-  cookie = c.transform_keys(&:to_sym)
-  # Playwright returns expires as a Unix timestamp (float);
-  # Selenium returns a Time object. Normalize to Time for compat.
-  cookie[:expires] = Time.at(cookie[:expires]) if cookie[:expires].is_a?(Numeric) && cookie[:expires] > 0
-  cookie
-end
+        pw_page.context.cookies.map do |c|
+          cookie = c.transform_keys(&:to_sym)
+          # Playwright returns expires as a Unix timestamp (float);
+          # Selenium returns a Time object. Normalize to Time for compat.
+          cookie[:expires] = Time.at(cookie[:expires]) if cookie[:expires].is_a?(Numeric) && cookie[:expires] > 0
+          cookie
+        end
       end
     else
       Capybara.current_session.driver.browser.manage.all_cookies
