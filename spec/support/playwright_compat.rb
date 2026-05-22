@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "date"
+require "time"
+
 # Playwright is stricter than Selenium about `choose` — it requires a real
 # <input type="radio"> or an element with an appropriate ARIA role.
 # Many Gumroad specs use `choose("Label text")` on custom React radio
@@ -74,27 +77,25 @@ module PlaywrightChooseFallback
 end
 
 module PlaywrightFillInCompat
+  TEMPORAL_INPUT_TYPES = %w[date datetime-local time month week].freeze
+
   def fill_in(locator = nil, with:, currently_with: nil, fill_options: {}, **find_options)
     return super unless playwright_driver?
 
     find_options[:with] = currently_with if currently_with
     find_options[:allow_self] = true if locator.nil?
     field = find(:fillable_field, locator, **find_options)
+    value = playwright_fill_value(field, with)
 
-    if playwright_type_fill?(field, with, fill_options)
-      field.execute_script("this.focus(); this.select();")
-      field.send_keys(:backspace, with.to_s)
+    if playwright_type_fill?(field, value, fill_options)
+      playwright_type_fill(field, value)
     else
       begin
-        field.set(with, **fill_options)
+        field.set(value, **fill_options)
       rescue Playwright::Error => e
-        raise unless e.message.include?("Malformed") || e.message.include?("malformed")
+        raise unless playwright_temporal_input?(field) && e.message.match?(/malformed/i)
 
-        # Playwright rejects values for date/time/datetime-local inputs that
-        # don't match the expected format. Fall back to clearing and typing
-        # the value via keyboard, which lets the browser parse it naturally.
-        field.execute_script("this.focus(); this.select();")
-        field.send_keys(:backspace, with.to_s)
+        playwright_type_fill(field, value)
       end
     end
   end
@@ -109,6 +110,136 @@ module PlaywrightFillInCompat
         %w[input textarea].include?(field.tag_name) &&
         field[:inputmode] == "decimal" &&
         value.to_s.match?(/[^\d.]/)
+    end
+
+    def playwright_type_fill(field, value)
+      field.execute_script("this.focus(); this.select();")
+      field.send_keys(:backspace, value.to_s)
+    end
+
+    def playwright_fill_value(field, value)
+      return value unless playwright_temporal_input?(field)
+
+      string = value.to_s.strip
+      return value if string.empty?
+
+      case field[:type].to_s
+      when "date"
+        format_date_value(value)
+      when "datetime-local"
+        format_datetime_local_value(value)
+      when "time"
+        format_time_value(value)
+      when "month"
+        format_month_value(value)
+      when "week"
+        format_week_value(value)
+      else
+        value
+      end
+    end
+
+    def playwright_temporal_input?(field)
+      field.tag_name == "input" && TEMPORAL_INPUT_TYPES.include?(field[:type].to_s)
+    end
+
+    def format_date_value(value)
+      return value.strftime("%Y-%m-%d") if value.respond_to?(:strftime) && !value.is_a?(String)
+
+      string = value.to_s.strip
+      return string if string.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
+      parse_date_value(string)&.strftime("%Y-%m-%d") || value
+    end
+
+    def format_datetime_local_value(value)
+      return value.strftime("%Y-%m-%dT%H:%M") if value.respond_to?(:strftime) && !value.is_a?(String)
+
+      string = value.to_s.strip
+      return string if string.match?(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?\z/)
+
+      parse_datetime_value(string)&.strftime("%Y-%m-%dT%H:%M") ||
+        parse_date_value(string)&.strftime("%Y-%m-%dT00:00") ||
+        value
+    end
+
+    def format_time_value(value)
+      return value.strftime("%H:%M") if value.respond_to?(:strftime) && !value.is_a?(String)
+
+      string = value.to_s.strip
+      return string if string.match?(/\A\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?\z/)
+
+      parse_time_value(string)&.strftime("%H:%M") || value
+    end
+
+    def format_month_value(value)
+      return value.strftime("%Y-%m") if value.respond_to?(:strftime) && !value.is_a?(String)
+
+      string = value.to_s.strip
+      return string if string.match?(/\A\d{4}-\d{2}\z/)
+
+      parse_date_value(string)&.strftime("%Y-%m") || parse_month_value(string)&.strftime("%Y-%m") || value
+    end
+
+    def format_week_value(value)
+      return value.strftime("%G-W%V") if value.respond_to?(:strftime) && !value.is_a?(String)
+
+      string = value.to_s.strip
+      return string if string.match?(/\A\d{4}-W\d{2}\z/)
+
+      parse_date_value(string)&.strftime("%G-W%V") || value
+    end
+
+    def parse_date_value(value)
+      %w[%m/%d/%Y %Y-%m-%d].each do |format|
+        return Date.strptime(value, format)
+      rescue ArgumentError
+        next
+      end
+
+      nil
+    end
+
+    def parse_time_value(value)
+      parse_datetime_value(value) ||
+        parse_clock_value(value)
+    end
+
+    def parse_datetime_value(value)
+      [
+        "%Y-%m-%dT%H:%M",
+        "%Y-%m-%d %H:%M",
+        "%m/%d/%Y\t%I:%M%p",
+        "%m/%d/%Y %I:%M%p",
+        "%m/%d/%Y %I:%M %p",
+        "%m/%d/%Y %H:%M"
+      ].each do |format|
+        return Time.strptime(value, format)
+      rescue ArgumentError
+        next
+      end
+
+      nil
+    end
+
+    def parse_clock_value(value)
+      [
+        "%I:%M%p",
+        "%I:%M %p",
+        "%H:%M"
+      ].each do |format|
+        return Time.strptime(value, format)
+      rescue ArgumentError
+        next
+      end
+
+      nil
+    end
+
+    def parse_month_value(value)
+      Date.strptime(value, "%m/%Y")
+    rescue ArgumentError
+      nil
     end
 end
 
@@ -189,12 +320,10 @@ module PlaywrightAmbiguousCommandFallback
 
       # Try :button first (most common), then :link, then :menuitem
       %i[button link menuitem].each do |selector|
-        begin
-          find(selector, locator, **opts).click
-          return
-        rescue Capybara::ElementNotFound, Playwright::TimeoutError
-          next
-        end
+        find(selector, locator, **opts).click
+        return
+      rescue Capybara::ElementNotFound, Playwright::TimeoutError
+        next
       end
 
       # Final attempt: any clickable element by text
