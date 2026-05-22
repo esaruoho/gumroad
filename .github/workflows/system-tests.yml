@@ -29,21 +29,25 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.32
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: gumroad_test
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h localhost"
+          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
       redis:
         image: redis:7
         ports:
           - 6379:6379
+      mongo:
+        image: mongo:4.0.19
+        ports:
+          - 27017:27017
       elasticsearch:
         image: elasticsearch:7.17.18
         env:
@@ -52,18 +56,18 @@ jobs:
           ES_JAVA_OPTS: "-Xms512m -Xmx512m"
         ports:
           - 9200:9200
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
 
     env:
       RAILS_ENV: test
-      DATABASE_NAME: gumroad_test
-      DATABASE_HOST: 127.0.0.1
-      DATABASE_PORT: 3306
-      DATABASE_USERNAME: root
-      DATABASE_PASSWORD: ""
-      REDIS_URL: redis://127.0.0.1:6379/0
-      RACK_ATTACK_REDIS_HOST: 127.0.0.1:6379
-      ELASTICSEARCH_URL: http://127.0.0.1:9200
       BUNDLE_GEMS__CONTRIBSYS__COM: ${{ secrets.BUNDLE_GEMS__CONTRIBSYS__COM }}
+      # .env.test sets DATABASE_*, MONGO_*, REDIS_*, ELASTICSEARCH_*, etc.
+      # dotenv-rails loads it when RAILS_ENV=test. We only override the
+      # MYSQL password here because .env.test expects "password" matching
+      # the dev compose, and our service container is configured the same.
 
     steps:
       - uses: actions/checkout@v4
