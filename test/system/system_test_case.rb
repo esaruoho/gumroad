@@ -51,6 +51,7 @@ module SystemTests
       DatabaseCleaner.start
       @context = PlaywrightDriver.new_context
       @context.set_default_timeout(PlaywrightDriver::DEFAULT_TIMEOUT_MS)
+      @context.set_default_navigation_timeout(PlaywrightDriver::DEFAULT_NAVIGATION_TIMEOUT_MS)
       @page = @context.new_page
     end
 

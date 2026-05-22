@@ -8,7 +8,11 @@ module SystemTests
     HEADLESS = ENV.fetch("HEADED", "false") != "true"
     SLOW_MO_MS = ENV.fetch("SLOWMO", "0").to_i
     VIEWPORT = { width: 1280, height: 800 }.freeze
-    DEFAULT_TIMEOUT_MS = 10_000
+    DEFAULT_TIMEOUT_MS = ENV.fetch("PLAYWRIGHT_TIMEOUT_MS", "30000").to_i
+    # Navigation gets its own (larger) budget. Even with Vite assets prebuilt
+    # in CI, first-hit cold caches and Rails boot can push page.goto past the
+    # default 10s. Keep the action timeout tighter so flaky selectors fail fast.
+    DEFAULT_NAVIGATION_TIMEOUT_MS = ENV.fetch("PLAYWRIGHT_NAV_TIMEOUT_MS", "120000").to_i
 
     class << self
       def browser

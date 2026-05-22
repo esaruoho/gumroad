@@ -99,9 +99,17 @@ jobs:
 
       - name: Install npm dependencies
         # Required because Vite (config/vite.json: autoBuild: true for the
-        # `test` env) lazy-compiles assets on first request. No precompile
-        # step — Vite caches built chunks on disk after the first hit.
+        # `test` env) lazy-compiles assets on first request. We pre-build
+        # below so the first system test doesn't pay 30-60s of cold compile.
         run: npm ci
+
+      - name: Build Vite assets (test)
+        # Lazy autoBuild on first request takes longer than Playwright's nav
+        # timeout in CI. Pre-building once here makes all tests deterministic
+        # and the JS bundle stays cached on disk for the rest of the job.
+        run: bundle exec bin/vite build --mode=test
+        env:
+          RAILS_ENV: test
 
       - name: Install Playwright Chromium
         timeout-minutes: 5
