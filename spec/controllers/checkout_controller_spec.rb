@@ -28,6 +28,7 @@ describe CheckoutController, type: :controller, inertia: true do
                                                cart_save_debounce_ms: CheckoutPresenter::CART_SAVE_DEBOUNCE_DURATION_IN_SECONDS.in_milliseconds,
                                                clear_cart: false,
                                                buyer_currency: nil,
+                                               buyer_currency_usd_exchange_rate: nil,
                                                countries: Compliance::Countries.for_select.to_h,
                                                country: nil,
                                                default_tip_option: 0,
