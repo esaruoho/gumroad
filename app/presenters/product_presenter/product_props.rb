@@ -169,27 +169,6 @@ class ProductPresenter::ProductProps
       return nil unless Flipper.enabled?(:multi_currency_checkout)
 
       buyer_currency = BuyerCurrencyService.detect_currency(@request_ip)
-      return nil if buyer_currency.blank?
-      seller_currency = product.price_currency_type.downcase
-      return nil if buyer_currency == seller_currency
-
-      {
-        currency_code: buyer_currency,
-        price_cents: BuyerCurrencyService.convert_price(
-          product.price_cents,
-          from_currency: seller_currency,
-          to_currency: buyer_currency
-        ),
-        exchange_rate: BuyerCurrencyService.exchange_rate(
-          from_currency: seller_currency,
-          to_currency: buyer_currency
-        ),
-        suggested_price_cents: product.customizable_price && product.suggested_price_cents.to_i > 0 ?
-          BuyerCurrencyService.convert_price(
-            product.suggested_price_cents,
-            from_currency: seller_currency,
-            to_currency: buyer_currency
-          ) : nil,
-      }
+      BuyerCurrencyService.buyer_local_price_props(product, buyer_currency)
     end
 end

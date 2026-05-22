@@ -156,6 +156,32 @@ class BuyerCurrencyService
     service.usd_cents_to_currency(to_currency, usd_cents).round
   end
 
+  # Build the buyer-local price props for a product, used by both the product
+  # page and the checkout to render Apple-style localized pricing. Returns nil
+  # when no buyer currency is detected or it matches the seller's currency
+  # (caller renders the seller-currency price as-is).
+  #
+  # @param product [Link] the product whose price/currency drives the conversion
+  # @param buyer_currency [String, nil] detected buyer currency (e.g. "eur")
+  # @return [Hash, nil] { currency_code:, price_cents:, exchange_rate:, suggested_price_cents: }
+  def self.buyer_local_price_props(product, buyer_currency)
+    return nil if buyer_currency.blank?
+
+    seller_currency = product.price_currency_type.to_s.downcase
+    return nil if buyer_currency == seller_currency
+
+    suggested_price_cents = if product.customizable_price && product.suggested_price_cents.to_i > 0
+      convert_price(product.suggested_price_cents, from_currency: seller_currency, to_currency: buyer_currency)
+    end
+
+    {
+      currency_code: buyer_currency,
+      price_cents: convert_price(product.price_cents, from_currency: seller_currency, to_currency: buyer_currency),
+      exchange_rate: exchange_rate(from_currency: seller_currency, to_currency: buyer_currency),
+      suggested_price_cents: suggested_price_cents,
+    }
+  end
+
   # Apple-style smart rounding: snap a raw converted price to the nearest
   # psychologically appealing price point.
   def self.smart_round(amount_cents, currency)
