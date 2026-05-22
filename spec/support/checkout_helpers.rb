@@ -159,6 +159,15 @@ module CheckoutHelpers
           end
         rescue Capybara::ElementNotFound
           # Page may still be loading after payment processing or Chrome may be unstable; continue to success assertion
+        rescue StandardError => e
+          # React re-renders during payment processing can cause stale references.
+          # Guard the Playwright constant so non-Playwright drivers don't NameError.
+          is_pw_stale = defined?(Capybara::Playwright::Node::StaleReferenceError) &&
+                        e.is_a?(Capybara::Playwright::Node::StaleReferenceError)
+          is_expect_stale = e.is_a?(Capybara::ExpectationNotMet) &&
+                            (e.message.include?("stale") || e.message.include?("detached"))
+          raise unless is_pw_stale || is_expect_stale
+          # Swallow stale-element errors silently; continue to success assertion
         end
       end
 
