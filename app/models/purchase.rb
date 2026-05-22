@@ -1903,16 +1903,25 @@ class Purchase < ApplicationRecord
     # The USD amount (price_cents) remains the canonical internal accounting value.
     # NOTE: total_transaction_cents is always kept in USD — buyer_currency_amount_cents
     # is a separate field used by Charge::CreateService for the Stripe charge amount.
-    if buyer_currency.present? && buyer_currency != "usd"
+    #
+    # Skip conversion when buyer currency matches seller currency (e.g., EUR buyer +
+    # EUR seller) — in that case, displayed_price_cents IS already the correct amount
+    # and a round-trip through USD would lose precision.
+    seller_currency = displayed_price_currency_type.to_s.downcase
+    if buyer_currency.present? && buyer_currency != "usd" && buyer_currency != seller_currency
       self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
         displayed_price_cents,
-        from_currency: displayed_price_currency_type.to_s,
+        from_currency: seller_currency,
         to_currency: buyer_currency
       )
       self.buyer_currency_exchange_rate = BuyerCurrencyService.exchange_rate(
-        from_currency: displayed_price_currency_type.to_s,
+        from_currency: seller_currency,
         to_currency: buyer_currency
       )
+    elsif buyer_currency.present? && buyer_currency == seller_currency
+      # Same currency: use the seller's price directly, no conversion needed
+      self.buyer_currency_amount_cents = displayed_price_cents
+      self.buyer_currency_exchange_rate = 1.0
     end
     self.total_transaction_cents = self.price_cents
 
@@ -2982,12 +2991,22 @@ class Purchase < ApplicationRecord
       # Multi-currency: recalculate buyer_currency_amount_cents to include taxes + shipping.
       # Convert the full USD total_transaction_cents to buyer currency so the Stripe charge
       # amount matches what the buyer actually owes (price + tax + shipping).
+      # When buyer_currency matches the seller's currency, convert from seller currency
+      # directly to avoid a lossy USD round-trip.
       if buyer_currency.present? && buyer_currency != "usd"
-        self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
-          total_transaction_cents,
-          from_currency: "usd",
-          to_currency: buyer_currency
-        )
+        seller_currency = link.price_currency_type.to_s.downcase
+        if buyer_currency == seller_currency
+          # Same currency: convert back from USD using the seller's own rate
+          self.buyer_currency_amount_cents = usd_cents_to_currency(
+            seller_currency, total_transaction_cents, rate_converted_to_usd
+          ).round
+        else
+          self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
+            total_transaction_cents,
+            from_currency: "usd",
+            to_currency: buyer_currency
+          )
+        end
       end
 
       calculate_fees
@@ -3179,6 +3198,21 @@ class Purchase < ApplicationRecord
 
         # For recurring charges, use the buyer's original currency if set
         charge_currency = buyer_currency.presence || "usd"
+
+        # When charging in a non-USD buyer currency, convert amounts from USD
+        # to the buyer's currency so Stripe receives the correct local amount.
+        if charge_currency != "usd"
+          amount_cents = buyer_currency_amount_cents || BuyerCurrencyService.convert_price_raw(
+            total_transaction_cents,
+            from_currency: "usd",
+            to_currency: charge_currency
+          )
+          amount_for_gumroad_cents = BuyerCurrencyService.convert_price_raw(
+            total_transaction_amount_for_gumroad_cents,
+            from_currency: "usd",
+            to_currency: charge_currency
+          )
+        end
 
         charge_intent = ChargeProcessor.create_payment_intent_or_charge!(self.merchant_account,
                                                                          chargeable,

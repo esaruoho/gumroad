@@ -52,6 +52,13 @@ class Charge::CreateService
                    else
                      gumroad_amount_cents
                    end
+
+      # Update charge record to reflect the actual Stripe charge amounts so
+      # DB values match what Stripe receives (for reconciliation).
+      if charge_currency != "usd"
+        charge.update!(amount_cents: charge_amount, gumroad_amount_cents: fee_amount)
+      end
+
       ChargeProcessor.create_payment_intent_or_charge!(merchant_account,
                                                        chargeable,
                                                        charge_amount,
