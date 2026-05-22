@@ -355,7 +355,34 @@ module PlaywrightAmbiguousCommandFallback
     end
 
     def click_first_command(locator, **options)
-      find(:command, locator, **options.merge(match: :first)).click
+      stale_retries = 0
+      begin
+        find(:command, locator, **options.merge(match: :first)).click
+      rescue Capybara::Playwright::Node::StaleReferenceError
+        stale_retries += 1
+        raise if stale_retries > 2
+        sleep 0.2
+        retry
+      end
+    end
+
+    # Find and click with StaleReferenceError retry — React re-renders can
+    # detach the element between find() returning and click() executing.
+    def find_and_click(selector, locator, **opts)
+      stale_retries = 0
+      begin
+        element = find(selector, locator, **opts)
+        begin
+          element.click
+        rescue Playwright::TimeoutError
+          element.execute_script("this.scrollIntoView({block: 'center'}); this.click()")
+        end
+      rescue Capybara::Playwright::Node::StaleReferenceError
+        stale_retries += 1
+        raise if stale_retries > 2
+        sleep 0.2
+        retry
+      end
     end
 
     def click_individual_selectors(locator, **options)
@@ -365,13 +392,7 @@ module PlaywrightAmbiguousCommandFallback
 
       # Try :button first (most common), then :link, then :menuitem
       [[:button, button_opts], [:link, other_opts], [:menuitem, other_opts]].each do |selector, opts|
-        element = find(selector, locator, **opts)
-        begin
-          element.click
-        rescue Playwright::TimeoutError
-          # Click intercepted (overlay, sticky header, animation) — force click
-          element.execute_script("this.scrollIntoView({block: 'center'}); this.click()")
-        end
+        find_and_click(selector, locator, **opts)
         return
       rescue Capybara::ElementNotFound, Playwright::TimeoutError, ArgumentError
         next
@@ -379,13 +400,8 @@ module PlaywrightAmbiguousCommandFallback
 
       # Final attempt: any clickable element by text
       css_opts = other_opts.except(:disabled)
-      element = find(:css, "button, a, [role='button'], [role='link'], [role='menuitem']",
+      find_and_click(:css, "button, a, [role='button'], [role='link'], [role='menuitem']",
            text: locator, exact_text: false, **css_opts)
-      begin
-        element.click
-      rescue Playwright::TimeoutError
-        element.execute_script("this.scrollIntoView({block: 'center'}); this.click()")
-      end
     end
 end
 
