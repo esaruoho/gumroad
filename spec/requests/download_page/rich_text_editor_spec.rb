@@ -235,9 +235,7 @@ describe("Download Page – Rich Text Editor Content", type: :system, js: true) 
       product_rich_content.update!(title: "Page 1", position: 0, description: [{ "type" => "paragraph", "content" => [{ "type" => "text", "text" => "Page 1 content" }] }])
       page_2 = create(:rich_content, entity: @product, title: "Page 2", position: 1, description: [{ "type" => "paragraph", "content" => [{ "type" => "text", "text" => "Page 2 content" }] }])
 
-      cdp_id = page.driver.browser.execute_cdp(
-        "Page.addScriptToEvaluateOnNewDocument",
-        source: <<~JS
+      inject_script = <<~JS
           window._messages = [];
           window.ReactNativeWebView = {
             postMessage: (message) => {
@@ -245,7 +243,17 @@ describe("Download Page – Rich Text Editor Content", type: :system, js: true) 
             }
           };
         JS
-      ).fetch("identifier")
+
+      if page.driver.respond_to?(:with_playwright_page)
+        page.driver.with_playwright_page do |pw_page|
+          pw_page.add_init_script(script: inject_script)
+        end
+      else
+        cdp_id = page.driver.browser.execute_cdp(
+          "Page.addScriptToEvaluateOnNewDocument",
+          source: inject_script
+        ).fetch("identifier")
+      end
 
       visit("/d/#{@url_redirect.token}?display=mobile_app")
       expect(page).to have_text("Page 1 content")
@@ -303,7 +311,9 @@ describe("Download Page – Rich Text Editor Content", type: :system, js: true) 
       expect(page).to_not have_button("Next")
       expect(page).to_not have_button("Previous")
 
-      page.driver.browser.execute_cdp("Page.removeScriptToEvaluateOnNewDocument", identifier: cdp_id)
+      if cdp_id
+        page.driver.browser.execute_cdp("Page.removeScriptToEvaluateOnNewDocument", identifier: cdp_id)
+      end
     end
 
     it "renders the customized download page for the purpose of embedding inside webview in the mobile apps" do

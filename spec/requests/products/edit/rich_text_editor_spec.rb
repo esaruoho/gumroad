@@ -320,7 +320,13 @@ describe("Product Edit Rich Text Editor", type: :system, js: true) do
       # Need to double click in order to ensure we have the editor input focused first
       find("a").double_click
     end
-    expect(page.driver.browser.window_handles.size).to eq(1)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        expect(pw_page.context.pages.size).to eq(1)
+      end
+    else
+      expect(page.driver.browser.window_handles.size).to eq(1)
+    end
   end
 
   it "validates links, fixing links with invalid protocols and adding https where necessary" do

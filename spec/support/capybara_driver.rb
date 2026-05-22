@@ -6,7 +6,6 @@ require "capybara/playwright"
 PLAYWRIGHT_HEADLESS = ENV["HEADLESS"] != "false"
 
 PLAYWRIGHT_LAUNCH_OPTS = {
-  channel: "chrome",
   args: [
     "--disable-gpu",
     "--no-sandbox",
@@ -105,7 +104,16 @@ RSpec.configure do |config|
   # Filter Playwright internals from backtraces
   config.filter_gems_from_backtrace("capybara", "playwright", "capybara-playwright-driver")
 
+  # Install JS error collector on each new Playwright page
   config.after(:each, type: :system, js: true) do
     clear_external_redirects if respond_to?(:clear_external_redirects)
+  end
+
+  config.before(:each, type: :system, js: true) do
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        JSErrorReporter.install_playwright_collector!(pw_page)
+      end
+    end
   end
 end

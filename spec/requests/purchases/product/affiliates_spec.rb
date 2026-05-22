@@ -25,7 +25,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
 
     it "adds the affiliate's cookie and links to the cart product if the affiliate is alive" do
       visit short_link_path(product.unique_permalink, param_name => affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).to be_present
@@ -38,7 +38,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
     it "does not add the affiliate's cookie if the affiliate is deleted" do
       affiliate.mark_deleted!
       visit short_link_path(product.unique_permalink, param_name => affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).not_to be_present
@@ -80,7 +80,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
 
     it "adds the affiliate's cookie if the affiliate is alive" do
       visit affiliate.referral_url_for_product(product)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).to be_present
@@ -90,7 +90,7 @@ describe("Product checkout - with affiliate", type: :system, js: true) do
     it "does not add the affiliate's cookie if the affiliate is deleted" do
       affiliate.mark_deleted!
       visit affiliate.referral_url_for_product(product)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).not_to be_present

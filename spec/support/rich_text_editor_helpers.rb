@@ -45,6 +45,12 @@ module RichTextEditorHelpers
   end
 
   def ctrl_key
-    page.driver.browser.capabilities.platform_name.include?("mac") ? :command : :control
+    if page.driver.respond_to?(:with_playwright_page)
+      # Playwright runs Chromium — detect platform via JS
+      is_mac = page.evaluate_script("navigator.platform.includes('Mac')")
+      is_mac ? :command : :control
+    else
+      page.driver.browser.capabilities.platform_name.include?("mac") ? :command : :control
+    end
   end
 end

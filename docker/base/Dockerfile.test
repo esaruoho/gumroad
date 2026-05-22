@@ -67,6 +67,8 @@ RUN echo 'app ALL=NOPASSWD: ALL' >> /etc/sudoers.d/50-app
 RUN mkdir -p /tmp/test-results/ \
   && chmod -R 2777 /tmp/test-results/
 
-# Install Playwright browsers (chromium) for system specs
+# Install Playwright browsers (chromium) for system specs.
+# Set PLAYWRIGHT_BROWSERS_PATH so browsers are shared across users (root builds, app runs tests).
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN npx playwright install --with-deps chromium
 

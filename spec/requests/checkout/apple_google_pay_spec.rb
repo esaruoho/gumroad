@@ -117,22 +117,35 @@ describe "Checkout with Payment Request API", :js, type: :system do
       })();
     JS
 
-    @cdp_script_identifier = page.driver.browser.execute_cdp(
-      "Page.addScriptToEvaluateOnNewDocument",
-      source: script
-    ).fetch("identifier")
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        pw_page.add_init_script(script: script)
+      end
+      begin
+        page.execute_script(script)
+      rescue StandardError
+        # No page loaded yet — that's fine, the init script will run on the next visit
+      end
+    else
+      @cdp_script_identifier = page.driver.browser.execute_cdp(
+        "Page.addScriptToEvaluateOnNewDocument",
+        source: script
+      ).fetch("identifier")
 
-    begin
-      page.execute_script(script)
-    rescue StandardError
-      # No page loaded yet — that's fine, the CDP script will run on the next visit
+      begin
+        page.execute_script(script)
+      rescue StandardError
+        # No page loaded yet — that's fine, the CDP script will run on the next visit
+      end
     end
   rescue StandardError => e
     warn "Warning: Payment request mock injection failed: #{e.message}"
   end
 
   def clear_payment_request_mocks
-    if @cdp_script_identifier
+    if page.driver.respond_to?(:with_playwright_page)
+      # Playwright: init scripts are cleared when context is reset between tests
+    elsif @cdp_script_identifier
       page.driver.browser.execute_cdp("Page.removeScriptToEvaluateOnNewDocument", identifier: @cdp_script_identifier)
     end
   rescue StandardError => e

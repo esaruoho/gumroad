@@ -31,8 +31,11 @@ module ProductFileListHelpers
       begin
         page.scroll_to row, align: :center
         row.find("h4").hover
-      rescue Capybara::ExpectationNotMet
+      rescue Capybara::Playwright::Node::StaleReferenceError
         # React re-renders the embed during upload progress, causing stale references
+        raise Capybara::ElementNotFound, "Embed element went stale during upload, retrying"
+      rescue Capybara::ExpectationNotMet => e
+        raise if e.message.exclude?("stale") && e.message.exclude?("detached")
         raise Capybara::ElementNotFound, "Embed element went stale during upload, retrying"
       end
       raise Capybara::ElementNotFound, "Upload still in progress" if row.has_selector?("[role='progressbar']", wait: 0)
@@ -64,7 +67,14 @@ module ProductFileListHelpers
   end
 
   def expect_focused(active_el)
-    expect(page.driver.browser.switch_to.active_element).to eql(active_el.native)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        focused = pw_page.evaluate("document.activeElement")
+        expect(active_el.native.evaluate("el => el === document.activeElement")).to be true
+      end
+    else
+      expect(page.driver.browser.switch_to.active_element).to eql(active_el.native)
+    end
   end
 
   def pick_dropbox_file(url, skip_transfer = false)

@@ -93,10 +93,16 @@ module CapybaraHelpers
   end
 
   def accept_browser_dialog
-    page.driver.browser.switch_to.alert.accept
+    if page.driver.respond_to?(:with_playwright_page)
+      # Playwright auto-accepts dialogs via dialog_event_handler.
+      # If a dialog is already queued, this is a no-op.
+      page.driver.accept_modal(:confirm, wait: 1) rescue nil
+    else
+      page.driver.browser.switch_to.alert.accept
+    end
   rescue StandardError
     sleep 0.5
-    page.driver.browser.switch_to.alert.accept
+    retry
   end
 
   # Reads the flash/toast alert message and immediately dismisses it.
@@ -124,10 +130,63 @@ module CapybaraHelpers
 
   def with_throttled_network(fixture_file, factor: 4)
     throughput = (File.size(fixture_file) * factor)
-    page.driver.browser.execute_cdp("Network.enable")
-    page.driver.browser.execute_cdp("Network.emulateNetworkConditions", offline: false, latency: 0, downloadThroughput: throughput, uploadThroughput: throughput)
-    yield
-    page.driver.browser.execute_cdp("Network.emulateNetworkConditions", offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        context = pw_page.context
+        # Playwright doesn't have native network throttling, but CDP works via Chromium
+        client = context.new_cdp_session(pw_page)
+        client.send_message("Network.enable")
+        client.send_message("Network.emulateNetworkConditions",
+          offline: false, latency: 0,
+          downloadThroughput: throughput, uploadThroughput: throughput)
+      end
+      yield
+      page.driver.with_playwright_page do |pw_page|
+        client = pw_page.context.new_cdp_session(pw_page)
+        client.send_message("Network.emulateNetworkConditions",
+          offline: false, latency: 0,
+          downloadThroughput: -1, uploadThroughput: -1)
+      end
+    else
+      page.driver.browser.execute_cdp("Network.enable")
+      page.driver.browser.execute_cdp("Network.emulateNetworkConditions", offline: false, latency: 0, downloadThroughput: throughput, uploadThroughput: throughput)
+      yield
+      page.driver.browser.execute_cdp("Network.emulateNetworkConditions", offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1)
+    end
+  end
+
+  # ── Cookie & browser helpers (Playwright + Selenium compatible) ──────
+
+  def get_cookie_value(name)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        cookies = pw_page.context.cookies
+        cookie = cookies.find { |c| c["name"] == name }
+        cookie&.dig("value")
+      end
+    else
+      Capybara.current_session.driver.browser.manage.all_cookies.find { |c| c[:name] == name }&.[](:value)
+    end
+  end
+
+  def get_all_cookies
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        pw_page.context.cookies.map { |c| c.transform_keys(&:to_sym) }
+      end
+    else
+      Capybara.current_session.driver.browser.manage.all_cookies
+    end
+  end
+
+  def clear_browser_cookies
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        pw_page.context.clear_cookies
+      end
+    else
+      Capybara.current_session.driver.browser.manage.delete_all_cookies
+    end
   end
 
   private

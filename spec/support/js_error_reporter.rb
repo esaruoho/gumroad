@@ -47,13 +47,35 @@ class JSErrorReporter
     errors.reject { |error| error.blank? || should_ignore_error?(error) }
   end
 
+  # Inject the JS error collector into a Playwright page.
+  # Call this after each new page/context is created.
+  def self.install_playwright_collector!(playwright_page)
+    playwright_page.add_init_script(script: <<~JS)
+      window.__gumroad_js_errors = window.__gumroad_js_errors || [];
+      window.addEventListener('error', (e) => {
+        const msg = e.error
+          ? `Error: ${e.error.message}\\n\\tat ${e.filename}:${e.lineno}:${e.colno}`
+          : `Error: ${e.message}\\n\\tat ${e.filename}:${e.lineno}:${e.colno}`;
+        window.__gumroad_js_errors.push(msg);
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        const reason = e.reason;
+        const msg = reason instanceof Error
+          ? `Error: ${reason.message}`
+          : `Error: ${String(reason)}`;
+        window.__gumroad_js_errors.push(msg);
+      });
+      const origError = console.error;
+      console.error = function(...args) {
+        const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(', ');
+        window.__gumroad_js_errors.push(`Console error: ${msg}`);
+        origError.apply(console, args);
+      };
+    JS
+  end
+
   private
     def collect_js_errors(driver)
-      # Playwright: use evaluate to check for collected errors, or
-      # gracefully return empty if the driver doesn't support it.
-      # Playwright's console messages are captured via page events,
-      # but capybara-playwright-driver doesn't expose a logs API.
-      # Instead, we inject a collector script on page load.
       begin
         if driver.respond_to?(:with_playwright_page)
           driver.with_playwright_page do |playwright_page|
@@ -66,11 +88,19 @@ class JSErrorReporter
             JS
             Array(result)
           end
-        else
-          # Fallback for Selenium (production screenshot services)
+        elsif driver.respond_to?(:browser) && driver.browser.respond_to?(:logs)
+          # Selenium WebDriver (used in JSErrorReporter spec and production screenshot services)
           begin
-            browser = driver.browser
-            logs = browser.logs.get(:driver)
+            logs = driver.browser.logs.get(:driver)
+            parse_selenium_logs(logs)
+          rescue => e
+            puts e.inspect
+            []
+          end
+        else
+          # Raw Selenium::WebDriver::Driver passed directly (from spec)
+          begin
+            logs = driver.manage.logs.get(:driver)
             parse_selenium_logs(logs)
           rescue => e
             puts e.inspect
@@ -86,8 +116,7 @@ class JSErrorReporter
     def parse_selenium_logs(logs)
       logs.filter_map do |log|
         if log.message.start_with?("DevTools WebSocket Event: Runtime.exceptionThrown")
-          error = JSON.parse(log.message[log.message.index("{")..]
-          )["exceptionDetails"]
+          error = JSON.parse(log.message[log.message.index("{")..])["exceptionDetails"]
           message = error["exception"]["preview"] ? error["exception"]["preview"]["properties"].find { |prop| prop["name"] == "message" }["value"] : error["exception"]["value"]
           next "Error: #{message}\n\tat #{error["url"]}:#{error["lineNumber"]}:#{error["columnNumber"]}" unless error["stackTrace"]
           trace = format_stack_trace(error["stackTrace"])
