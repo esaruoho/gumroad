@@ -19,10 +19,12 @@ module PlaywrightChooseFallback
     raise ArgumentError, "choose fallback requires a locator" unless locator
 
     clean_opts = options.except(:option, :currently_with)
+    clean_opts[:wait] = 2 unless clean_opts.key?(:wait)
+    clean_opts[:match] = :first unless clean_opts.key?(:match)
 
     # Strategy 1: click a <label> by text
     begin
-      find("label", text: locator, exact_text: true, wait: 2, **clean_opts).click
+      find("label", text: locator, exact_text: true, **clean_opts).click
       return
     rescue Capybara::ElementNotFound
       # continue to next strategy
@@ -30,7 +32,7 @@ module PlaywrightChooseFallback
 
     # Strategy 2: click any element with role="radio"
     begin
-      find("[role='radio']", text: locator, exact_text: true, wait: 2, **clean_opts).click
+      find("[role='radio'], [role='menuitemradio']", text: locator, exact_text: true, **clean_opts).click
       return
     rescue Capybara::ElementNotFound
       # continue to next strategy
@@ -38,16 +40,41 @@ module PlaywrightChooseFallback
 
     # Strategy 3: click_on (links/buttons)
     begin
-      click_on(locator, wait: 2, **clean_opts)
+      click_on(locator, **clean_opts)
       return
     rescue Capybara::ElementNotFound
       # continue to next strategy
     end
 
-    # Strategy 4: find any element with matching text and click it
-    find("*", text: locator, exact_text: true, wait: 2, **clean_opts).click
+    # Strategy 4: click an actionable ARIA item by text
+    begin
+      find("[role='option'], [role='menuitem'], [role='checkbox'], [role='switch'], [role='tab']",
+           text: locator,
+           exact_text: true,
+           **clean_opts).click
+      return
+    rescue Capybara::ElementNotFound
+      # continue to final strategy
+    end
+
+    # Strategy 5: click the deepest exact text node instead of a matching parent
+    text = locator.to_s
+    leaf_text_xpath = XPath.descendant[XPath.string.n.equals(text) & ~XPath.descendant[XPath.string.n.equals(text)]]
+    find(:xpath, leaf_text_xpath, **clean_opts).click
   end
 end
+
+module PlaywrightElementHandleCompat
+  def send_keys(*keys)
+    Capybara::Playwright::Node::SendKeys.new(self, keys).execute
+  end
+
+  def clear
+    fill("")
+  end
+end
+
+Playwright::ElementHandle.prepend(PlaywrightElementHandleCompat) if defined?(Playwright::ElementHandle)
 
 RSpec.configure do |config|
   config.include PlaywrightChooseFallback, type: :system
