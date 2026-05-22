@@ -56,7 +56,7 @@ describe "Embed scenario", type: :system, js: true, mock_easypost: true, retry: 
     visit(create_embed_page(pwyw_product, url: "#{direct_affiliate.referral_url_for_product(pwyw_product)}?", outbound: false))
 
     within_embed_frame do
-      expect(page).to have_field("Name a fair price", wait: 15)
+      expect(page).to have_field("Name a fair price")
       fill_in "Name a fair price", with: 75
       click_on "Add to cart"
     end
@@ -99,7 +99,7 @@ describe "Embed scenario", type: :system, js: true, mock_easypost: true, retry: 
       visit(create_embed_page(product, url: "#{product.long_url}/#{offer_code.code}", outbound: false))
 
       within_embed_frame do
-        expect(page).to have_status(text: "$1 off will be applied at checkout (Code SXSW)", wait: 15)
+        expect(page).to have_status(text: "$1 off will be applied at checkout (Code SXSW)")
         click_on "Add to cart"
       end
 
@@ -124,8 +124,8 @@ describe "Embed scenario", type: :system, js: true, mock_easypost: true, retry: 
       visit(create_embed_page(product, url: direct_affiliate.referral_url_for_product(product), outbound: false))
 
       within_embed_frame do
-        expect(page).to have_text("$75", wait: 15)
-        expect(page).to have_link("Add to cart", href: /affiliate_id=#{direct_affiliate.external_id_numeric}/, wait: 15)
+        expect(page).to have_text("$75")
+        expect(page).to have_link("Add to cart", href: /affiliate_id=#{direct_affiliate.external_id_numeric}/)
         click_on "Add to cart"
       end
 
