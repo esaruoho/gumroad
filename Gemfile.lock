@@ -693,6 +693,10 @@ GEM
       ttfunk
     pdfkit (0.8.7.3)
     phony (2.20.12)
+    playwright-ruby-client (1.60.0)
+      base64
+      concurrent-ruby (>= 1.1.6)
+      mime-types (>= 3.0)
     pp (0.6.3)
       prettyprint
     prawn (2.5.0)
@@ -1201,6 +1205,7 @@ DEPENDENCIES
   pdf-reader (~> 2.11)
   pdfkit (~> 0.8)
   phony (~> 2.20)
+  playwright-ruby-client (~> 1.60)
   prawn (~> 2.4)
   premailer-rails (~> 1.12)
   private_address_check (~> 0.5)
