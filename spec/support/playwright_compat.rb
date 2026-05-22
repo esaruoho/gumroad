@@ -33,9 +33,17 @@ module PlaywrightChooseFallback
       # continue to next strategy
     end
 
-    # Strategy 2: click any element with role="radio"
+    # Strategy 2: click any element with role="radio" by text or aria-label
     begin
       find("[role='radio'], [role='menuitemradio']", text: locator, exact_text: true, **clean_opts).click
+      return
+    rescue Capybara::ElementNotFound
+      # continue to next strategy
+    end
+
+    # Strategy 2b: click role="radio" by aria-label (e.g. star ratings with icon-only content)
+    begin
+      find(:css, "[role='radio'][aria-label='#{locator}'], [role='menuitemradio'][aria-label='#{locator}']", **clean_opts).click
       return
     rescue Capybara::ElementNotFound
       # continue to next strategy
@@ -60,7 +68,15 @@ module PlaywrightChooseFallback
       # continue to final strategy
     end
 
-    # Strategy 5: click the deepest exact text node instead of a matching parent.
+    # Strategy 5: find by aria-label (elements with icon-only content)
+    begin
+      find(:css, "[aria-label='#{locator.to_s}']", **clean_opts).click
+      return
+    rescue Capybara::ElementNotFound
+      # continue to final strategy
+    end
+
+    # Strategy 6: click the deepest exact text node instead of a matching parent.
     click_deepest_text_match(locator.to_s, **clean_opts)
   end
 
