@@ -136,16 +136,16 @@ module CapybaraHelpers
         # Playwright doesn't have native network throttling, but CDP works via Chromium
         client = context.new_cdp_session(pw_page)
         client.send_message("Network.enable")
-        client.send_message("Network.emulateNetworkConditions",
-          offline: false, latency: 0,
-          downloadThroughput: throughput, uploadThroughput: throughput)
+        client.send_message("Network.emulateNetworkConditions", {
+          "offline" => false, "latency" => 0,
+          "downloadThroughput" => throughput, "uploadThroughput" => throughput })
       end
       yield
       page.driver.with_playwright_page do |pw_page|
         client = pw_page.context.new_cdp_session(pw_page)
-        client.send_message("Network.emulateNetworkConditions",
-          offline: false, latency: 0,
-          downloadThroughput: -1, uploadThroughput: -1)
+        client.send_message("Network.emulateNetworkConditions", {
+          "offline" => false, "latency" => 0,
+          "downloadThroughput" => -1, "uploadThroughput" => -1 })
       end
     else
       page.driver.browser.execute_cdp("Network.enable")

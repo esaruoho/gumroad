@@ -455,7 +455,7 @@ describe("Posts on seller profile", type: :system, js: true) do
 
           expect(page).to have_text("Successfully posted your comment")
 
-          page.execute_script("window.location.reload()")
+          visit current_url
 
           expect(page).to have_text("1 comment")
           expect(page).to have_text("Received this in my inbox! Nice article!")

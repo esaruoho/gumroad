@@ -62,7 +62,7 @@ describe("Product page reviews", js: true, type: :system) do
     expect(product.reload.reviews_count).to eq(7)
     expect(product.average_rating).to eq(2.9)
 
-    page.evaluate_script "window.location.reload()"
+    visit current_url
 
     expect(page).to have_text("Your rating:")
     expect(page).to have_radio_button("3 stars", checked: true)
@@ -106,7 +106,7 @@ describe("Product page reviews", js: true, type: :system) do
     recurring_purchase = create(:purchase, link: subscription_product, subscription:, purchaser:)
     subscription.purchases << recurring_purchase
     subscription.save!
-    page.evaluate_script "window.location.reload()"
+    visit current_url
     wait_for_ajax
 
     expect(page).to have_text("Your rating:")
