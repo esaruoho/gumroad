@@ -272,4 +272,55 @@ describe Charge::CreateService, :vcr do
       end
     end
   end
+
+  describe "#determine_charge_amount_cents" do
+    let(:fake_purchase) do
+      ->(buyer_currency:, buyer_currency_amount_cents:, total_transaction_cents:) do
+        instance_double(
+          Purchase,
+          buyer_currency:,
+          buyer_currency_amount_cents:,
+          total_transaction_cents:
+        )
+      end
+    end
+    let(:service) do
+      Charge::CreateService.new(
+        order: build_stubbed(:order), seller: seller_1, merchant_account: build_stubbed(:merchant_account),
+        chargeable: nil, purchases:, amount_cents: 1000, gumroad_amount_cents: 100,
+        setup_future_charges: false, off_session: false, statement_description: nil
+      )
+    end
+
+    context "when charge_currency is non-USD and one purchase has nil buyer_currency_amount_cents" do
+      # Regression for Cursor Bugbot finding: falling back to total_transaction_cents (USD cents)
+      # silently mixed USD cents with EUR cents in the sum. Guard now converts via convert_price_raw.
+      before { Flipper.enable(:multi_currency_checkout) }
+      after { Flipper.disable(:multi_currency_checkout) }
+
+      let(:purchases) do
+        [
+          fake_purchase.call(buyer_currency: "eur", buyer_currency_amount_cents: 920, total_transaction_cents: 1000),
+          fake_purchase.call(buyer_currency: "eur", buyer_currency_amount_cents: nil, total_transaction_cents: 500),
+        ]
+      end
+
+      it "uses convert_price_raw on the USD total instead of mixing USD cents into the local-currency sum" do
+        expect(BuyerCurrencyService).to receive(:convert_price_raw)
+          .with(500, from_currency: "usd", to_currency: "eur")
+          .and_return(460)
+
+        expect(service.send(:determine_charge_amount_cents)).to eq(920 + 460)
+      end
+    end
+
+    context "when charge_currency is USD" do
+      let(:purchases) { [fake_purchase.call(buyer_currency: nil, buyer_currency_amount_cents: nil, total_transaction_cents: 1000)] }
+
+      it "returns amount_cents and does not invoke BuyerCurrencyService" do
+        expect(BuyerCurrencyService).not_to receive(:convert_price_raw)
+        expect(service.send(:determine_charge_amount_cents)).to eq(1000)
+      end
+    end
+  end
 end

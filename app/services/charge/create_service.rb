@@ -195,7 +195,18 @@ class Charge::CreateService
   def determine_charge_amount_cents
     charge_currency = determine_charge_currency
     if charge_currency != "usd"
-      purchases.sum { |p| p.buyer_currency_amount_cents || p.total_transaction_cents }
+      # Guard against nil buyer_currency_amount_cents on individual purchases — falling back
+      # to total_transaction_cents (USD cents) here would silently mix USD with local-currency
+      # cents in the sum. Convert the USD total to the charge currency at the current rate
+      # using raw conversion (no smart rounding, matches the frontend display math).
+      purchases.sum do |p|
+        p.buyer_currency_amount_cents ||
+          BuyerCurrencyService.convert_price_raw(
+            p.total_transaction_cents,
+            from_currency: "usd",
+            to_currency: charge_currency
+          )
+      end
     else
       amount_cents
     end
