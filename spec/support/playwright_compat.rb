@@ -290,7 +290,7 @@ module PlaywrightElementHandleCompat
     return val unless val.nil?
 
     # Try DOM property access (covers validationMessage, checked, value, etc.)
-    result = evaluate("el => { const v = el[el.__propName]; return v === undefined ? null : v }".sub("el.__propName", "el['#{name}']")) rescue nil
+    result = evaluate("el => { const v = el.__propName; return v === undefined ? null : v }".sub("el.__propName", "el['#{name}']")) rescue nil
     # Coerce booleans/numbers to strings like Selenium
     case result
     when true, false then result.to_s
