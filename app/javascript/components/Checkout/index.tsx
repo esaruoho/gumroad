@@ -5,7 +5,11 @@ import { computeOfferDiscount } from "$app/data/offer_code";
 import { CardProduct, COMMISSION_DEPOSIT_PROPORTION } from "$app/parsers/product";
 import { isOpenTuple } from "$app/utils/array";
 import { classNames } from "$app/utils/classNames";
-import { formatUSDCentsWithExpandedCurrencySymbol, formatPriceCentsWithCurrencySymbol, CurrencyCode } from "$app/utils/currency";
+import {
+  type CurrencyCode,
+  formatPriceCentsWithCurrencySymbol,
+  formatUSDCentsWithExpandedCurrencySymbol,
+} from "$app/utils/currency";
 import { formatCallDate } from "$app/utils/date";
 import { variantLabel } from "$app/utils/labels";
 import { calculateFirstInstallmentPaymentPriceCents } from "$app/utils/price";

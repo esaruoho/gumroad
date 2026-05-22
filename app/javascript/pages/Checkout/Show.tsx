@@ -10,7 +10,7 @@ import { type SavedCreditCard } from "$app/parsers/card";
 import { type CardProduct, COMMISSION_DEPOSIT_PROPORTION, type CustomFieldDescriptor } from "$app/parsers/product";
 import { isOpenTuple } from "$app/utils/array";
 import { assert } from "$app/utils/assert";
-import { CurrencyCode, formatPriceCentsWithCurrencySymbol, getIsSingleUnitCurrency } from "$app/utils/currency";
+import { type CurrencyCode, formatPriceCentsWithCurrencySymbol, getIsSingleUnitCurrency } from "$app/utils/currency";
 import { isValidEmail } from "$app/utils/email";
 import { calculateFirstInstallmentPaymentPriceCents } from "$app/utils/price";
 import { assertResponseError } from "$app/utils/request";
@@ -163,6 +163,7 @@ const CheckoutIndexPage = () => {
       cart_save_debounce_ms,
       tip_options,
       default_tip_option,
+      buyer_currency,
     },
     ...props
   } = typia.assert<CheckoutIndexPageProps>(usePage().props);
@@ -680,7 +681,7 @@ const CheckoutIndexPage = () => {
           cart={cartForm.data.cart}
           updateCart={(updated) => cartForm.setData((prev) => ({ cart: { ...prev.cart, ...updated } }))}
           recommendedProducts={props.recommended_products ?? null}
-          buyerCurrency={checkout.buyer_currency}
+          buyerCurrency={buyer_currency}
         />
       )}
       {currentOffer && surchargesIfAccepted ? (
