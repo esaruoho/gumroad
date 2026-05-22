@@ -7,7 +7,7 @@ describe "Multi-currency checkout", type: :system, js: true do
   let!(:product) { create(:product, user: seller, price_cents: 10000, name: "Test Product") }
 
   before do
-    create(:merchant_account_stripe, user: seller)
+    create(:merchant_account, user: seller)
   end
 
   describe "product page pricing" do
