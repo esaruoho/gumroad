@@ -382,7 +382,7 @@ describe "Checkout cart", :js, type: :system do
               create(:cart_product, cart: current_guest_cart, product: create(:product, name: "Product 2"))
 
               visit root_path
-              current_browser_guid = Capybara.current_session.driver.browser.manage.all_cookies.find { _1[:name] == "_gumroad_guid" }&.[](:value)
+              current_browser_guid = get_cookie_value("_gumroad_guid")
               current_guest_cart.update!(browser_guid: current_browser_guid)
 
               visit checkout_path(cart_id: cart.secure_external_id(scope: "cart_login"))

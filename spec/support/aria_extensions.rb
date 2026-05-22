@@ -209,6 +209,35 @@ Capybara.modify_selector(:combo_box) do
       add_error("Expected with at least disabled options #{options.inspect} found #{actual.inspect}") unless res
     end
   end
+
+  # Override options_text to handle Playwright lazy-rendered listboxes.
+  # React combo boxes only populate the listbox DOM on focus/click;
+  # Selenium eagerly renders them but Playwright does not.
+  def options_text(node, xpath, **opts, &block)
+    # First try without expanding (Selenium-compatible fast path)
+    begin
+      opts[:wait] = false
+      listbox = node.find(:combo_box_list_box, node, **opts)
+      return listbox.all(:xpath, xpath, **opts, &block).map(&:text).map { |t| t.gsub(/[[:space:]]+/, " ").strip }
+    rescue Capybara::ElementNotFound
+      # Listbox not rendered yet — expand the combo box
+    end
+
+    # Click to expand, then read options
+    begin
+      node.click
+      sleep 0.1 # Allow React to render
+      opts[:wait] = 2
+      listbox = node.find(:combo_box_list_box, node, **opts)
+      result = listbox.all(:xpath, xpath, wait: false, &block).map(&:text).map { |t| t.gsub(/[[:space:]]+/, " ").strip }
+      # Close the listbox
+      node.send_keys(:escape) rescue nil
+      result
+    rescue Capybara::ElementNotFound
+      node.send_keys(:escape) rescue nil
+      []
+    end
+  end
 end
 
 # override table_row selector to support colspan
@@ -264,10 +293,10 @@ end
 
 Capybara.modify_selector(:disclosure_button) do
   xpath do |name, **|
-    match_name = XPath.string.n.is(name.to_s) | XPath.attr(:"aria-label").equals(name.to_s)
+    match_name = XPath.string.n.is(name.to_s) | XPath.attr(:'aria-label').equals(name.to_s) | XPath.string.n.contains(name.to_s)
     XPath.descendant[[
       (XPath.self(:button) | (XPath.attr(:role) == "button")),
-      XPath.attr(:"aria-expanded"),
+      XPath.attr(:'aria-expanded'),
       match_name
     ].reduce(:&)] + XPath.descendant(:summary)[match_name]
   end

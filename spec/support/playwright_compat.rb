@@ -72,10 +72,44 @@ module PlaywrightElementHandleCompat
   def clear
     fill("")
   end
+
+  # Selenium uses `attribute(name)`, Playwright uses `get_attribute(name)`.
+  # Bridge the gap so specs calling `.attribute` work with both drivers.
+  def attribute(name)
+    get_attribute(name)
+  end
 end
 
 Playwright::ElementHandle.prepend(PlaywrightElementHandleCompat) if defined?(Playwright::ElementHandle)
 
+# Playwright's stricter DOM traversal can find hidden duplicate elements
+# where Selenium only found one, causing Capybara::Ambiguous errors on
+# the `:command` selector (which unions button+link+menuitem+tab_button).
+# This fallback catches the ambiguity and retries with `match: :first`.
+module PlaywrightAmbiguousCommandFallback
+  def click_command(locator = nil, **options)
+    super
+  rescue Capybara::Ambiguous
+    options[:match] = :first
+    find(:command, locator, **options).click
+  end
+end
+
+# Playwright may raise on hover when elements are detached mid-transition.
+# Retry once after a short pause.
+module PlaywrightHoverCompat
+  def hover
+    super
+  rescue StandardError => e
+    raise unless defined?(Playwright::Error) && (e.is_a?(Playwright::Error) || e.message.include?("Element is not attached"))
+    sleep 0.2
+    super
+  end
+end
+
+Capybara::Node::Element.prepend(PlaywrightHoverCompat)
+
 RSpec.configure do |config|
   config.include PlaywrightChooseFallback, type: :system
+  config.include PlaywrightAmbiguousCommandFallback, type: :system
 end

@@ -172,7 +172,13 @@ module CapybaraHelpers
   def get_all_cookies
     if page.driver.respond_to?(:with_playwright_page)
       page.driver.with_playwright_page do |pw_page|
-        pw_page.context.cookies.map { |c| c.transform_keys(&:to_sym) }
+pw_page.context.cookies.map do |c|
+  cookie = c.transform_keys(&:to_sym)
+  # Playwright returns expires as a Unix timestamp (float);
+  # Selenium returns a Time object. Normalize to Time for compat.
+  cookie[:expires] = Time.at(cookie[:expires]) if cookie[:expires].is_a?(Numeric) && cookie[:expires] > 0
+  cookie
+end
       end
     else
       Capybara.current_session.driver.browser.manage.all_cookies
@@ -186,6 +192,33 @@ module CapybaraHelpers
       end
     else
       Capybara.current_session.driver.browser.manage.delete_all_cookies
+    end
+  end
+
+  def delete_cookie(name)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        pw_page.context.clear_cookies(name: name)
+      end
+    else
+      Capybara.current_session.driver.browser.manage.delete_cookie(name)
+    end
+  end
+
+  def add_cookie(name:, value:, **opts)
+    if page.driver.respond_to?(:with_playwright_page)
+      page.driver.with_playwright_page do |pw_page|
+        current_url = pw_page.url
+        domain = URI.parse(current_url).host rescue "127.0.0.1"
+        pw_page.context.add_cookies([{
+          name: name,
+          value: value,
+          domain: domain,
+          path: "/",
+        }.merge(opts)])
+      end
+    else
+      Capybara.current_session.driver.browser.manage.add_cookie(name: name, value: value, **opts)
     end
   end
 

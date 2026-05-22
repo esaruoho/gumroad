@@ -436,7 +436,7 @@ describe("Discover", js: true, type: :system) do
     it "sets the global affiliate cookie if affiliate_id query param is present" do
       affiliate = create(:user).global_affiliate
       visit discover_url(host: discover_host, affiliate_id: affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).to be_present
@@ -445,7 +445,7 @@ describe("Discover", js: true, type: :system) do
     it "sets the direct affiliate cookie if affiliate_id query param is present" do
       affiliate = create(:direct_affiliate)
       visit discover_url(host: discover_host, affiliate_id: affiliate.external_id_numeric)
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).to be_present
@@ -532,7 +532,7 @@ describe("Discover", js: true, type: :system) do
     it "sets the affiliate cookie" do
       affiliate = create(:direct_affiliate)
       visit "#{discover_host}/software-development/programming/c-sharp?tags=some-tag&#{Affiliate::SHORT_QUERY_PARAM}=#{affiliate.external_id_numeric}"
-      affiliate_cookie = Capybara.current_session.driver.browser.manage.all_cookies.find do |cookie|
+      affiliate_cookie = get_all_cookies.find do |cookie|
         cookie[:name] == CGI.escape(affiliate.cookie_key)
       end
       expect(affiliate_cookie).to be_present
