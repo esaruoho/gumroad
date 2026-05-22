@@ -16,7 +16,7 @@ class CheckoutPresenter
   def initialize(logged_in_user:, ip:)
     @logged_in_user = logged_in_user
     @ip = ip
-    @buyer_currency = BuyerCurrencyService.detect_currency(ip)
+    @buyer_currency = Flipper.enabled?(:multi_currency_checkout) ? BuyerCurrencyService.detect_currency(ip) : nil
   end
 
   def checkout_props(params:, browser_guid:)

@@ -166,6 +166,8 @@ class ProductPresenter::ProductProps
     end
 
     def buyer_local_price_props
+      return nil unless Flipper.enabled?(:multi_currency_checkout)
+
       buyer_currency = BuyerCurrencyService.detect_currency(@request_ip)
       return nil if buyer_currency.blank?
       seller_currency = product.price_currency_type.downcase

@@ -162,7 +162,7 @@ class Order::CreateService
           ip_state: geo.try(:region_name),
           is_mobile: params[:is_mobile],
           browser_guid: params[:browser_guid],
-          buyer_currency: BuyerCurrencyService::COUNTRY_TO_CURRENCY[geo&.country_code&.upcase]
+          buyer_currency: Flipper.enabled?(:multi_currency_checkout) ? BuyerCurrencyService::COUNTRY_TO_CURRENCY[geo&.country_code&.upcase] : nil
         )
       end
 

@@ -167,6 +167,8 @@ class Charge::CreateService
   # share the same buyer_currency (set from IP geolocation), charge in that
   # currency for local presentment. Otherwise fall back to USD.
   def determine_charge_currency
+    return "usd" unless Flipper.enabled?(:multi_currency_checkout)
+
     buyer_currencies = purchases.filter_map(&:buyer_currency).uniq
     if buyer_currencies.size == 1 && buyer_currencies.first.present?
       buyer_currencies.first
