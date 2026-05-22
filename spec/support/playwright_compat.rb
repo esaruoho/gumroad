@@ -18,7 +18,7 @@ module PlaywrightChooseFallback
 
     raise ArgumentError, "choose fallback requires a locator" unless locator
 
-    clean_opts = options.except(:option, :currently_with)
+    clean_opts = options.except(:option, :currently_with, :allow_label_click)
     clean_opts[:wait] = 2 unless clean_opts.key?(:wait)
     clean_opts[:match] = :first unless clean_opts.key?(:match)
 
@@ -57,11 +57,49 @@ module PlaywrightChooseFallback
       # continue to final strategy
     end
 
-    # Strategy 5: click the deepest exact text node instead of a matching parent
-    text = locator.to_s
-    leaf_text_xpath = XPath.descendant[XPath.string.n.equals(text) & ~XPath.descendant[XPath.string.n.equals(text)]]
-    find(:xpath, leaf_text_xpath, **clean_opts).click
+    # Strategy 5: click the deepest exact text node instead of a matching parent.
+    click_deepest_text_match(locator.to_s, **clean_opts)
   end
+
+  private
+    def click_deepest_text_match(text, **options)
+      candidates = all(:css, "*", text:, exact_text: true, **options.except(:match))
+      candidate = candidates.reverse.find do |element|
+        element.text(:all).gsub(/[[:space:]]+/, " ").strip == text &&
+          element.all(:css, "*", text:, exact_text: true, wait: false).empty?
+      end
+
+      (candidate || find(:css, "*", text:, exact_text: true, **options)).click
+    end
+end
+
+module PlaywrightFillInCompat
+  def fill_in(locator = nil, with:, currently_with: nil, fill_options: {}, **find_options)
+    return super unless playwright_driver?
+
+    find_options[:with] = currently_with if currently_with
+    find_options[:allow_self] = true if locator.nil?
+    field = find(:fillable_field, locator, **find_options)
+
+    if playwright_type_fill?(field, with, fill_options)
+      field.execute_script("this.focus(); this.select();")
+      field.send_keys(:backspace, with.to_s)
+    else
+      field.set(with, **fill_options)
+    end
+  end
+
+  private
+    def playwright_driver?
+      Capybara.current_session.driver.respond_to?(:with_playwright_page)
+    end
+
+    def playwright_type_fill?(field, value, fill_options)
+      fill_options.empty? &&
+        %w[input textarea].include?(field.tag_name) &&
+        field[:inputmode] == "decimal" &&
+        value.to_s.match?(/[^\d.]/)
+    end
 end
 
 module PlaywrightElementHandleCompat
@@ -90,9 +128,27 @@ module PlaywrightAmbiguousCommandFallback
   def click_command(locator = nil, **options)
     super
   rescue Capybara::Ambiguous
-    options[:match] = :first
-    find(:command, locator, **options).click
+    raise unless playwright_driver?
+
+    click_first_command(locator, **options)
   end
+
+  def click_on(locator = nil, **options)
+    super
+  rescue Capybara::Ambiguous
+    raise unless playwright_driver?
+
+    click_first_command(locator, **options)
+  end
+
+  private
+    def playwright_driver?
+      Capybara.current_session.driver.respond_to?(:with_playwright_page)
+    end
+
+    def click_first_command(locator, **options)
+      find(:command, locator, **options.merge(match: :first)).click
+    end
 end
 
 # Playwright may raise on hover when elements are detached mid-transition.
@@ -108,8 +164,6 @@ module PlaywrightHoverCompat
 end
 
 Capybara::Node::Element.prepend(PlaywrightHoverCompat)
-
-RSpec.configure do |config|
-  config.include PlaywrightChooseFallback, type: :system
-  config.include PlaywrightAmbiguousCommandFallback, type: :system
-end
+Capybara::Node::Actions.prepend(PlaywrightChooseFallback)
+Capybara::Node::Actions.prepend(PlaywrightFillInCompat)
+Capybara::Node::Actions.prepend(PlaywrightAmbiguousCommandFallback)
