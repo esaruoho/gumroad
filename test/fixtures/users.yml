@@ -6,6 +6,17 @@
 #   basic_user        → "test-password-123!"
 #   suspended_user    → "test-password-123!"  (suspended for TOS violation)
 #   deleted_user      → "test-password-123!"  (soft-deleted account)
+#   two_factor_user   → "test-password-123!"  (2FA enabled, OTP magic token 000000)
+#   reset_user        → "test-password-123!"  (used by password reset flow)
+#
+# Magic 2FA token in test/dev: User::DEFAULT_AUTH_TOKEN = "000000" — accepted
+# by token_authenticated? in any non-production env, so we don't need to
+# generate real TOTP codes or scrape emailed tokens.
+#
+# Flag bit 9 in `has_flags` (1-indexed) is two_factor_authentication_enabled,
+# which is value 2^(9-1) = 256. We set it raw on the fixture row because the
+# model's before_create callback that normally flips this bit is bypassed by
+# fixture loading.
 
 basic_user:
   email: basic@example.com
@@ -34,6 +45,22 @@ referrer_user:
   email: referrer@example.com
   username: referrer
   name: I am a referrer
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+two_factor_user:
+  email: 2fa@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  flags: 256
+  otp_secret_key: <%= ROTP::Base32.random_base32 %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+reset_user:
+  email: reset@example.com
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
   confirmed_at: <%= Time.current %>
   created_at: <%= Time.current %>
