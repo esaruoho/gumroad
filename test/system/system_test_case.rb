@@ -42,6 +42,10 @@ module SystemTests
       # the frontend off. Matches the login pattern that already exists.
       Feature.activate(:disable_login_recaptcha)
       Feature.activate(:disable_signup_recaptcha)
+      at_exit do
+        Feature.deactivate(:disable_login_recaptcha)
+        Feature.deactivate(:disable_signup_recaptcha)
+      end
       # Keep fixture tables out of the truncate list so the rows loaded once
       # by `fixtures :all` survive between tests. Schema tables are also
       # preserved (Rails' default).
