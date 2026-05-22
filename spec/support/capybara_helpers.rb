@@ -138,15 +138,18 @@ module CapybaraHelpers
     if page.driver.respond_to?(:with_playwright_page)
       cdp_client = nil
       page.driver.with_playwright_page do |pw_page|
-        # Playwright doesn't have native network throttling, but CDP works via Chromium
+        # Playwright doesn't have native network throttling, but CDP works via Chromium.
+        # Keep a single CDP session across enable/disable: each new_cdp_session is an
+        # independent attachment, so disabling on a fresh session would leave the
+        # original throttling in place (Bugbot finding).
         cdp_client = pw_page.context.new_cdp_session(pw_page)
         cdp_client.send_message("Network.enable")
-        cdp_client.send_message("Network.emulateNetworkConditions", {
+        cdp_client.send_message("Network.emulateNetworkConditions", params: {
           "offline" => false, "latency" => 0,
           "downloadThroughput" => throughput, "uploadThroughput" => throughput })
       end
       yield
-      cdp_client&.send_message("Network.emulateNetworkConditions", {
+      cdp_client&.send_message("Network.emulateNetworkConditions", params: {
         "offline" => false, "latency" => 0,
         "downloadThroughput" => -1, "uploadThroughput" => -1 })
     else
