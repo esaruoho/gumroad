@@ -114,6 +114,12 @@ module PlaywrightFillInCompat
         playwright_type_fill(field, value)
       end
     end
+  rescue Capybara::Playwright::Node::StaleReferenceError
+    # React re-render detached the field — re-find and retry once
+    sleep 0.15
+    field = find(:fillable_field, locator, **find_options)
+    value = playwright_fill_value(field, with)
+    field.set(value, **fill_options)
   end
 
   private
@@ -318,6 +324,12 @@ module PlaywrightAmbiguousCommandFallback
     # slow in Playwright, causing timeouts. Try individual selectors which
     # are faster and more targeted.
     click_individual_selectors(locator, **options)
+  rescue Capybara::Playwright::Node::StaleReferenceError
+    raise unless playwright_driver?
+
+    # React re-render detached the found element — brief wait then retry
+    sleep 0.15
+    click_individual_selectors(locator, **options)
   end
 
   def click_on(locator = nil, **options)
@@ -329,6 +341,11 @@ module PlaywrightAmbiguousCommandFallback
   rescue Playwright::TimeoutError
     raise unless playwright_driver?
 
+    click_individual_selectors(locator, **options)
+  rescue Capybara::Playwright::Node::StaleReferenceError
+    raise unless playwright_driver?
+
+    sleep 0.15
     click_individual_selectors(locator, **options)
   end
 
@@ -392,6 +409,10 @@ end
 # Playwright's strict actionability checks can cause TimeoutError when clicking
 # elements obscured by overlays, sticky headers, or CSS animations. Fall back to
 # JavaScript click which bypasses these checks (matching Selenium behavior).
+#
+# Also handles StaleReferenceError — React re-renders can detach elements between
+# find() and click(). We can't re-find here (no locator context), so JS click
+# on the stale handle is the best fallback.
 module PlaywrightClickCompat
   def click(*args, **options)
     super
@@ -400,6 +421,18 @@ module PlaywrightClickCompat
 
     # Scroll into view first (handles "outside of viewport" errors), then force click
     execute_script("this.scrollIntoView({block: 'center'}); this.click()")
+  rescue Capybara::Playwright::Node::StaleReferenceError
+    raise unless Capybara.current_session.driver.respond_to?(:with_playwright_page)
+
+    # Element was detached by React re-render — brief wait for DOM to settle, then
+    # JS click on the handle (Playwright may still resolve it via frame reference)
+    sleep 0.15
+    begin
+      execute_script("this.scrollIntoView({block: 'center'}); this.click()")
+    rescue StandardError
+      # Handle fully detached — re-raise original stale error
+      raise Capybara::Playwright::Node::StaleReferenceError, "Element is not attached to the DOM"
+    end
   end
 end
 
@@ -408,3 +441,30 @@ Capybara::Node::Element.prepend(PlaywrightClickCompat)
 Capybara::Node::Actions.prepend(PlaywrightChooseFallback)
 Capybara::Node::Actions.prepend(PlaywrightFillInCompat)
 Capybara::Node::Actions.prepend(PlaywrightAmbiguousCommandFallback)
+
+# Wrap `check` / `uncheck` with StaleReferenceError retry — React re-renders
+# can detach checkbox elements between find and check, especially in filter UIs
+# where the DOM updates after each interaction.
+module PlaywrightCheckCompat
+  def check(locator = nil, **options)
+    super
+  rescue Capybara::Playwright::Node::StaleReferenceError, Playwright::Error => e
+    raise unless Capybara.current_session.driver.respond_to?(:with_playwright_page)
+    raise unless e.message.include?("not attached") || e.is_a?(Capybara::Playwright::Node::StaleReferenceError)
+
+    sleep 0.15
+    super
+  end
+
+  def uncheck(locator = nil, **options)
+    super
+  rescue Capybara::Playwright::Node::StaleReferenceError, Playwright::Error => e
+    raise unless Capybara.current_session.driver.respond_to?(:with_playwright_page)
+    raise unless e.message.include?("not attached") || e.is_a?(Capybara::Playwright::Node::StaleReferenceError)
+
+    sleep 0.15
+    super
+  end
+end
+
+Capybara::Node::Actions.prepend(PlaywrightCheckCompat)
