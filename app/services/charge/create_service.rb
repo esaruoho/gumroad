@@ -173,10 +173,14 @@ class Charge::CreateService
   # Determine the Stripe charge currency. If all purchases in this charge group
   # share the same buyer_currency (set from IP geolocation), charge in that
   # currency for local presentment. Otherwise fall back to USD.
+  #
+  # Uses `.map` (not `.filter_map`) so that any purchase with a nil buyer_currency
+  # forces the fallback to USD — otherwise a mixed group (one EUR + one nil)
+  # would charge `EUR_cents + USD_cents` denominated as EUR.
   def determine_charge_currency
     return "usd" unless Flipper.enabled?(:multi_currency_checkout)
 
-    buyer_currencies = purchases.filter_map(&:buyer_currency).uniq
+    buyer_currencies = purchases.map(&:buyer_currency).uniq
     if buyer_currencies.size == 1 && buyer_currencies.first.present?
       buyer_currencies.first
     else

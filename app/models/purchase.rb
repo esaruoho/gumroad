@@ -2995,11 +2995,15 @@ class Purchase < ApplicationRecord
       # directly to avoid a lossy USD round-trip.
       if buyer_currency.present? && buyer_currency != "usd"
         seller_currency = link.price_currency_type.to_s.downcase
+        extra_cents_usd = tax_cents + gumroad_tax_cents + shipping_cents
         if buyer_currency == seller_currency
-          # Same currency: convert back from USD using the seller's own rate
-          self.buyer_currency_amount_cents = usd_cents_to_currency(
-            seller_currency, total_transaction_cents, rate_converted_to_usd
-          ).round
+          # Same currency: preserve the exact displayed_price_cents from set_price_and_rate
+          # and only convert the additive tax + shipping component back from USD. This avoids
+          # the lossy USD round-trip (e.g. €10.00 → 1087 USD → ~999 EUR) for the base price
+          # while still honouring tax/shipping which are computed in USD downstream.
+          extra_cents_local = extra_cents_usd > 0 ?
+            usd_cents_to_currency(seller_currency, extra_cents_usd, rate_converted_to_usd).round : 0
+          self.buyer_currency_amount_cents = displayed_price_cents + extra_cents_local
         else
           self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
             total_transaction_cents,
@@ -3196,8 +3200,11 @@ class Purchase < ApplicationRecord
         description = "You bought #{link.long_url}!"
         mandate_options = mandate_options_for_stripe
 
-        # For recurring charges, use the buyer's original currency if set
-        charge_currency = buyer_currency.presence || "usd"
+        # For recurring charges, use the buyer's original currency if set.
+        # Gate on the Flipper flag too — if the flag was disabled after the
+        # initial subscription stored a buyer_currency, fall back to USD so
+        # renewals can be quickly reverted to USD-only without per-row cleanup.
+        charge_currency = (Flipper.enabled?(:multi_currency_checkout) && buyer_currency.presence) || "usd"
 
         # When charging in a non-USD buyer currency, convert amounts from USD
         # to the buyer's currency so Stripe receives the correct local amount.

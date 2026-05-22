@@ -220,4 +220,56 @@ describe Charge::CreateService, :vcr do
       end.not_to change { Purchase.count }
     end
   end
+
+  describe "#determine_charge_currency" do
+    let(:service) do
+      Charge::CreateService.new(
+        order: build_stubbed(:order), seller: seller_1, merchant_account: build_stubbed(:merchant_account),
+        chargeable: nil, purchases:, amount_cents: 1000, gumroad_amount_cents: 100,
+        setup_future_charges: false, off_session: false, statement_description: nil
+      )
+    end
+    # Lightweight purchase stub — avoids the Purchase factory's derived
+    # total_transaction_cents which requires non-nil price_cents/gumroad_tax_cents.
+    let(:fake_purchase) { ->(buyer_currency) { instance_double(Purchase, buyer_currency:) } }
+
+    context "when multi_currency_checkout flag is enabled" do
+      before { Flipper.enable(:multi_currency_checkout) }
+      after { Flipper.disable(:multi_currency_checkout) }
+
+      context "when all purchases share the same buyer_currency" do
+        let(:purchases) { [fake_purchase.call("eur"), fake_purchase.call("eur")] }
+
+        it "charges in that currency" do
+          expect(service.send(:determine_charge_currency)).to eq("eur")
+        end
+      end
+
+      context "when one purchase has nil buyer_currency (mixed group)" do
+        # Regression for Greptile P1 #15: filter_map silently dropped nil currencies,
+        # causing a mixed-denomination charge (EUR_cents + USD_cents charged as EUR).
+        let(:purchases) { [fake_purchase.call("eur"), fake_purchase.call(nil)] }
+
+        it "falls back to USD instead of charging mixed denominations" do
+          expect(service.send(:determine_charge_currency)).to eq("usd")
+        end
+      end
+
+      context "when purchases have different non-nil buyer currencies" do
+        let(:purchases) { [fake_purchase.call("eur"), fake_purchase.call("gbp")] }
+
+        it "falls back to USD" do
+          expect(service.send(:determine_charge_currency)).to eq("usd")
+        end
+      end
+    end
+
+    context "when multi_currency_checkout flag is disabled" do
+      let(:purchases) { [fake_purchase.call("eur")] }
+
+      it "always returns USD" do
+        expect(service.send(:determine_charge_currency)).to eq("usd")
+      end
+    end
+  end
 end
