@@ -87,6 +87,16 @@ Capybara.add_selector(:status, locator_type: [nil]) do
   end
 end
 
+Capybara.modify_selector(:alert) do
+  xpath do |*|
+    XPath.anywhere[XPath.attr(:role) == "alert"]
+  end
+
+  visible do |options|
+    :all if options[:text] || options[:exact_text]
+  end
+end
+
 # Use XPath.anywhere for modals since content may be rendered in a portal
 Capybara.modify_selector(:modal) do
   xpath do |*|
@@ -99,6 +109,17 @@ Capybara.modify_selector(:modal) do
         ].reduce(:&)
       ].reduce(&:|)
     ]
+  end
+
+  locator_filter do |node, locator, exact:, **|
+    next true if locator.nil?
+
+    method = exact ? :eql? : :include?
+    labelledby = CapybaraAccessibleSelectors::Helpers.element_labelledby(node) if node[:"aria-labelledby"]
+    next true if labelledby&.public_send(method, locator)
+    next true if node[:"aria-label"]&.public_send(method, locator.to_s)
+
+    node.has_text?(locator.to_s, exact:, wait: false)
   end
 end
 
@@ -174,6 +195,15 @@ Capybara.modify_selector(:combo_box) do
     locate_field(xpath, locator, **options)
   end
 
+  expression_filter(:expanded, :boolean) do |expr, _value|
+    expr
+  end
+
+  node_filter(:expanded, :boolean) do |node, value|
+    expanded = combo_box_expanded?(node)
+    value ? expanded : !expanded
+  end
+
   # with exact enabled options
   node_filter(:enabled_options) do |node, options|
     options = Array(options)
@@ -217,7 +247,7 @@ Capybara.modify_selector(:combo_box) do
     # First try without expanding (Selenium-compatible fast path)
     begin
       opts[:wait] = false
-      listbox = node.find(:combo_box_list_box, node, **opts)
+      listbox = Capybara.page.find(:combo_box_list_box, node, **opts)
       return listbox.all(:xpath, xpath, **opts, &block).map(&:text).map { |t| t.gsub(/[[:space:]]+/, " ").strip }
     rescue Capybara::ElementNotFound
       # Listbox not rendered yet — expand the combo box
@@ -228,7 +258,7 @@ Capybara.modify_selector(:combo_box) do
       node.click
       sleep 0.1 # Allow React to render
       opts[:wait] = 2
-      listbox = node.find(:combo_box_list_box, node, **opts)
+      listbox = Capybara.page.find(:combo_box_list_box, node, **opts)
       result = listbox.all(:xpath, xpath, wait: false, &block).map(&:text).map { |t| t.gsub(/[[:space:]]+/, " ").strip }
       # Close the listbox
       node.send_keys(:escape) rescue nil
@@ -237,6 +267,16 @@ Capybara.modify_selector(:combo_box) do
       node.send_keys(:escape) rescue nil
       []
     end
+  end
+
+  def combo_box_expanded?(node)
+    return true if node[:"aria-expanded"] == "true"
+    return true if node.matches_selector?("[role='combobox'] [aria-expanded='true']", wait: false)
+    return true if node.has_ancestor?("[role='combobox'][aria-expanded='true']", wait: false)
+
+    Capybara.page.find(:combo_box_list_box, node, wait: false).visible?
+  rescue Capybara::ElementNotFound
+    false
   end
 end
 
@@ -367,6 +407,10 @@ module CapybaraAccessibleSelectors
 
   module Session
     include PlaywrightRetryableAccessibilityError
+
+    def within_modal(...)
+      Capybara.page.within(:modal, ...)
+    end
 
     def within_section(*args, **options, &block)
       attempts = 0
