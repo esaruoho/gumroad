@@ -455,11 +455,15 @@ module CapybaraAccessibleSelectors
           popover = Capybara.page.document.find(:css, "[data-radix-popper-content-wrapper] [role='menu'], [data-radix-popper-content-wrapper] [role='listbox'], [data-radix-popper-content-wrapper]", match: :first, wait: 2)
           block_executed = false
           wrapped_block = proc { block.call; block_executed = true }
+          inner_retried = false
           begin
             Capybara.page.within(popover, &wrapped_block)
           rescue StandardError => e
             raise unless _retryable_accessibility_error?(e)
-            retry if !block_executed && attempts == 1
+            if !block_executed && !inner_retried
+              inner_retried = true
+              retry
+            end
             raise unless block_executed
           end
         rescue StandardError => e
