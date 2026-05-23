@@ -36,6 +36,17 @@ team_invitation_to_member:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by Settings::TeamPresenter::MemberInfo::InvitationInfoTest and
+# Settings::TeamPresenter::MemberInfo::MembershipInfoTest — expired invitation
+# on named_seller's team to assert is_expired=true.
+named_seller_expired_admin_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  email: joe@example.com
+  role: admin
+  expires_at: <%= 1.minute.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Used by AuthPresenterTest signup_props with a team invitation.
 auth_presenter_invitation:
   seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
