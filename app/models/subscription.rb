@@ -277,6 +277,11 @@ class Subscription < ApplicationRecord
                         is_installment_payment: original_purchase.is_installment_payment }
     purchase_params.merge!(override_params)
     purchase = Purchase.new(purchase_params)
+    if !is_upgrade_purchase && original_purchase.buyer_currency_amount_cents.present?
+      purchase.buyer_currency = original_purchase.buyer_currency
+      purchase.buyer_currency_amount_cents = original_purchase.buyer_currency_amount_cents
+      purchase.buyer_currency_exchange_rate = original_purchase.buyer_currency_exchange_rate
+    end
     purchase.variant_attributes = original_purchase.variant_attributes
     unless authenticated_offer_code_buyer.equal?(AUTHENTICATED_OFFER_CODE_BUYER_NOT_PROVIDED)
       purchase.authenticated_offer_code_buyer = authenticated_offer_code_buyer
