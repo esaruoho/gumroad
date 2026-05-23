@@ -1,0 +1,8 @@
+# Communities for policy specs. `resource` is polymorphic — points at a product (Link).
+
+named_seller_product_community:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -1,0 +1,8 @@
+# Chat messages in a community for policy specs.
+
+basic_user_message_in_named_seller_community:
+  community_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_community) %>
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  content: Hello from basic_user
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
