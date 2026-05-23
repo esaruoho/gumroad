@@ -1,31 +1,25 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require "test_helper"
 
-describe ShippingDestination::Destinations do
-  describe ".shipping_countries" do
-    it "returns the expected shipping countries" do
-      expect(ShippingDestination::Destinations.shipping_countries).to eq(shipping_countries_expected)
-    end
+class ShippingDestinationDestinationsTest < ActiveSupport::TestCase
+  test ".shipping_countries returns the expected shipping countries" do
+    assert_equal shipping_countries_expected, ShippingDestination::Destinations.shipping_countries
   end
 
-  describe ".europe_shipping_countries" do
-    it "returns the expected Europe countries mapping" do
-      expect(ShippingDestination::Destinations.europe_shipping_countries).to eq(europe_shipping_countries_expected)
-    end
+  test ".europe_shipping_countries returns the expected Europe countries mapping" do
+    assert_equal europe_shipping_countries_expected, ShippingDestination::Destinations.europe_shipping_countries
   end
 
-  describe ".asia_shipping_countries" do
-    it "returns the expected Asia countries mapping" do
-      expect(ShippingDestination::Destinations.asia_shipping_countries).to eq(asia_shipping_countries_expected)
-    end
+  test ".asia_shipping_countries returns the expected Asia countries mapping" do
+    assert_equal asia_shipping_countries_expected, ShippingDestination::Destinations.asia_shipping_countries
   end
 
-  describe ".north_america_shipping_countries" do
-    it "returns the expected North America countries mapping" do
-      expect(ShippingDestination::Destinations.north_america_shipping_countries).to eq(north_america_shipping_countries_expected)
-    end
+  test ".north_america_shipping_countries returns the expected North America countries mapping" do
+    assert_equal north_america_shipping_countries_expected, ShippingDestination::Destinations.north_america_shipping_countries
   end
+
+  private
 
   def shipping_countries_expected
     {
