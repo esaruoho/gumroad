@@ -37,6 +37,21 @@ Object.const_set(:EsClient, fake_es)
 # etc.). Set it to the fake too.
 Elasticsearch::Model.client = fake_es if defined?(Elasticsearch::Model)
 
+# Stub WithMaxExecutionTime in tests — it issues SET SESSION max_execution_time
+# on the AR connection, which fails under Makara when the replica is briefly
+# unavailable. The failure isn't recoverable (the `ensure` block runs the
+# unset against a now-blacklisted connection, triggering a recursive blacklist
+# cascade that takes down the entire suite). Tests don't need real query
+# timeouts; just yield the block.
+require Rails.root.join("lib", "utilities", "with_max_execution_time") if File.exist?(Rails.root.join("lib", "utilities", "with_max_execution_time.rb"))
+if defined?(WithMaxExecutionTime)
+  module WithMaxExecutionTime
+    def self.timeout_queries(seconds:)
+      yield
+    end
+  end
+end
+
 # Disable Makara connection blacklisting in tests. CI sometimes hits transient
 # connection issues (especially during shutdown) that blacklist primary, which
 # then crashes teardown's disable_query_cache! callback with
