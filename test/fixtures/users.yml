@@ -114,6 +114,17 @@ support_for_named_seller:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+another_seller:
+  email: another-seller@example.com
+  username: anotherseller
+  name: Another Seller
+  payment_address: another-seller-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Gumroad admin/staff user. `is_team_member` is flag bit 28 in `has_flags`
 # (1-indexed, value = 2^27 = 134217728). Used by Admin::Impersonators::UserPolicy.
 admin_user:

@@ -42,3 +42,11 @@ support_for_named_seller_membership:
   role: support
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Owner self-membership for another_seller (used by GumroadBlog::PostsPolicy tests).
+another_seller_owner:
+  user: another_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

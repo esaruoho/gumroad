@@ -1,0 +1,106 @@
+# Installment fixtures for GumroadBlog::PostsPolicy tests.
+#
+# `shown_on_profile` is flag bit 8 in Installment.has_flags (1-indexed), so
+# the bitmask value is 2^(8-1) = 128. Set `flags: 128` to enable it.
+# `flags: 0` (or omit) leaves it disabled.
+#
+# Fixtures bypass model validations, so we can write rows that the real
+# `message_must_be_provided` / `validate_channel` callbacks would reject.
+
+published_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id:
+  name: Published Post
+  message: Hello
+  slug: published-post-slug
+  installment_type: audience
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+unpublished_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id:
+  name: Unpublished Post
+  message: Hello
+  slug: unpublished-post-slug
+  installment_type: audience
+  published_at:
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+dead_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id:
+  name: Dead Post
+  message: Hello
+  slug: dead-post-slug
+  installment_type: audience
+  published_at: <%= Time.current %>
+  deleted_at: <%= Time.current %>
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+hidden_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id:
+  name: Hidden Post
+  message: Hello
+  slug: hidden-post-slug
+  installment_type: audience
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+workflow_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id: 12345
+  name: Workflow Post
+  message: Hello
+  slug: workflow-post-slug
+  installment_type: audience
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+no_audience_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id:
+  workflow_id:
+  name: Non-Audience Post
+  message: Hello
+  slug: no-audience-post-slug
+  installment_type: product
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id:
+  workflow_id:
+  name: Another Seller Post
+  message: Hello
+  slug: another-seller-post-slug
+  installment_type: audience
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
