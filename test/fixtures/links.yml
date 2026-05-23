@@ -486,3 +486,103 @@ widget_multi_old_product:
   flags: 0
   created_at: <%= 2.hours.ago %>
   updated_at: <%= 2.hours.ago %>
+
+# Used by RecommendedProducts::DiscoverServiceTest — 5 isolated products: 3 alive, 1 archived (flags=32), 1 deleted.
+discover_service_product_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 1
+  unique_permalink: dscv1
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 2
+  unique_permalink: dscv2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_three:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 3
+  unique_permalink: dscv3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_archived:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product Archived
+  unique_permalink: dscv4
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 16   # bit-position 5 (FlagShihTzu) = archived
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_deleted:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product Deleted
+  unique_permalink: dscv5
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  deleted_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_nsfw_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product NSFW
+  unique_permalink: dscv6
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 32768   # bit-position 16 (FlagShihTzu) = is_adult
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_cart_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Cart Product
+  unique_permalink: dscv7
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
