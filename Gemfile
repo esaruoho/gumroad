@@ -63,7 +63,7 @@ group :test do
   # no actual code (just metadata + a `bin/minitest` script), and bundler
   # happily resolves to it for any `>= 5.x` constraint from transitive deps,
   # which breaks `require "minitest/mock"` and friends.
-  gem "minitest", "~> 5.27"
+  # (Pin declared at line 40 in the same group; do not duplicate.)
 end
 
 group :deployer do

@@ -1,0 +1,44 @@
+# Owner + non-owner team memberships for the policy test users.
+#
+# Every seller needs an owner-role self-membership (TeamMembership validation
+# `owner_membership_must_exist` enforces this for any non-owner role to be
+# valid). Factory code in spec/ does this via a `before(:create)` hook;
+# fixtures inline it.
+
+# Owner self-membership for named_seller (required so the non-owner roles below
+# pass `owner_membership_must_exist` validation when they're loaded against the
+# same seller).
+named_seller_owner:
+  user: named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+accountant_for_named_seller_membership:
+  user: accountant_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: accountant
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+admin_for_named_seller_membership:
+  user: admin_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+marketing_for_named_seller_membership:
+  user: marketing_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: marketing
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+support_for_named_seller_membership:
+  user: support_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: support
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
