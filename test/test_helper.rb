@@ -9,6 +9,29 @@ require "webmock/minitest"
 # Disable network access in tests (matches RSpec's webmock config).
 WebMock.disable_net_connect!(allow_localhost: true)
 
+# Stub Elasticsearch globally so any model save/callback that calls EsClient
+# (search reindex, ProductPageView.count, etc.) doesn't make a real HTTP
+# request to localhost:9200, where 6 Faraday retries × N parallel test workers
+# saturates Makara's connection pool (each retry holds the AR thread inside an
+# Executor wrapper) and crashes the whole suite with AllConnectionsBlacklisted.
+if defined?(EsClient)
+  fake_es = Object.new
+  fake_es.define_singleton_method(:method_missing) do |name, *_args, **_kwargs|
+    case name
+    when :count, :search, :msearch then { "count" => 0, "hits" => { "hits" => [], "total" => { "value" => 0 } } }
+    when :indices then self
+    when :exists?, :exists then false
+    when :index, :update, :delete, :delete_by_query, :create, :put, :put_alias, :put_mapping, :put_settings then { "result" => "noop", "_shards" => { "successful" => 0 } }
+    when :transport then self
+    when :logger, :logger= then nil
+    else nil
+    end
+  end
+  fake_es.define_singleton_method(:respond_to_missing?) { |_n, _p = false| true }
+  Object.send(:remove_const, :EsClient)
+  Object.const_set(:EsClient, fake_es)
+end
+
 module ActiveSupport
   class TestCase
     # Reuse the existing fixture files we share with the RSpec suite for
