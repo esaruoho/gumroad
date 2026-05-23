@@ -696,3 +696,37 @@ discover_service_purchaser:
   recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Two arbitrary users used by Admin::SuspendUsersControllerTest to verify
+# mass-suspension routes accept ID lists and external_id lists.
+suspend_target_one:
+  email: suspend-target-one@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  external_id: "1000000001"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspend_target_two:
+  email: suspend-target-two@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  external_id: "1000000002"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Unconfirmed user used by ConfirmationsControllerTest to verify the email
+# confirmation flow. `confirmation_token` is stored hashed; the raw token is
+# computed via `Devise.token_generator.generate(User, :confirmation_token)`
+# in test setup.
+unconfirmed_user:
+  email: unconfirmed@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
