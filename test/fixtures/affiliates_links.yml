@@ -1,0 +1,6 @@
+# Join table between affiliates and links (products).
+collaborator_for_named_seller_product_link:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:collaborator_for_named_seller_product) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
