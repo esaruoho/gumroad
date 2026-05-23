@@ -69,6 +69,62 @@ community_buyer_purchase:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Audience::PurchasePolicy fixtures
+audience_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: audience-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# is_access_revoked is flag bit 25 (2^24 = 16777216)
+audience_revoked_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: audience-revoked@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16777216
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+audience_physical_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:audience_physical_product) %>
+  email: audience-physical@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+audience_membership_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_subscription) %>
+  email: audience-member@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 analytics_deleted_with_sales_purchase:
   seller_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
   link_id: <%= ActiveRecord::FixtureSet.identify(:analytics_deleted_with_sales_product) %>
