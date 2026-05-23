@@ -311,7 +311,7 @@ audience_physical_product:
 upsell_test_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
   name: Test Product
-  unique_permalink: upsl1
+  unique_permalink: upsl
   price_cents: 1000
   purchase_type: 0
   native_type: ebook
