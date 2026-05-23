@@ -1,0 +1,16 @@
+# Subscriptions for policy specs. Subscriptions are linked to a Link (product).
+# Validations on the model run at save-time and validate payment options, but
+# fixtures bypass validations, so a minimal row works for policy tests that
+# only inspect `record.link.user`.
+
+named_seller_product_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+basic_user_product_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0

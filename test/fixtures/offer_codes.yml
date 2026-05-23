@@ -1,0 +1,16 @@
+# OfferCodes for policy specs. `user_id` is the seller. Validations on save
+# are bypassed by fixture loading.
+
+named_seller_offer_code:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  code: nsoffer
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+basic_user_offer_code:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  code: buoffer
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

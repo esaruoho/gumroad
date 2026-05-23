@@ -1,0 +1,18 @@
+# Wishlist products for policy specs. Each row references a wishlist (owner)
+# and a product. Fixtures skip validations, so we set sensible defaults.
+
+named_seller_wishlist_product:
+  wishlist_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_wishlist) %>
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  quantity: 1
+  rent: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+basic_user_wishlist_product:
+  wishlist_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_wishlist) %>
+  product_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  quantity: 1
+  rent: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
