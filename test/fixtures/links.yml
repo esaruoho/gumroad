@@ -225,6 +225,23 @@ invoice_seller_product:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# ReceiptPresenter::ShippingInfoTest: physical variant of invoice_seller_product.
+shipping_info_physical_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Shipping info physical product
+  unique_permalink: shpinp
+  price_cents: 1499
+  purchase_type: 0
+  native_type: physical
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  require_shipping: true
+  # flag bit 8 = is_physical (2^7 = 128)
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # ReceiptPresenter::FooterInfo + GifteeManageSubscription membership fixtures.
 footer_membership_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>

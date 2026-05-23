@@ -16,3 +16,9 @@ invoice_seller_cp:
   purchase_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_purchase) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+shipping_info_physical_cp:
+  charge_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_charge) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
