@@ -232,11 +232,21 @@ class InvoicePresenter::OrderInfo
 
       {
         label: "Payment Total",
-        value: formatted_dollar_amount(amount_cents),
+        value: formatted_non_refunded_payment_total(amount_cents),
       }
     end
 
     def non_refunded_tax_price_attributes
       payment_info.today_tax_price_attributes
+    end
+
+    def formatted_non_refunded_payment_total(amount_cents)
+      purchase = chargeable.successful_purchases.first
+      return formatted_dollar_amount(amount_cents) if purchase.blank? || purchase.buyer_currency_amount_cents.blank?
+
+      buyer_amount_cents = chargeable.successful_purchases.sum do |successful_purchase|
+        successful_purchase.buyer_currency_amount_for_usd_cents(successful_purchase.non_refunded_total_transaction_amount)
+      end
+      Money.new(buyer_amount_cents, purchase.buyer_currency).format(no_cents_if_whole: true)
     end
 end

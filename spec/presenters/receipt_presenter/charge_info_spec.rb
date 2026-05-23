@@ -26,7 +26,7 @@ describe ReceiptPresenter::ChargeInfo do
 
     describe "#formatted_total_transaction_amount" do
       before do
-        allow(chargeable).to receive(:charged_amount_cents).and_return(14_99)
+        allow(chargeable).to receive(:formatted_charged_amount).with(for: :buyer).and_return("$14.99")
       end
 
       context "when the purchase is not a membership" do
@@ -132,6 +132,13 @@ describe ReceiptPresenter::ChargeInfo do
     let(:chargeable) { purchase }
 
     it_behaves_like "chargeable"
+
+    it "returns the buyer-currency amount when the purchase was charged in buyer currency" do
+      purchase.buyer_currency = "eur"
+      purchase.buyer_currency_amount_cents = 13_79
+
+      expect(described_class.new(purchase, for_email: true, order_items_count: 1).formatted_total_transaction_amount).to eq("€13.79")
+    end
   end
 
   describe "for Charge" do

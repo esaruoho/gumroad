@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class Exports::PurchaseExportService
+  include CurrencyHelper
+
   PURCHASE_FIELDS = [
     "Purchase ID", "Item Name", "Buyer Name", "Purchase Email", "Buyer Email", "Do not contact?",
     "Purchase Date", "Purchase Time (UTC timezone)", "Subtotal ($)", "Taxes ($)", "Tax Type", "Shipping ($)",
-    "Sale Price ($)", "Fees ($)", "Net Total ($)", "Tip ($)", "Tax Included in Price?",
+    "Sale Price ($)", "Settlement Currency", "Buyer Currency", "Buyer Amount", "Buyer FX Rate", "Fees ($)", "Net Total ($)", "Tip ($)", "Tax Included in Price?",
     "Street Address", "City", "Zip Code", "State", "Country", "Referrer", "Refunded?",
     "Partial Refund ($)", "Fully Refunded?", "Disputed?", "Dispute Won?", "Access Revoked?", "Variants",
     "Discount Code", "Recurring Charge?", "Free trial purchase?", "Pre-order authorization?", "Product ID", "Order Number",
@@ -140,6 +142,10 @@ class Exports::PurchaseExportService
         "Tax Type" => purchase.has_tax_label? ? purchase.tax_label(include_tax_rate: false) : "",
         "Shipping ($)" => purchase.shipping_dollars,
         "Sale Price ($)" => purchase.price_dollars,
+        "Settlement Currency" => Currency::USD.upcase,
+        "Buyer Currency" => purchase.buyer_currency&.upcase,
+        "Buyer Amount" => buyer_amount_for_export(purchase),
+        "Buyer FX Rate" => purchase.buyer_currency_exchange_rate&.to_s,
         "Fees ($)" => purchase.fee_dollars,
         "Tip ($)" => (purchase.tip&.value_usd_cents || 0) / 100.0,
         "Net Total ($)" => purchase.net_total,
@@ -211,6 +217,12 @@ class Exports::PurchaseExportService
       return unless purchase.was_purchase_taxable?
 
       purchase.was_tax_excluded_from_price ? 0 : 1
+    end
+
+    def buyer_amount_for_export(purchase)
+      return if purchase.buyer_currency_amount_cents.blank?
+
+      purchase.buyer_currency_amount_cents / unit_scaling_factor(purchase.buyer_currency).to_f
     end
 
     def pseudo_transliterate(string)

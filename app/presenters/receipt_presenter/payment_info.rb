@@ -63,7 +63,7 @@ class ReceiptPresenter::PaymentInfo
 
       {
         label: "Shipping",
-        value: formatted_dollar_amount(amount_cents),
+        value: formatted_purchase_amount(chargeable.successful_purchases.first, amount_cents),
       }
     end
   end
@@ -90,12 +90,12 @@ class ReceiptPresenter::PaymentInfo
         label: "QST",
         value: calculate_tax_amount_cents(amount_cents:, tax_rate_field: :qst_tax_rate),
       },
-    ].select { _1[:value].positive? }.map { _1[:value] = formatted_dollar_amount(_1[:value]); _1 }
+    ].select { _1[:value].positive? }.map { _1[:value] = formatted_purchase_amount(chargeable.successful_purchases.first, _1[:value]); _1 }
 
     total_tax_attribute =
       {
         label: chargeable.tax_label_with_creator_tax_info,
-        value: formatted_dollar_amount(amount_cents),
+        value: formatted_purchase_amount(chargeable.successful_purchases.first, amount_cents),
       }
 
     canadian_sales_tax_attributes.presence || [total_tax_attribute]
@@ -183,7 +183,7 @@ class ReceiptPresenter::PaymentInfo
 
       {
         label: price_attribute_label(purchase) + today_price_attribute_label_notes(purchase),
-        value: formatted_dollar_amount(amount_cents) + today_price_attribute_value_notes(purchase),
+        value: formatted_purchase_amount(purchase, amount_cents) + today_price_attribute_value_notes(purchase),
       }
     end
 
@@ -234,12 +234,9 @@ class ReceiptPresenter::PaymentInfo
         today_shipping_price_attribute.blank? &&
         today_tax_price_attributes.blank?
 
-      amount_cents = chargeable.successful_purchases.sum do |purchase|
-        purchase.is_free_trial_purchase? ? 0 : purchase.total_transaction_cents
-      end
       {
         label: "Amount paid",
-        value: formatted_dollar_amount(amount_cents),
+        value: chargeable.formatted_charged_amount(for: :buyer),
       }
     end
 
@@ -347,6 +344,12 @@ class ReceiptPresenter::PaymentInfo
 
       tax_percent = tax_rate / taxjar_info.combined_tax_rate.to_f
       amount_cents * tax_percent
+    end
+
+    def formatted_purchase_amount(purchase, amount_cents)
+      return formatted_dollar_amount(amount_cents) if purchase.blank? || purchase.buyer_currency_amount_cents.blank?
+
+      Money.new(purchase.buyer_currency_amount_for_usd_cents(amount_cents), purchase.buyer_currency).format(no_cents_if_whole: true)
     end
 
     def subscription_charge_progress(purchase)

@@ -74,6 +74,7 @@ class Purchase < ApplicationRecord
   alias_attribute :total_transaction_cents_usd, :total_transaction_cents
 
   belongs_to :link, optional: true
+  has_one :buyer_currency_amount, class_name: "PurchaseBuyerCurrencyAmount", dependent: :destroy, inverse_of: :purchase, autosave: true
   has_one :url_redirect
   has_one :gift_given, class_name: "Gift", foreign_key: :gifter_purchase_id
   has_one :gift_received, class_name: "Gift", foreign_key: :giftee_purchase_id
@@ -524,16 +525,17 @@ class Purchase < ApplicationRecord
 
   # price_cents - Price cents is the cost of the product as seen by the seller, including Gumroad fees.
 
-  # tax_cents - Tax that the seller is responsible for. This amount is remitted to the seller.
+  # tax_cents - USD accounting tax that the seller is responsible for. This amount is remitted to the seller.
   # The tax amount(tax_cents) is either intrinsic or added on to price_cents.
   # This is controlled by the flag was_tax_excluded_from_price and done at the time of processing (see #process!)
 
-  # gumroad_tax_cents - Tax that Gumroad is responsible for. This amount is NOT remitted to the seller.
+  # gumroad_tax_cents - USD accounting tax that Gumroad is responsible for. This amount is NOT remitted to the seller.
   # Eg. VAT an EU buyer is charged.
 
   # shipping_cents - Shipping that is calculated.
 
-  # total_transaction_cents - Total transaction cents is the amount the buyer is charged
+  # total_transaction_cents - USD accounting total used for seller reporting, balances, and taxes.
+  # Buyer-currency charge totals are stored on purchase_buyer_currency_amounts.
   # This amount includes charges that are not within the scope of the seller - like VAT
   # Is equivalent to price_cents + gumroad_tax_cents
 
@@ -584,6 +586,66 @@ class Purchase < ApplicationRecord
   delegate :email, :name, to: :seller, prefix: "seller"
   delegate :name, to: :link, prefix: "link", allow_nil: true
   delegate :display_product_reviews?, to: :link
+
+  def buyer_currency
+    buyer_currency_amount&.buyer_currency
+  end
+
+  def buyer_currency=(currency)
+    currency = currency.to_s.downcase.presence
+    if currency.present?
+      buyer_currency_amount_record.buyer_currency = currency
+    elsif buyer_currency_amount&.persisted?
+      buyer_currency_amount.mark_for_destruction
+    else
+      association(:buyer_currency_amount).reset
+    end
+  end
+
+  def buyer_currency_amount_cents
+    buyer_currency_amount&.buyer_currency_amount_cents
+  end
+
+  def buyer_currency_amount_cents=(amount_cents)
+    return if amount_cents.nil? && buyer_currency_amount.blank?
+
+    buyer_currency_amount_record.buyer_currency_amount_cents = amount_cents
+  end
+
+  def buyer_currency_exchange_rate
+    buyer_currency_amount&.buyer_currency_exchange_rate
+  end
+
+  def buyer_currency_exchange_rate=(exchange_rate)
+    return if exchange_rate.nil? && buyer_currency_amount.blank?
+
+    buyer_currency_amount_record.buyer_currency_exchange_rate = exchange_rate
+  end
+
+  def buyer_currency_amount_for_usd_cents(usd_cents)
+    return usd_cents if buyer_currency.blank? || buyer_currency == Currency::USD
+    return 0 if usd_cents.to_i.zero?
+
+    if buyer_currency_exchange_rate.present?
+      BuyerCurrencyService.convert_usd_cents_with_exchange_rate(usd_cents, to_currency: buyer_currency, exchange_rate: buyer_currency_exchange_rate)
+    else
+      BuyerCurrencyService.convert_price_raw(usd_cents, from_currency: Currency::USD, to_currency: buyer_currency)
+    end
+  end
+
+  def charged_currency(**options)
+    audience = options.fetch(:for, :seller)
+    return buyer_currency if audience.to_sym == :buyer && buyer_currency_amount_cents.present?
+
+    Currency::USD
+  end
+
+  def charged_amount_cents(**options)
+    audience = options.fetch(:for, :seller)
+    return buyer_currency_amount_cents if audience.to_sym == :buyer && buyer_currency_amount_cents.present?
+
+    total_transaction_cents
+  end
 
   scope :by_email, ->(email) { where(email:) }
   scope :with_stripe_fingerprint, -> { where.not(stripe_fingerprint: nil) }
@@ -798,6 +860,10 @@ class Purchase < ApplicationRecord
       formatted_display_price:,
       transaction_url_for_seller:,
       formatted_total_price:,
+      charged_currency: charged_currency(for: :buyer),
+      charged_amount_cents: charged_amount_cents(for: :buyer),
+      formatted_charged_amount: formatted_total_transaction_amount(for: :buyer),
+      buyer_currency_exchange_rate:,
       currency_symbol: symbol_for(displayed_price_currency_type),
       amount_refundable_in_currency:,
       link_id: (link.unique_permalink if version == 1),
@@ -1347,7 +1413,12 @@ class Purchase < ApplicationRecord
     fee_cents + affiliate_credit_cents + gumroad_tax_cents
   end
 
-  def formatted_total_price
+  def formatted_total_price(**options)
+    audience = options.fetch(:for, :seller)
+    if audience.to_sym == :buyer && buyer_currency_amount_cents.present?
+      return format_price_in_cents(buyer_currency_amount_cents, currency: buyer_currency)
+    end
+
     amount_in_purchase_currency = usd_cents_to_currency(displayed_price_currency_type, price_cents, rate_converted_to_usd)
     format_price_in_cents(amount_in_purchase_currency)
   end
@@ -1376,7 +1447,12 @@ class Purchase < ApplicationRecord
     usd_cents_to_currency(displayed_price_currency_type, total_transaction_cents, rate_converted_to_usd)
   end
 
-  def formatted_total_transaction_amount(format: :long)
+  def formatted_total_transaction_amount(format: :long, **options)
+    audience = options.fetch(:for, :seller)
+    if audience.to_sym == :buyer && buyer_currency_amount_cents.present?
+      return format_price_in_cents(buyer_currency_amount_cents, format:, currency: buyer_currency)
+    end
+
     format_price_in_cents(total_in_purchase_currency, format:)
   end
 
@@ -1558,14 +1634,16 @@ class Purchase < ApplicationRecord
       return
     end
 
+    seller_net_cents = payment_cents - affiliate_credit_cents
+    seller_issued_net_cents = issued_net_cents_for_flow_of_funds(seller_net_cents, flow_of_funds)
     seller_issued_amount = BalanceTransaction::Amount.create_issued_amount_for_seller(
       flow_of_funds:,
-      issued_net_cents: payment_cents - affiliate_credit_cents
+      issued_net_cents: seller_issued_net_cents
     )
 
     seller_holding_amount = BalanceTransaction::Amount.create_holding_amount_for_seller(
       flow_of_funds:,
-      issued_net_cents: payment_cents - affiliate_credit_cents
+      issued_net_cents: seller_issued_net_cents
     )
 
     seller_balance_transaction = BalanceTransaction.create!(
@@ -1898,30 +1976,22 @@ class Purchase < ApplicationRecord
     self.price_cents = displayed_price_usd_cents
     self.rate_converted_to_usd = get_rate(displayed_price_currency_type)
 
-    # Multi-currency: if a buyer_currency was detected (from IP geolocation),
-    # convert the seller's price into the buyer's local currency for Stripe presentment.
-    # The USD amount (price_cents) remains the canonical internal accounting value.
-    # NOTE: total_transaction_cents is always kept in USD — buyer_currency_amount_cents
-    # is a separate field used by Charge::CreateService for the Stripe charge amount.
-    #
-    # Skip conversion when buyer currency matches seller currency (e.g., EUR buyer +
-    # EUR seller) — in that case, displayed_price_cents IS already the correct amount
-    # and a round-trip through USD would lose precision.
+    ensure_buyer_currency_supported_by_merchant_account
     seller_currency = displayed_price_currency_type.to_s.downcase
-    if buyer_currency.present? && buyer_currency != "usd" && buyer_currency != seller_currency
-      self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
-        displayed_price_cents,
-        from_currency: seller_currency,
-        to_currency: buyer_currency
-      )
-      self.buyer_currency_exchange_rate = BuyerCurrencyService.exchange_rate(
-        from_currency: seller_currency,
-        to_currency: buyer_currency
-      )
-    elsif buyer_currency.present? && buyer_currency == seller_currency
-      # Same currency: use the seller's price directly, no conversion needed
-      self.buyer_currency_amount_cents = displayed_price_cents
-      self.buyer_currency_exchange_rate = 1.0
+    begin
+      if buyer_currency.present? && buyer_currency != Currency::USD && buyer_currency != seller_currency
+        self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price(
+          displayed_price_cents,
+          from_currency: seller_currency,
+          to_currency: buyer_currency
+        )
+        self.buyer_currency_exchange_rate = BuyerCurrencyService.exchange_rate(from_currency: Currency::USD, to_currency: buyer_currency)
+      elsif buyer_currency.present? && buyer_currency == seller_currency
+        self.buyer_currency_amount_cents = displayed_price_cents
+        self.buyer_currency_exchange_rate = BuyerCurrencyService.exchange_rate(from_currency: Currency::USD, to_currency: buyer_currency)
+      end
+    rescue CurrencyHelper::CurrencyRateUnavailable
+      self.buyer_currency = nil
     end
     self.total_transaction_cents = self.price_cents
 
@@ -2012,14 +2082,15 @@ class Purchase < ApplicationRecord
     logger.info("process_refund_or_chargeback_for_purchase_balance::dispute::#{dispute.inspect}")
     return unless charged_using_gumroad_merchant_account?
 
+    seller_issued_net_cents = issued_net_cents_for_flow_of_funds(-1 * refund_cents, flow_of_funds)
     seller_issued_amount = BalanceTransaction::Amount.create_issued_amount_for_seller(
       flow_of_funds:,
-      issued_net_cents: -1 * refund_cents
+      issued_net_cents: seller_issued_net_cents
     )
 
     seller_holding_amount = BalanceTransaction::Amount.create_holding_amount_for_seller(
       flow_of_funds:,
-      issued_net_cents: -1 * refund_cents
+      issued_net_cents: seller_issued_net_cents
     )
 
     seller_balance_transaction = BalanceTransaction.create!(
@@ -3022,6 +3093,44 @@ class Purchase < ApplicationRecord
   end
 
   private
+    def buyer_currency_amount_record
+      buyer_currency_amount || build_buyer_currency_amount
+    end
+
+    def ensure_buyer_currency_supported_by_merchant_account
+      return if buyer_currency.blank?
+
+      candidate_merchant_account = merchant_account ||
+        seller&.merchant_account(StripeChargeProcessor.charge_processor_id) ||
+        MerchantAccount.gumroad(StripeChargeProcessor.charge_processor_id)
+      self.buyer_currency = nil unless MultiCurrency::MerchantCompatibility.supports_buyer_currency?(candidate_merchant_account, buyer_currency)
+    end
+
+    def apply_original_subscription_buyer_currency_amount
+      return unless is_recurring_subscription_charge && !is_upgrade_purchase?
+
+      original_purchase = subscription&.original_purchase
+      return if original_purchase&.buyer_currency_amount_cents.blank?
+
+      self.buyer_currency = original_purchase.buyer_currency
+      self.buyer_currency_amount_cents = original_purchase.buyer_currency_amount_cents
+      self.buyer_currency_exchange_rate = original_purchase.buyer_currency_exchange_rate
+    end
+
+    def issued_net_cents_for_flow_of_funds(usd_cents, flow_of_funds)
+      issued_currency = flow_of_funds.issued_amount.currency.to_s.downcase
+      return usd_cents if issued_currency == Currency::USD
+
+      sign = usd_cents.negative? ? -1 : 1
+      absolute_usd_cents = usd_cents.abs
+      converted_cents = if issued_currency == buyer_currency
+        buyer_currency_amount_for_usd_cents(absolute_usd_cents)
+      else
+        BuyerCurrencyService.convert_price_raw(absolute_usd_cents, from_currency: Currency::USD, to_currency: issued_currency)
+      end
+      sign * converted_cents
+    end
+
     def resolved_offer_code_discount_for_buyer
       if offer_code.existing_customers_only? || offer_code.tiered?
         evaluated_discount = offer_code.evaluate_for_buyer(offer_code_buyer, product: link)
@@ -3126,19 +3235,9 @@ class Purchase < ApplicationRecord
             usd_cents_to_currency(seller_currency, extra_cents_usd, rate_converted_to_usd).round : 0
           self.buyer_currency_amount_cents = displayed_price_cents + extra_cents_local
         else
-          # Use raw conversion (no smart rounding) for the tax-inclusive total so that:
-          # 1. The Stripe charge matches the frontend display, which converts the USD
-          #    total via the same raw USD→buyer exchange rate (Checkout/index.tsx).
-          # 2. We do not snap a tax-inclusive amount to a .99 / round price point,
-          #    which would silently under- or over-charge tax (compliance issue).
-          # Smart rounding still applies to the per-item displayed product price in
-          # set_price_and_rate — that is the correct surface for psychological pricing.
-          self.buyer_currency_amount_cents = BuyerCurrencyService.convert_price_raw(
-            total_transaction_cents,
-            from_currency: "usd",
-            to_currency: buyer_currency
-          )
+          self.buyer_currency_amount_cents = buyer_currency_amount_for_usd_cents(total_transaction_cents)
         end
+        apply_original_subscription_buyer_currency_amount
       end
 
       calculate_fees
@@ -3298,6 +3397,7 @@ class Purchase < ApplicationRecord
       # Note: This assumes for the time being that all chargeables have only one internal chargeable.
       self.merchant_account = seller.merchant_account(charge_processor_id)
       self.merchant_account ||= MerchantAccount.gumroad(charge_processor_id)
+      ensure_buyer_currency_supported_by_merchant_account
       if merchant_account&.is_a_brazilian_stripe_connect_account? && affiliate.present?
         self.error_code = PurchaseErrorCode::BRAZILIAN_MERCHANT_ACCOUNT_WITH_AFFILIATE
         errors.add(:base, "Affiliate sales are not currently supported for this product.")
@@ -3328,25 +3428,16 @@ class Purchase < ApplicationRecord
         description = "You bought #{link.long_url}!"
         mandate_options = mandate_options_for_stripe
 
-        # For recurring charges, use the buyer's original currency if set.
-        # Gate on the Flipper flag too — if the flag was disabled after the
-        # initial subscription stored a buyer_currency, fall back to USD so
-        # renewals can be quickly reverted to USD-only without per-row cleanup.
-        charge_currency = (Flipper.enabled?(:multi_currency_checkout) && buyer_currency.presence) || "usd"
+        charge_currency = if Flipper.enabled?(:multi_currency_checkout) &&
+            MultiCurrency::MerchantCompatibility.supports_buyer_currency?(merchant_account, buyer_currency)
+          buyer_currency
+        else
+          Currency::USD
+        end
 
-        # When charging in a non-USD buyer currency, convert amounts from USD
-        # to the buyer's currency so Stripe receives the correct local amount.
-        if charge_currency != "usd"
-          amount_cents = buyer_currency_amount_cents || BuyerCurrencyService.convert_price_raw(
-            total_transaction_cents,
-            from_currency: "usd",
-            to_currency: charge_currency
-          )
-          amount_for_gumroad_cents = BuyerCurrencyService.convert_price_raw(
-            total_transaction_amount_for_gumroad_cents,
-            from_currency: "usd",
-            to_currency: charge_currency
-          )
+        if charge_currency != Currency::USD
+          amount_cents = buyer_currency_amount_cents || buyer_currency_amount_for_usd_cents(total_transaction_cents)
+          amount_for_gumroad_cents = buyer_currency_amount_for_usd_cents(total_transaction_amount_for_gumroad_cents)
         end
 
         charge_intent = ChargeProcessor.create_payment_intent_or_charge!(self.merchant_account,
@@ -4133,8 +4224,8 @@ class Purchase < ApplicationRecord
       false
     end
 
-    def format_price_in_cents(price_cents, format: :long)
-      formatted_price = format_just_price_in_cents(price_cents, displayed_price_currency_type)
+    def format_price_in_cents(price_cents, format: :long, currency: displayed_price_currency_type)
+      formatted_price = format_just_price_in_cents(price_cents, currency)
       price = price_for_recurrence
       return formatted_price if price.nil?
 

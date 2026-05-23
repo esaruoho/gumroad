@@ -1064,6 +1064,20 @@ describe Purchase, :vcr do
         expect(json[:formatted_total_price]).to eq("$4")
       end
 
+      it "includes buyer-currency charge fields" do
+        purchase = create(:purchase, price_cents: 400, total_transaction_cents: 400)
+        purchase.buyer_currency = "eur"
+        purchase.buyer_currency_amount_cents = 368
+        purchase.buyer_currency_exchange_rate = 0.92
+        purchase.save!
+
+        json = purchase.as_json
+
+        expect(json[:charged_currency]).to eq("eur")
+        expect(json[:charged_amount_cents]).to eq(368)
+        expect(json[:buyer_currency_exchange_rate].to_s).to eq("0.92")
+      end
+
       it "includes the refund state" do
         purchase = create(:purchase) # stripe_refunded => nil
         json = purchase.as_json(creator_app_api: true)
@@ -2532,6 +2546,14 @@ describe Purchase, :vcr do
       allow(purchase).to receive(:get_rate).and_return(150)
 
       expect(purchase.formatted_total_price).to eq "¥750"
+    end
+
+    it "can format the buyer charged amount" do
+      purchase = create(:purchase, price_cents: 500)
+      purchase.buyer_currency = "eur"
+      purchase.buyer_currency_amount_cents = 460
+
+      expect(purchase.formatted_total_price(for: :buyer)).to eq "€4.60"
     end
   end
 

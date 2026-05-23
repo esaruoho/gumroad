@@ -493,6 +493,19 @@ describe Exports::PurchaseExportService do
       expect(field_value(last_data_row, "Upsold?")).to eq("1")
     end
 
+    it "includes buyer-currency fields while keeping settlement amounts in USD" do
+      @purchase.buyer_currency = "eur"
+      @purchase.buyer_currency_amount_cents = 92_00
+      @purchase.buyer_currency_exchange_rate = 0.92
+      @purchase.save!
+
+      row = last_data_row
+      expect(field_value(row, "Settlement Currency")).to eq("USD")
+      expect(field_value(row, "Buyer Currency")).to eq("EUR")
+      expect(field_value(row, "Buyer Amount")).to eq("92.0")
+      expect(field_value(row, "Buyer FX Rate")).to eq("0.92")
+    end
+
     it "generates csv with default purchase fields and extra purchase fields" do
       # We name a field "Order number" to check that a custom field can have the same name as a default field name
       create(:purchase_custom_field, name: "Age", value: "30", purchase: @purchase)

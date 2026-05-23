@@ -18,7 +18,7 @@ class ReceiptPresenter::ChargeInfo
   end
 
   def formatted_total_transaction_amount
-    formatted_dollar_amount(chargeable.charged_amount_cents)
+    chargeable.formatted_charged_amount(for: :buyer)
   end
 
   def order_id
