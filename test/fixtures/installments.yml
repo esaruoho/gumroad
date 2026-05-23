@@ -7,6 +7,20 @@
 # Fixtures bypass model validations, so we can write rows that the real
 # `message_must_be_provided` / `validate_channel` callbacks would reject.
 
+pcp_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  workflow_id:
+  name: PCP Post
+  message: Hello
+  slug: pcp-post-slug
+  installment_type: product
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 published_post:
   seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
   link_id:

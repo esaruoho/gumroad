@@ -46,3 +46,25 @@ basic_user_comment_on_published_post:
   content: "Hello there"
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Comments for PaginatedCommentsPresenter tests.
+pcp_comment1:
+  commentable: pcp_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  author_name: Basic
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "first comment"
+  ancestry_depth: 0
+  created_at: <%= 1.minute.ago %>
+  updated_at: <%= 1.minute.ago %>
+
+pcp_comment2:
+  commentable: pcp_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:referrer_user) %>
+  author_name: Other
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "second comment"
+  ancestry_depth: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
