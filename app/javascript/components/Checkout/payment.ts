@@ -7,6 +7,7 @@ import { PurchasePaymentMethod } from "$app/data/purchase";
 import { SavedCreditCard } from "$app/parsers/card";
 import { CustomFieldDescriptor, ProductNativeType } from "$app/parsers/product";
 import { assert } from "$app/utils/assert";
+import { type CurrencyCode } from "$app/utils/currency";
 import { isValidEmail } from "$app/utils/email";
 import { asyncVoid } from "$app/utils/promise";
 import { AbortError, assertResponseError } from "$app/utils/request";
@@ -89,6 +90,7 @@ export type State = {
   emailTypoSuggestion: string | null;
   acknowledgedEmails: Set<string>;
   requireEmailTypoAcknowledgment: boolean;
+  buyerCurrency?: CurrencyCode | null;
 };
 
 export const addressFields = ["address", "city", "state", "zipCode", "fullName", "country"] as const;
@@ -242,6 +244,7 @@ export const loadSurcharges = (state: State) => {
     state: state.state,
     vat_id: state.vatId,
     postal_code: state.zipCode,
+    buyer_currency: state.buyerCurrency,
   });
 };
 
@@ -263,6 +266,7 @@ export function createReducer(initial: {
   paypalClientId: string;
   gift: Gift | null;
   requireEmailTypoAcknowledgment: boolean;
+  buyerCurrency?: CurrencyCode | null;
 }): readonly [State, React.Dispatch<PublicAction>] {
   const url = new URL(useOriginalLocation());
   function validatePaymentMethodIndependentFields(state: State) {

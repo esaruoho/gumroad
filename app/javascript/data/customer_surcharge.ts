@@ -13,6 +13,7 @@ export type GetSurchargesRequest = {
   country: string;
   state?: string;
   vat_id?: string;
+  buyer_currency?: string | null;
 };
 
 export type SurchargesResponse = {
@@ -22,6 +23,8 @@ export type SurchargesResponse = {
   tax_cents: number;
   tax_included_cents: number;
   subtotal: number;
+  buyer_currency: string | null;
+  buyer_currency_total_cents: number | null;
 };
 
 export const getSurcharges = async (data: GetSurchargesRequest, abortSignal?: AbortSignal) => {

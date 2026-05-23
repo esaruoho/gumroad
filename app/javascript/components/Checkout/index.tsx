@@ -228,20 +228,12 @@ export const Checkout = ({
 
   const total = getTotalPrice(state);
 
-  // Compute local-currency total by converting the full USD total at the
-  // USD→buyer exchange rate. This automatically includes discounts, taxes,
-  // shipping, and tips, since those are all baked into `total`. Using a single
-  // USD-to-buyer rate (rather than per-item smart-rounded prices) ensures the
-  // displayed total matches the actual Stripe charge amount computed server
-  // side from total_transaction_cents.
   const localTotal = (() => {
-    if (!buyerCurrency || buyerCurrency === "usd" || !buyerCurrencyUsdExchangeRate) return null;
-    return Math.round(total * buyerCurrencyUsdExchangeRate);
+    if (!buyerCurrency || buyerCurrency === "usd" || state.surcharges.type !== "loaded") return null;
+    return state.surcharges.result.buyer_currency === buyerCurrency
+      ? state.surcharges.result.buyer_currency_total_cents
+      : null;
   })();
-  // Format a breakdown amount in the same currency as the Total row. When the
-  // buyer is paying in a non-USD currency with a known exchange rate, scale the
-  // USD cents by the same rate used for `localTotal` so the breakdown matches
-  // what the buyer will be charged. Otherwise fall back to USD formatting.
   const formatBreakdownPrice = (usdCents: number) => {
     if (localTotal != null && buyerCurrency && buyerCurrencyUsdExchangeRate) {
       return formatPriceCentsWithCurrencySymbol(buyerCurrency, Math.round(usdCents * buyerCurrencyUsdExchangeRate), {

@@ -23,6 +23,8 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 0,
       tax_included_cents: 0,
       subtotal: 0,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
   end
 
@@ -37,6 +39,8 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 19,
       tax_included_cents: 0,
       subtotal: 100,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
   end
 
@@ -52,6 +56,8 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 19,
       tax_included_cents: 0,
       subtotal: 100,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
   end
 
@@ -65,6 +71,8 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 12,
       tax_included_cents: 0,
       subtotal: 100,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
   end
 
@@ -80,6 +88,8 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 0,
       tax_included_cents: 0,
       subtotal: 100,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
   end
 
@@ -92,7 +102,22 @@ describe CustomerSurchargeController, :vcr do
       tax_cents: 32,
       tax_included_cents: 0,
       subtotal: 300,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil,
     }.as_json)
+  end
+
+  it "returns an authoritative buyer-currency total when requested currency is supported" do
+    Flipper.enable(:multi_currency_checkout)
+    allow(MultiCurrency::MerchantCompatibility).to receive(:supports_buyer_currency?).and_return(true)
+    allow(BuyerCurrencyService).to receive(:convert_price_raw).with(100, from_currency: Currency::USD, to_currency: "eur").and_return(92)
+
+    post "calculate_all", params: { products: [{ permalink: @product.unique_permalink, price: 100, quantity: 1 }], postal_code: 10115, country: "DE", buyer_currency: "eur" }, as: :json
+
+    expect(response.parsed_body["buyer_currency"]).to eq("eur")
+    expect(response.parsed_body["buyer_currency_total_cents"]).to eq(92)
+  ensure
+    Flipper.disable(:multi_currency_checkout)
   end
 
   context "for a subscription", :vcr do

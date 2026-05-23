@@ -237,6 +237,7 @@ const CheckoutIndexPage = () => {
     paypalClientId: paypal_client_id,
     gift,
     requireEmailTypoAcknowledgment: require_email_typo_acknowledgment,
+    buyerCurrency: buyer_currency,
   });
   const [state, dispatch] = reducer;
   const [results, setResults] = React.useState<Result[] | null>(null);

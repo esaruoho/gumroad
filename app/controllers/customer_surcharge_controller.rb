@@ -11,9 +11,16 @@ class CustomerSurchargeController < ApplicationController
     tax_rate = 0
     tax_included_rate = 0
     subtotal = 0
+    buyer_currency = params[:buyer_currency].to_s.downcase.presence if Flipper.enabled?(:multi_currency_checkout)
+    buyer_currency_supported = buyer_currency.present?
     products.each do |item|
       product = Link.find_by_unique_permalink(item[:permalink])
       next unless product
+      if buyer_currency.present?
+        merchant_account = product.user&.merchant_account(StripeChargeProcessor.charge_processor_id) ||
+          MerchantAccount.gumroad(StripeChargeProcessor.charge_processor_id)
+        buyer_currency_supported &&= MultiCurrency::MerchantCompatibility.supports_buyer_currency?(merchant_account, buyer_currency)
+      end
       surcharges = calculate_surcharges(product, item[:quantity], item[:price].to_d.to_i, subscription_id: item[:subscription_id], recommended_by: item[:recommended_by])
       next unless surcharges
       tax_result = surcharges[:sales_tax_result]
@@ -26,6 +33,10 @@ class CustomerSurchargeController < ApplicationController
       end
       subtotal += tax_result.price_cents
     end
+    total_cents = subtotal.round.to_i + tax_rate.round.to_i + shipping_rate.round.to_i
+    buyer_currency_total_cents = if buyer_currency.present? && buyer_currency != Currency::USD && buyer_currency_supported
+      BuyerCurrencyService.convert_price_raw(total_cents, from_currency: Currency::USD, to_currency: buyer_currency)
+    end
 
     render json: {
       vat_id_valid:,
@@ -33,7 +44,20 @@ class CustomerSurchargeController < ApplicationController
       shipping_rate_cents: shipping_rate,
       tax_cents: tax_rate.round.to_i,
       tax_included_cents: tax_included_rate.round.to_i,
-      subtotal: subtotal.round.to_i
+      subtotal: subtotal.round.to_i,
+      buyer_currency: buyer_currency_supported ? buyer_currency : nil,
+      buyer_currency_total_cents:
+    }
+  rescue CurrencyHelper::CurrencyRateUnavailable
+    render json: {
+      vat_id_valid:,
+      has_vat_id_input:,
+      shipping_rate_cents: shipping_rate,
+      tax_cents: tax_rate.round.to_i,
+      tax_included_cents: tax_included_rate.round.to_i,
+      subtotal: subtotal.round.to_i,
+      buyer_currency: nil,
+      buyer_currency_total_cents: nil
     }
   end
 
