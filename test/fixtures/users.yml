@@ -23,6 +23,7 @@ basic_user:
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
   confirmed_at: <%= Time.current %>
   user_risk_state: not_reviewed
+  recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
@@ -498,6 +499,24 @@ forfeit_user:
   username: forfeit_user
   email: forfeit_user@example.com
   payment_address: forfeit_user@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+paypal_seller:
+  email: "paypal-seller@example.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+stripe_seller_for_paypal_check:
+  email: "stripe-seller-check@example.com"
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
   confirmed_at: <%= Time.current %>
   user_risk_state: not_reviewed

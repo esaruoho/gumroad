@@ -1,0 +1,15 @@
+# frozen_string_literal: true
+#
+# Balance fixtures for PaypalBalanceCheckService tests.
+
+paypal_seller_unpaid_balance:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  date: <%= 1.day.ago.to_date %>
+  amount_cents: 20_000_000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 20_000_000
+  merchant_account_id: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

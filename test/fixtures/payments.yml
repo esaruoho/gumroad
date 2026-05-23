@@ -1,0 +1,13 @@
+# frozen_string_literal: true
+#
+# Payment fixtures for PaypalBalanceCheckService tests.
+
+paypal_payment_recent:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: processing
+  processor: paypal
+  correlation_id: "12345"
+  amount_cents: 150
+  payout_period_end_date: <%= Date.yesterday %>
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.week.ago %>
