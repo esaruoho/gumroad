@@ -1,0 +1,37 @@
+# Workflow fixtures for WorkflowsPresenter tests.
+# `workflow_type` values: Workflow::FOLLOWER_TYPE = "follower", Workflow::SELLER_TYPE = "seller"
+
+workflows_presenter_follower:
+  name: Follower workflow
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  workflow_type: follower
+  flags: 0
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
+workflows_presenter_seller_deleted:
+  name: Deleted seller workflow
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  workflow_type: seller
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+workflows_presenter_product:
+  name: Product workflow
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  workflow_type: product
+  flags: 0
+  created_at: <%= 1.hour.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+workflows_presenter_seller:
+  name: Seller workflow
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  workflow_type: seller
+  flags: 0
+  created_at: <%= 2.hours.ago %>
+  updated_at: <%= 2.hours.ago %>
