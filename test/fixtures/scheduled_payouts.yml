@@ -1,0 +1,22 @@
+# Scheduled payouts for Admin::ScheduledPayoutPresenter tests.
+
+named_scheduled_payout:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:scheduled_payout_seller) %>
+  created_by_id: <%= ActiveRecord::FixtureSet.identify(:scheduled_payout_admin) %>
+  action: pause
+  status: pending
+  delay_days: 21
+  scheduled_at: <%= 21.days.from_now %>
+  payout_amount_cents: 1000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bare_scheduled_payout:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:scheduled_payout_seller) %>
+  action: pause
+  status: pending
+  delay_days: 21
+  scheduled_at: <%= 21.days.from_now %>
+  payout_amount_cents: 2000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

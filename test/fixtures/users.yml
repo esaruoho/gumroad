@@ -229,6 +229,28 @@ team_presenter_other_owner:
 
 # Used by AnalyticsPresenter tests — isolated seller so we control which
 # products show up in `products_for_creator_analytics`.
+# Used by Admin::ScheduledPayoutPresenter tests.
+scheduled_payout_seller:
+  email: scheduled-payout-seller@example.com
+  name: Seller One
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+scheduled_payout_admin:
+  email: scheduled-payout-admin@example.com
+  name: Admin One
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  flags: 134217728
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 analytics_seller:
   email: analytics@example.com
   username: analyticsseller
