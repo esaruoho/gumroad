@@ -73,3 +73,30 @@ magic_link_product_price:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# InvoicePresenter::SellerInfo / ReceiptPresenter::ShippingInfo.
+invoice_seller_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_product) %>
+  price_cents: 1499
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+shipping_info_physical_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_product) %>
+  price_cents: 1499
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ReceiptPresenter::FooterInfo / GifteeManageSubscription.
+footer_membership_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:footer_membership_product) %>
+  price_cents: 100
+  currency: usd
+  recurrence: monthly
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+

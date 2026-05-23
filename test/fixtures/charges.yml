@@ -5,3 +5,18 @@ admin_charge_policy_charge:
   amount_cents: 200
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# InvoicePresenter::SellerInfoTest + ReceiptPresenter::ShippingInfoTest charge.
+invoice_seller_charge:
+  order_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_order) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  amount_cents: 1499
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+shipping_info_physical_charge:
+  order_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_order) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  amount_cents: 1499
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

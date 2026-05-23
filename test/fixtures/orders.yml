@@ -4,3 +4,8 @@ admin_charge_policy_order:
   purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# InvoicePresenter::SellerInfoTest / ReceiptPresenter::ShippingInfoTest order.
+invoice_seller_order:
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
