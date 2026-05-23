@@ -1,0 +1,6 @@
+# Orders for Admin::Charges::ChargePolicy tests. Each `charges` row requires
+# an order. We share one order across all admin-charge fixtures.
+admin_charge_policy_order:
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
