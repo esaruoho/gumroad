@@ -387,3 +387,65 @@ ump_other_user:
   recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# WidgetPresenter spec — 5 users, each scoped to a single test scenario to
+# avoid product-leak between tests sharing the same user fixture.
+widget_demo_owner:
+  email: widget-demo-owner@example.com
+  username: widgetdemo
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_lonely_user:
+  email: widget-lonely@example.com
+  username: widgetlonely
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_single_product_owner:
+  email: widget-single@example.com
+  username: widgetsingle
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_user:
+  email: widget-aff@example.com
+  username: widgetaff
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_seller:
+  email: widget-affsel@example.com
+  username: widgetaffsel
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_multi_owner:
+  email: widget-multi@example.com
+  username: widgetmulti
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

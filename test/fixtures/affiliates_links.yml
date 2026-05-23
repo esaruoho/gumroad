@@ -11,3 +11,10 @@ direct_affiliate_for_helper_link:
   link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# WidgetPresenter spec
+widget_user_direct_affiliate_link:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:widget_user_direct_affiliate) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

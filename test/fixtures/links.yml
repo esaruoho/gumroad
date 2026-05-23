@@ -258,3 +258,74 @@ footer_membership_product:
   flags: 262146
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# WidgetPresenter spec: the "demo" product fetched via Link.fetch("demo").
+widget_demo_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_demo_owner) %>
+  name: The Works of Edgar Gumstein
+  unique_permalink: demo
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_single_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_single_product_owner) %>
+  name: Single Product
+  unique_permalink: wsing
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_seller) %>
+  name: Affiliate Product
+  unique_permalink: waffp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_multi_new_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_multi_owner) %>
+  name: New Product
+  unique_permalink: wnewp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 1.hour.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+widget_multi_old_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_multi_owner) %>
+  name: Old Product
+  unique_permalink: woldp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 2.hours.ago %>
+  updated_at: <%= 2.hours.ago %>

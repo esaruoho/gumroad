@@ -42,3 +42,13 @@ direct_affiliate_for_helper:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# WidgetPresenter spec
+widget_user_direct_affiliate:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_user) %>
+  affiliate_basis_points: 300
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
