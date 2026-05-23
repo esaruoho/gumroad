@@ -25,6 +25,65 @@ another_seller_call_purchase:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+pdf_stamping_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  email: pdf-stamping-buyer@example.com
+  price_cents: 100
+  fee_cents: 0
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_annual_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_balance) %>
+  email: payout-annual-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-01-01 00:00:00
+  created_at: 2019-01-01 00:00:00
+  updated_at: 2019-01-01 00:00:00
+
+payout_annual_failed_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_failed_balance) %>
+  email: payout-annual-failed-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-01-02 00:00:00
+  created_at: 2019-01-02 00:00:00
+  updated_at: 2019-01-02 00:00:00
+
+payout_annual_outside_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_outside_balance) %>
+  email: payout-annual-outside-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2018-12-29 00:00:00
+  created_at: 2018-12-29 00:00:00
+  updated_at: 2018-12-29 00:00:00
+
 # is_commission_deposit_purchase corresponds to flags bit 29 (2^28 = 268435456).
 named_seller_commission_deposit_purchase:
   seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>

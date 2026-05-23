@@ -33,6 +33,163 @@ basic_user_product:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+pdf_stamping_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: PDF stamping product
+  unique_permalink: pdfstamp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_annual_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  name: Payout annual product
+  unique_permalink: payoutann
+  price_cents: 1500
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_files_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Save public files product
+  unique_permalink: savepub
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_files_unused_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Save public files unused product
+  unique_permalink: savepubu
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_sample_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Recommended sample product
+  unique_permalink: recsample
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Product 1
+  unique_permalink: recprod1
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Product 2
+  unique_permalink: recprod2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_three:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 3
+  unique_permalink: recprod3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_disabled_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 4
+  unique_permalink: recprod4
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  purchase_disabled_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_deleted_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 5
+  unique_permalink: recprod5
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  deleted_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_banned_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 6
+  unique_permalink: recprod6
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  banned_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 another_seller_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
   name: Another seller's product

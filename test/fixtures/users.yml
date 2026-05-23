@@ -515,6 +515,33 @@ paypal_seller:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+payout_annual_seller:
+  email: payout-annual-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_products_seller:
+  email: recommended-products-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_products_other_seller:
+  email: recommended-products-other-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 stripe_seller_for_paypal_check:
   email: "stripe-seller-check@example.com"
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
