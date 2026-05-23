@@ -1,0 +1,6 @@
+named_seller_product_installment_plan:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  number_of_installments: 2
+  recurrence: monthly
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
