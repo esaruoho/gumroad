@@ -236,6 +236,10 @@ GEM
       addressable
     csv (3.3.0)
     dalli (3.2.8)
+    database_cleaner-active_record (2.2.2)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0)
+    database_cleaner-core (2.0.1)
     date (3.5.1)
     dead_end (4.0.0)
     declarative (0.0.20)
@@ -680,6 +684,10 @@ GEM
       ttfunk
     pdfkit (0.8.7.3)
     phony (2.20.12)
+    playwright-ruby-client (1.60.0)
+      base64
+      concurrent-ruby (>= 1.1.6)
+      mime-types (>= 3.0)
     pp (0.6.3)
       prettyprint
     prawn (2.5.0)
@@ -1125,6 +1133,7 @@ DEPENDENCIES
   colorize (~> 1.0)
   countries (~> 6.0)
   csv (~> 3.3)
+  database_cleaner-active_record (~> 2.2)
   derailed_benchmarks (~> 2.1)
   devise (~> 4.8)
   devise-pwned_password (~> 0.1)
@@ -1187,6 +1196,7 @@ DEPENDENCIES
   pdf-reader (~> 2.11)
   pdfkit (~> 0.8)
   phony (~> 2.20)
+  playwright-ruby-client (~> 1.60)
   prawn (~> 2.4)
   premailer-rails (~> 1.12)
   private_address_check (~> 0.5)
