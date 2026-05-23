@@ -16,8 +16,8 @@ class CustomMailerRouteBuilderTest < ActionMailer::TestCase
   setup do
     @mail = TestMailer.new
     @user = users(:named_seller)
-    # Remove custom domain (user has user_domain_user_only) for the non-custom-domain cases.
-    @user.custom_domain&.destroy
+    # Remove any custom domains (named_seller may own multiple from ssl fixtures) for the non-custom-domain cases.
+    CustomDomain.where(user_id: @user.id).destroy_all
     @user.reload
     @post = installments(:published_post)
     # published_post is already shown_on_profile (flags: 128) and has slug "published-post-slug".
