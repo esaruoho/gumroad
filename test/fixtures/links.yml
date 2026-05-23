@@ -586,3 +586,48 @@ discover_service_cart_product:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+product_utils_find_me_a_hex:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  name: Product Utils FindMeAHex
+  unique_permalink: pufmah
+  custom_permalink: FindMeAHex
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_utils_custom_a:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  name: Product Utils Custom A
+  unique_permalink: pucusa
+  custom_permalink: custom
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_utils_custom_b:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  name: Product Utils Custom B
+  unique_permalink: pucusb
+  custom_permalink: custom
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
