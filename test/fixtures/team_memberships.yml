@@ -43,6 +43,16 @@ support_for_named_seller_membership:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by Settings::TeamPresenter::MemberInfo::MembershipInfoTest — second
+# admin on named_seller's team so admin_for_named_seller can view "another"
+# admin membership.
+other_admin_for_named_seller_membership:
+  user: other_admin_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Team presenter fixtures: team_presenter_seller (owner) + team_presenter_member
 # (admin) + one soft-deleted admin membership for the same pair.
 # Also: team_presenter_seller is itself a non-owner of team_presenter_other_owner's
