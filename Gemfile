@@ -36,7 +36,11 @@ group :test do
   gem "capybara", "~> 3.38"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.1"
-  # Rails 7.1's test runner is not compatible with Minitest 6.x APIs.
+  # Pin minitest to 5.x. Rails 7.1's test runner is not compatible with
+  # Minitest 6.x APIs, and the rubygems index has a stub `minitest 6.0.6`
+  # with no actual code (just metadata + a `bin/minitest` script) that
+  # bundler happily resolves to for any `>= 5.x` constraint from transitive
+  # deps, which breaks `require "minitest/mock"` and friends.
   gem "minitest", "~> 5.25"
   gem "rspec", "~> 3.12"
   gem "rspec-github", "~> 2.4.0", require: false
@@ -58,11 +62,6 @@ group :test do
   # no rspec-rails — Playwright is driven directly via playwright-ruby-client.
   gem "playwright-ruby-client", "~> 1.60"
   gem "database_cleaner-active_record", "~> 2.2"
-
-  # Pin minitest to 5.x. The rubygems index has a stub `minitest 6.0.6` with
-  # no actual code (just metadata + a `bin/minitest` script), and bundler
-  # happily resolves to it for any `>= 5.x` constraint from transitive deps,
-  # which breaks `require "minitest/mock"` and friends.
 end
 
 group :deployer do
