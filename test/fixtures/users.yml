@@ -153,3 +153,15 @@ collaborating_user:
   user_risk_state: not_reviewed
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by AnalyticsPresenter tests — isolated seller so we control which
+# products show up in `products_for_creator_analytics`.
+analytics_seller:
+  email: analytics@example.com
+  username: analyticsseller
+  name: Analytics Seller
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

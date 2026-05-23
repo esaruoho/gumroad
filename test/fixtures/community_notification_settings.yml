@@ -1,0 +1,22 @@
+# CommunityNotificationSetting rows for presenter tests.
+
+basic_user_for_named_seller_daily:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  recap_frequency: daily
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+purchaser_for_named_seller_weekly:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  recap_frequency: weekly
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+collaborating_for_named_seller_nil:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:collaborating_user) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  recap_frequency:
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

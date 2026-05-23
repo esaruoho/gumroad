@@ -87,3 +87,63 @@ named_seller_archived_product:
   flags: 16
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# AnalyticsPresenter fixtures: alive + 2 deleted products (one w/ a sale)
+analytics_alive_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Alive analytics product
+  unique_permalink: anlive
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_with_sales_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Deleted with sales analytics product
+  unique_permalink: andelws
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_without_sales_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Deleted without sales analytics product
+  unique_permalink: andelnws
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Checkout::Upsells::ProductPresenter spec
+upsell_test_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Test Product
+  unique_permalink: upsl1
+  price_cents: 1000
+  purchase_type: 0
+  native_type: ebook
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

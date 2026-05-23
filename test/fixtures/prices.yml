@@ -1,0 +1,66 @@
+# Prices for products. Link's before_validation :associate_price hook
+# normally creates these; fixtures bypass it, so we inline.
+
+named_seller_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+basic_user_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+another_seller_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+named_seller_commission_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_commission_product) %>
+  price_cents: 200
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+analytics_alive_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:analytics_alive_product) %>
+  price_cents: 100
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_with_sales_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:analytics_deleted_with_sales_product) %>
+  price_cents: 100
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_without_sales_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:analytics_deleted_without_sales_product) %>
+  price_cents: 100
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+upsell_test_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:upsell_test_product) %>
+  price_cents: 1000
+  currency: usd
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
