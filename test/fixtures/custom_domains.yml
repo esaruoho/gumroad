@@ -39,3 +39,27 @@ ssl_www_example:
   state: verified
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Additional domains used by SslCertificates::GenerateTest for hourly rate-limit
+# scenarios. Distinct hosts so set_ssl_certificate_issued_at! on each independently
+# increments certificates_younger_than's count.
+ssl_example_1:
+  domain: www.example-1.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ssl_example_2:
+  domain: www.example-2.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ssl_example_3:
+  domain: www.example-3.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
