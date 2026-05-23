@@ -35,3 +35,32 @@ forfeit_user_stripe_account:
   currency: usd
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+tax_summary_payable_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_seller) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_tax_summary_payable
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+tax_summary_payable_business_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_business_seller) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_tax_summary_payable_business
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+radar_stripe_connect_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_radar_connect
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  json_data: '{"meta":{"stripe_connect":"true"}}'
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

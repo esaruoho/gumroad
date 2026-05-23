@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+<%
+individual_tax_info = UserComplianceInfo.new
+individual_tax_info.individual_tax_id = "000000000"
+business_tax_info = UserComplianceInfo.new
+business_tax_info.individual_tax_id = "000000000"
+business_tax_info.business_tax_id = "000000000"
+%>
+
+tax_summary_payable_compliance_info:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_seller) %>
+  first_name: Chuck
+  last_name: Bartowski
+  street_address: address_full_match
+  city: San Francisco
+  state: California
+  zip_code: "94107"
+  country: United States
+  is_business: false
+  has_sold_before: false
+  individual_tax_id: !binary <%= Base64.strict_encode64(individual_tax_info[:individual_tax_id]) %>
+  birthday: 1901-01-01
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+tax_summary_payable_business_compliance_info:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_business_seller) %>
+  first_name: Chuck
+  last_name: Bartowski
+  street_address: address_full_match
+  city: San Francisco
+  state: California
+  zip_code: "94107"
+  country: United States
+  is_business: true
+  has_sold_before: false
+  individual_tax_id: !binary <%= Base64.strict_encode64(business_tax_info[:individual_tax_id]) %>
+  birthday: 1901-01-01
+  business_name: Buy More, LLC
+  business_street_address: address_full_match
+  business_city: Burbank
+  business_state: California
+  business_zip_code: "91506"
+  business_country: United States
+  business_type: llc
+  business_tax_id: !binary <%= Base64.strict_encode64(business_tax_info[:business_tax_id]) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
