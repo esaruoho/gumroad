@@ -17,6 +17,94 @@ basic_user_product_price:
   updated_at: <%= Time.current %>
   flags: 0
 
+pdf_stamping_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+payout_annual_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  price_cents: 1500
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+save_public_files_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+save_public_files_unused_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_sample_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_sample_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_product_one_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_product_one) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_product_two_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_product_two) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_product_three_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_product_three) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_disabled_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_disabled_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_deleted_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_deleted_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+recommended_banned_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:recommended_banned_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
 another_seller_product_price:
   link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
   price_cents: 100
