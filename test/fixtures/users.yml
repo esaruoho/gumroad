@@ -491,3 +491,40 @@ gmail_abuse_nongmail_user:
   user_risk_state: suspended_for_fraud
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by UrlServiceTest — widget_*_base_url contexts. Each user has a unique
+# custom domain (CustomDomain belongs_to :user with `has_one :custom_domain`).
+url_service_user_no_username:
+  email: url-service-no-username@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_with_username:
+  email: url-service-with-username@example.com
+  username: urlservicewith
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_inactive_cd:
+  email: url-service-inactive-cd@example.com
+  username: urlserviceinactive
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_active_cd:
+  email: url-service-active-cd@example.com
+  username: urlserviceactive
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
