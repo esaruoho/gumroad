@@ -1,0 +1,7 @@
+pdf_stamping_url_redirect:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_purchase) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  token: pdf-stamping-token
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

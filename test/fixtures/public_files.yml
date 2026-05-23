@@ -52,3 +52,63 @@ shared_blob_holder:
   file_group: audio
   created_at: <%= 2.days.ago %>
   updated_at: <%= 2.days.ago %>
+
+save_public_file_one:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_product) %>
+  public_id: savepf0000000001
+  display_name: Audio 1
+  original_file_name: audio-1.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_file_two:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_product) %>
+  public_id: savepf0000000002
+  display_name: Audio 2
+  original_file_name: audio-2.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_one:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000001
+  display_name: Audio 1
+  original_file_name: audio-1.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_two:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000002
+  display_name: Audio 2
+  original_file_name: audio-2.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_three:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000003
+  display_name: Audio 3
+  original_file_name: audio-3.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -9,3 +9,43 @@ signed_url_helper_pdf:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+pdf_stamping_file_one:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/billion-dollar-company-chapter-0.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_encrypted_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/encrypted_pdf.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_file_three:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/another-stampable.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 3
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_unstamped_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/unstamped.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  position: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
