@@ -1,0 +1,7 @@
+# Charges for Admin::Charges::ChargePolicy tests.
+admin_charge_policy_charge:
+  order_id: <%= ActiveRecord::FixtureSet.identify(:admin_charge_policy_order) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  amount_cents: 200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
