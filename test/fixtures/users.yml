@@ -260,3 +260,13 @@ analytics_seller:
   user_risk_state: not_reviewed
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by ServiceMailerTest.
+service_mailer_user:
+  email: service-mailer@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

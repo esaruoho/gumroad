@@ -1,0 +1,33 @@
+# ServiceCharge rows for ServiceMailerTest.
+service_mailer_charge:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:service_mailer_user) %>
+  recurring_service_id: <%= ActiveRecord::FixtureSet.identify(:service_mailer_black_recurring) %>
+  charge_cents: 1000
+  charge_cents_currency: usd
+  charge_processor_fingerprint: shfbeg5142fff
+  charge_processor_transaction_id: "2763276372637263"
+  charge_processor_id: stripe
+  card_type: visa
+  card_visual: "**** **** **** 4062"
+  card_country: US
+  state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+service_mailer_charge_with_discount:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:service_mailer_user) %>
+  recurring_service_id: <%= ActiveRecord::FixtureSet.identify(:service_mailer_black_recurring) %>
+  charge_cents: 1000
+  charge_cents_currency: usd
+  charge_processor_fingerprint: shfbeg5142fff
+  charge_processor_transaction_id: "2763276372637264"
+  charge_processor_id: stripe
+  card_type: visa
+  card_visual: "**** **** **** 4062"
+  card_country: US
+  state: successful
+  succeeded_at: <%= Time.current %>
+  discount_code: <%= DiscountCode::INVITE_CREDIT_DISCOUNT_CODE %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
