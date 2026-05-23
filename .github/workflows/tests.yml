@@ -63,6 +63,9 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install ffmpeg (for ffprobe tests)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Prepare test database
         run: bundle exec rake db:prepare
 
