@@ -145,6 +145,16 @@ purchaser:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Plain buyer used by CommunityPolicy tests — owns no products, purchases
+# another_seller_product (see test/fixtures/purchases.yml :community_buyer_purchase).
+community_buyer:
+  email: community-buyer@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Used as the affiliate_user on a Collaborator for named_seller's product.
 collaborating_user:
   email: collaborator@example.com

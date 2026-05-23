@@ -53,3 +53,18 @@ another_seller_commission_deposit_purchase:
   flags: 268435456
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# CommunityPolicy: community_buyer's successful purchase of another_seller_product.
+community_buyer_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:community_buyer) %>
+  email: community-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

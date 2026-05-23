@@ -14,7 +14,8 @@ named_seller_product:
   filetype: link
   filegroup: url
   discover_fee_per_thousand: 100
-  flags: 0
+  # bit 30 => community_chat_enabled (2^29 = 536870912)
+  flags: 536870912
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
@@ -42,7 +43,8 @@ another_seller_product:
   filetype: link
   filegroup: url
   discover_fee_per_thousand: 100
-  flags: 0
+  # bit 30 => community_chat_enabled (2^29 = 536870912)
+  flags: 536870912
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
