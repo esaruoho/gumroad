@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require "test_helper"
 
-describe "legacy internal helper admin routes" do
+class ApiInternalHelperContractRoutingTest < ActionDispatch::IntegrationTest
   def route_for(path, method)
     Rails.application.routes.recognize_path("https://#{API_DOMAIN}#{path}", method:)
   end
 
-  [
+  ROUTES = [
     [:post, "/internal/helper/users/create_appeal", "api/internal/helper/users", "create_appeal"],
     [:post, "/internal/helper/users/create_comment", "api/internal/helper/users", "create_comment"],
     [:post, "/internal/helper/users/user_suspension_info", "api/internal/helper/users", "user_suspension_info"],
@@ -26,9 +26,13 @@ describe "legacy internal helper admin routes" do
     [:post, "/internal/helper/payouts", "api/internal/helper/payouts", "create"],
     [:get, "/internal/helper/instant_payouts", "api/internal/helper/instant_payouts", "index"],
     [:post, "/internal/helper/instant_payouts", "api/internal/helper/instant_payouts", "create"],
-  ].each do |method, path, controller, action|
-    it "routes #{method.to_s.upcase} #{path}" do
-      expect(route_for(path, method)).to include(controller:, action:)
+  ].freeze
+
+  ROUTES.each do |method, path, controller, action|
+    define_method("test_routes_#{method}_#{path.gsub(%r{[/]}, '_').gsub(/^_/, '')}") do
+      route = route_for(path, method)
+      assert_equal controller, route[:controller]
+      assert_equal action, route[:action]
     end
   end
 end
