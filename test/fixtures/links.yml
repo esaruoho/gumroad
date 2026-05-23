@@ -46,6 +46,34 @@ another_seller_product:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+named_seller_commission_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Named seller's commission product
+  unique_permalink: nscomm
+  price_cents: 200
+  purchase_type: 0
+  native_type: commission
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_commission_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  name: Another seller's commission product
+  unique_permalink: ascomm
+  price_cents: 200
+  purchase_type: 0
+  native_type: commission
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 named_seller_archived_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
   name: Named seller's archived product

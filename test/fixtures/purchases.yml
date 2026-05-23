@@ -23,3 +23,32 @@ another_seller_call_purchase:
   succeeded_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# is_commission_deposit_purchase corresponds to flags bit 29 (2^28 = 268435456).
+named_seller_commission_deposit_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_commission_product) %>
+  email: buyer3@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 268435456
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_commission_deposit_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_commission_product) %>
+  email: buyer4@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 268435456
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
