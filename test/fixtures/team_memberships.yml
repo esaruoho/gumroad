@@ -101,3 +101,63 @@ invited_user_owner:
   role: owner
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# UserMembershipsPresenterTest fixtures.
+# Focal user + three sellers they (or another user) are members of.
+ump_user_owner:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_one_owner:
+  user: ump_seller_one
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_one) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_two_owner:
+  user: ump_seller_two
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_two) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_three_owner:
+  user: ump_seller_three
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_three) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_other_user_owner:
+  user: ump_other_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_other_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Memberships of ump_user on the three sellers' teams.
+ump_user_in_seller_one:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_one) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_user_in_seller_two:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_two) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Membership belonging to another user — should NOT appear in ump_user's props.
+ump_other_user_in_seller_three:
+  user: ump_other_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_three) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
