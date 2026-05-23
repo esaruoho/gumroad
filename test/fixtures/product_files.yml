@@ -49,3 +49,54 @@ pdf_stamping_unstamped_file:
   position: 4
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by CdnDeletableTest
+cdn_alive_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "http://localhost:9000/gumroad-specs/specs/alive.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_already_deleted_from_cdn_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/deleted-from-cdn.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_from_cdn_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_record_deleted_only_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "http://localhost:9000/gumroad-specs/specs/record-deleted.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_record_and_cdn_deleted_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/both-deleted.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_at: <%= Time.current %>
+  deleted_from_cdn_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_deleted_external_link_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://example.com"
+  filetype: link
+  filegroup: url
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
