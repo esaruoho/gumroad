@@ -491,3 +491,16 @@ gmail_abuse_nongmail_user:
   user_risk_state: suspended_for_fraud
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by ForfeitBalanceServiceTest. Named user with predictable email/username.
+forfeit_user:
+  name: Gumbot
+  username: forfeit_user
+  email: forfeit_user@example.com
+  payment_address: forfeit_user@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -1,0 +1,37 @@
+# Gumroad-owned merchant accounts (user_id nil). MerchantAccount.gumroad(processor) looks these up.
+forfeit_gumroad_stripe_account:
+  user_id:
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_gumroad_stripe
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+forfeit_gumroad_paypal_account:
+  user_id:
+  charge_processor_id: paypal
+  charge_processor_merchant_id: gumroad_paypal_merchant
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+forfeit_gumroad_braintree_account:
+  user_id:
+  charge_processor_id: braintree
+  charge_processor_merchant_id: gumroad_braintree_merchant
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# User-owned stripe merchant account for forfeit-balance tests.
+forfeit_user_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_user) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_forfeit_user
+  country: US
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
