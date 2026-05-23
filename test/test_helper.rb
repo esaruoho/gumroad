@@ -5,6 +5,8 @@ require_relative "../config/environment"
 require "rails/test_help"
 require "minitest/mock"
 require "webmock/minitest"
+require "sidekiq/testing"
+Sidekiq::Testing.fake!
 
 # Disable network access in tests (matches RSpec's webmock config).
 WebMock.disable_net_connect!(allow_localhost: true)
