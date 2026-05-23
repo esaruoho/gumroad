@@ -209,3 +209,35 @@ bubbles_app_product:
   flags: 536870912
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# InvoicePresenter::SellerInfo + ReceiptPresenter::ShippingInfo fixtures.
+invoice_seller_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Invoice seller product
+  unique_permalink: invsprd
+  price_cents: 1499
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ReceiptPresenter::FooterInfo + GifteeManageSubscription membership fixtures.
+footer_membership_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Footer membership product
+  unique_permalink: ftrmbp
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # flag bit 2 (is_recurring_billing = 2) + bit 19 (is_tiered_membership = 262144) = 262146
+  flags: 262146
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

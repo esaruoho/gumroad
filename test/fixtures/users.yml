@@ -290,6 +290,19 @@ magic_link_seller:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by InvoicePresenter::SellerInfoTest. Variant of named_seller with support_email.
+invoice_seller:
+  email: invoice-seller@example.com
+  username: invoiceseller
+  name: Invoice Seller
+  support_email: seller-support@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # CommunityChatRecapMailerTest fixtures.
 community_recap_recipient:
   email: community-recap-recipient@example.com
