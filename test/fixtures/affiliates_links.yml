@@ -4,3 +4,10 @@ collaborator_for_named_seller_product_link:
   link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# AffiliatesHelper test — link DirectAffiliate to named_seller_product.
+direct_affiliate_for_helper_link:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:direct_affiliate_for_helper) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

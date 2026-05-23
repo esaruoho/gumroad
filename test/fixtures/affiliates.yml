@@ -31,3 +31,14 @@ collaborator_between_other_people:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by AffiliatesHelper tests — a DirectAffiliate of another_seller, attached to
+# named_seller_product via affiliates_links.yml.
+direct_affiliate_for_helper:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
