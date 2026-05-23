@@ -115,6 +115,17 @@ support_for_named_seller:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by Settings::TeamPresenter::MemberInfo::MembershipInfoTest — a second
+# admin on named_seller's team so we can render an "other admin" membership
+# from the perspective of admin_for_named_seller.
+other_admin_for_named_seller:
+  email: other-admin@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 another_seller:
   email: another-seller@example.com
   username: anotherseller
