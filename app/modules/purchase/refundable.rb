@@ -82,9 +82,11 @@ class Purchase
         end
 
         paypal_order_purchase_unit_refund = true if paypal_order_id
+        processor_refund_amount_cents = processor_refund_amount_cents(gross_amount_cents)
+        accounting_refund_amount_cents = gross_amount_cents.presence || gross_amount_refundable_cents
         charge_refund = ChargeProcessor.refund!(charge_processor_id,
                                                 stripe_transaction_id,
-                                                amount_cents: gross_amount_cents,
+                                                amount_cents: processor_refund_amount_cents,
                                                 merchant_account:,
                                                 reverse_transfer: !chargedback? || !chargeback_reversed,
                                                 paypal_order_purchase_unit_refund:,
@@ -103,7 +105,7 @@ class Purchase
         if charge_refund.flow_of_funds.nil? && StripeChargeProcessor.charge_processor_id != charge_processor_id
           charge_refund.flow_of_funds = FlowOfFunds.build_simple_flow_of_funds(Currency::USD, -(gross_amount_cents.presence || gross_amount_refundable_cents))
         end
-        refund_purchase!(charge_refund.flow_of_funds, refunding_user_id, charge_refund.refund, is_for_fraud)
+        refund_purchase!(charge_refund.flow_of_funds, refunding_user_id, charge_refund.refund, is_for_fraud, gross_refund_amount_cents: accounting_refund_amount_cents)
       rescue ChargeProcessorAlreadyRefundedError => e
         logger.error "Charge was already refunded in purchase: #{external_id}. Response: #{e.message}"
         false
@@ -186,11 +188,18 @@ class Purchase
                  gumroad_tax_cents: gumroad_tax_cents_refunded,
                  refunding_user_id:)
     end
+
+    def processor_refund_amount_cents(gross_refund_amount_cents)
+      return gross_refund_amount_cents if gross_refund_amount_cents.blank?
+      return gross_refund_amount_cents if buyer_currency.blank? || buyer_currency == Currency::USD || buyer_currency_amount_cents.blank?
+
+      (BigDecimal(buyer_currency_amount_cents.to_s) * BigDecimal(gross_refund_amount_cents.to_s) / BigDecimal(total_transaction_cents.to_s)).round
+    end
   end
 
   # refunding_user_id can't be enforced from console (no current user), in which case it will be nil
-  def refund_purchase!(flow_of_funds, refunding_user_id, stripe_refund = nil, is_for_fraud = false)
-    funds_refunded = flow_of_funds.issued_amount.cents.abs
+  def refund_purchase!(flow_of_funds, refunding_user_id, stripe_refund = nil, is_for_fraud = false, gross_refund_amount_cents: nil)
+    funds_refunded = gross_refund_amount_cents || flow_of_funds.issued_amount.cents.abs
     partially_refunded_previously = self.stripe_partially_refunded
     ActiveRecord::Base.transaction do
       self.stripe_refunded = (gross_amount_refunded_cents + funds_refunded) >= total_transaction_cents
