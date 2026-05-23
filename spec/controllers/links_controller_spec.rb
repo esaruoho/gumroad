@@ -582,6 +582,23 @@ describe LinksController, :vcr, inertia: true do
           expect(response).to be_successful
           expect(coffee_product.reload.suggested_price_cents).to eq(500)
         end
+
+        it "sets suggested_price_cents ignoring variants with nil price_difference_cents" do
+          coffee_product = create(:coffee_product)
+          sign_in coffee_product.user
+
+          post :update, params: {
+            id: coffee_product.unique_permalink,
+            variants: [
+              { price_difference_cents: 300 },
+              { price_difference_cents: nil },
+              { price_difference_cents: 500 }
+            ]
+          }, as: :json
+
+          expect(response).to be_successful
+          expect(coffee_product.reload.suggested_price_cents).to eq(500)
+        end
       end
 
       describe "content_updated_at" do
