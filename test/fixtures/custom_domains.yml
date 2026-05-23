@@ -1,0 +1,24 @@
+# CustomDomain fixtures for lib/*_custom_domain_constraint tests.
+# Distinct hosts so a single CustomDomain.find_by_host(...) returns the expected row.
+
+user_domain_user_only:
+  domain: user-only.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_domain:
+  domain: with-product.example.com
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# A second username-having user with a custom domain (for UserCustomDomainConstraint).
+user_domain_another_seller:
+  domain: another-domain.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
