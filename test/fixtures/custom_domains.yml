@@ -15,6 +15,15 @@ product_domain:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Apex product custom domain (no subdomain) — exercises the www-prefix branch of
+# CustomDomain.find_by_host in UserCustomDomainRequestServiceTest.
+product_domain_apex:
+  domain: with-product.com
+  product_id: <%= ActiveRecord::FixtureSet.identify(:upsell_test_product) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # A second username-having user with a custom domain (for UserCustomDomainConstraint).
 user_domain_another_seller:
   domain: another-domain.example.com
