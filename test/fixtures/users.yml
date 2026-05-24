@@ -153,6 +153,25 @@ admin_user:
 
 # Purchaser of named_seller_call_purchase — used by ProductReviewVideoPolicy
 # tests to verify the "purchaser can stream their own review video" path.
+# Used by SendAutoInvoiceEmailJobTest.
+auto_invoice_no_billing_user:
+  email: auto-invoice-no-billing@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_disabled_user:
+  email: auto-invoice-disabled@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 purchaser:
   email: purchaser@example.com
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>

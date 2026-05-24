@@ -1,3 +1,107 @@
+# Used by SendAutoInvoiceEmailJobTest. Four purchases covering the four
+# eligibility branches.
+auto_invoice_enabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  email: auto-invoice-enabled@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_no_billing_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:auto_invoice_no_billing_user) %>
+  email: auto-invoice-no-billing-purchase@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_disabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:auto_invoice_disabled_user) %>
+  email: auto-invoice-disabled-purchase@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_anonymous_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: auto-invoice-anonymous@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by SetSubscriptionAsDeactivatedWorkerTest. Original subscription purchase
+# rows so `Subscription#deactivate!` can call original_purchase.
+deactivated_worker_past_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_past_subscription) %>
+  email: deactivated-past@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_future_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_future_subscription) %>
+  email: deactivated-future@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_alive_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_alive_subscription) %>
+  email: deactivated-alive@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 named_seller_call_purchase:
   seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
   link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>

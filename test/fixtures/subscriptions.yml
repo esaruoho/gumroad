@@ -15,6 +15,30 @@ basic_user_product_subscription:
   updated_at: <%= Time.current %>
   flags: 0
 
+# Used by SetSubscriptionAsDeactivatedWorkerTest.
+deactivated_worker_cancelled_past_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  cancelled_at: <%= 1.day.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+deactivated_worker_cancelled_future_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  cancelled_at: <%= 1.day.from_now %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+deactivated_worker_alive_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
 # Used by Subscriptions::MagicLinkPresenterTest.
 magic_link_subscription:
   link_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_product) %>

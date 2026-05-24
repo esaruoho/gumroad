@@ -1,0 +1,25 @@
+# Payment options for subscription fixtures.
+# Fixtures bypass `Subscription#must_have_payment_option`, but `deactivate!` calls
+# `save!` which re-runs validations. Provide a minimal payment_option row for any
+# subscription that gets re-saved in a test.
+
+deactivated_worker_past_payment_option:
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_past_subscription) %>
+  price_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_price) %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_future_payment_option:
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_future_subscription) %>
+  price_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_price) %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_alive_payment_option:
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_alive_subscription) %>
+  price_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_price) %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
