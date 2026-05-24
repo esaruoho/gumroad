@@ -15,3 +15,30 @@ another_seller_product_review_video_file:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+prvt_pending_video_file:
+  record: prvt_pending_video (ProductReviewVideo)
+  user_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/prvt-pending.mp4"
+  filetype: mp4
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+prvt_approved_video_file:
+  record: prvt_approved_video (ProductReviewVideo)
+  user_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/prvt-approved.mp4"
+  filetype: mp4
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+prvt_rejected_video_file:
+  record: prvt_rejected_video (ProductReviewVideo)
+  user_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/prvt-rejected.mp4"
+  filetype: mp4
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

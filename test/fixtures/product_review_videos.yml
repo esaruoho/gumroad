@@ -11,3 +11,24 @@ another_seller_product_review_video:
   approval_status: pending_review
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Sibling videos for ProductReviewVideoTest approval_status transitions —
+# all attached to another_seller_product_review so they don't collide with
+# the policy-test pending video above.
+prvt_pending_video:
+  product_review_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product_review) %>
+  approval_status: pending_review
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+prvt_approved_video:
+  product_review_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product_review) %>
+  approval_status: approved
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+prvt_rejected_video:
+  product_review_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product_review) %>
+  approval_status: rejected
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
