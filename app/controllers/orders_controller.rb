@@ -37,22 +37,22 @@ class OrdersController < ApplicationController
   end
 
   def confirm
-    ActiveRecord::Base.connection.stick_to_primary!
+    ApplicationRecord.connected_to(role: :writing) do
+      order = Order.find_by_secure_external_id(params[:id], scope: "confirm")
+      e404 unless order
 
-    order = Order.find_by_secure_external_id(params[:id], scope: "confirm")
-    e404 unless order
+      confirm_responses, offer_codes = Order::ConfirmService.new(order:, params:).perform
 
-    confirm_responses, offer_codes = Order::ConfirmService.new(order:, params:).perform
+      confirm_responses.each do |purchase_id, response|
+        next unless response[:success]
 
-    confirm_responses.each do |purchase_id, response|
-      next unless response[:success]
+        purchase = Purchase.find(purchase_id)
+        create_purchase_event_and_recommendation_info(purchase)
+      end
+      order.send_charge_receipts
 
-      purchase = Purchase.find(purchase_id)
-      create_purchase_event_and_recommendation_info(purchase)
+      render json: { success: true, line_items: confirm_responses, offer_codes:, can_buyer_sign_up: }
     end
-    order.send_charge_receipts
-
-    render json: { success: true, line_items: confirm_responses, offer_codes:, can_buyer_sign_up: }
   end
 
   private

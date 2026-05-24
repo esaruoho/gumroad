@@ -95,7 +95,7 @@ class LinksController < ApplicationController
 
   def show
     return redirect_to custom_domain_coffee_path if @product.native_type == Link::NATIVE_TYPE_COFFEE
-    ActiveRecord::Base.connection.stick_to_primary!
+    ApplicationRecord.connected_to(role: :writing) do
     # Force a preload of all association data used in rendering
     preload_product
     set_favicon_meta_tags(@product.user)
@@ -174,6 +174,7 @@ class LinksController < ApplicationController
       end
       format.json { render json: @product.as_json }
       format.any { e404 }
+    end
     end
   end
 

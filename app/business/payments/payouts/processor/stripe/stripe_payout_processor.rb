@@ -435,7 +435,7 @@ class StripePayoutProcessor
     end
 
     # We lookup the payment on master to ensure we're looking at the latest version and have the latest state.
-    ActiveRecord::Base.connection.stick_to_primary!
+    ApplicationRecord.connected_to(role: :writing) do
     # Find the matching Payment
     payment = Payment
               .processed_by(PayoutProcessorType::STRIPE)
@@ -464,6 +464,7 @@ class StripePayoutProcessor
       when "payout.failed"
         handle_stripe_event_payout_failed(payment, failure_reason: stripe_payout["failure_code"])
       end
+    end
     end
   end
 

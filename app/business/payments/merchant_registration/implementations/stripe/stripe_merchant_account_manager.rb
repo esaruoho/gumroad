@@ -30,7 +30,7 @@ module StripeMerchantAccountManager
     account_params = {}
     merchant_account = nil
 
-    ActiveRecord::Base.connection.stick_to_primary!
+    ApplicationRecord.connected_to(role: :writing) do
     user.with_lock do
       raise MerchantRegistrationUserNotReadyError.new(user.id, "is not supported yet") unless user.native_payouts_supported?
 
@@ -116,6 +116,7 @@ module StripeMerchantAccountManager
     end
 
     merchant_account
+    end
   rescue Stripe::StripeError => e
     cleanup_failed_merchant_account(merchant_account) if merchant_account.present?
     ErrorNotifier.notify(e)
@@ -375,8 +376,9 @@ module StripeMerchantAccountManager
   def self.user_has_stripe_connect_merchant_account?(user)
     # It's really important we don't have two merchant accounts per user, so we do this check on the master database
     # to ensure we're looking at the latest data.
-    ActiveRecord::Base.connection.stick_to_primary!
-    user.stripe_account.present?
+    ApplicationRecord.connected_to(role: :writing) do
+      user.stripe_account.present?
+    end
   end
 
   private_class_method

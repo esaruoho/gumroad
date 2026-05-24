@@ -160,7 +160,7 @@ class BalanceTransaction < ApplicationRecord
   # Returns the balance found or created.
   def find_or_create_balance
     # Working around Octopus choosing the slave db for all selects, even the ones with "FOR UPDATE"
-    ActiveRecord::Base.connection.stick_to_primary!
+    ApplicationRecord.connected_to(role: :writing) do
     unpaid_balances = Balance.where(
       user:,
       merchant_account:,
@@ -220,6 +220,7 @@ class BalanceTransaction < ApplicationRecord
     raise BalanceCouldNotBeFoundOrCreated, id if balance.nil?
 
     balance
+    end
   end
 
   private
