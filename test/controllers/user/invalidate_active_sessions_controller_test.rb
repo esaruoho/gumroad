@@ -1,16 +1,36 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/user/invalidate_active_sessions_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 2). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class User::InvalidateActiveSessionsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/user/invalidate_active_sessions_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @user = users(:basic_user)
+    @user.save! if @user.external_id.blank?
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "redirects to login when not signed in" do
+    boot_controller_test!
+    put :update
+    assert_response :redirect
+    assert_match %r{/login\?next=}, @response.redirect_url
+  end
+
+  test "updates last_active_sessions_invalidated_at and signs out the user" do
+    sign_in_as_seller(@user)
+    now = DateTime.current
+    travel_to(now) do
+      assert_nil @user.reload.last_active_sessions_invalidated_at
+      put :update
+      assert_in_delta now.to_i, @user.reload.last_active_sessions_invalidated_at.to_i, 2
+    end
+    assert_response :success
+    assert_equal true, JSON.parse(@response.body)["success"]
+    assert_equal "You have been signed out from all your active sessions. Please login again.", flash[:notice]
   end
 end

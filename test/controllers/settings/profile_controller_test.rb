@@ -1,14 +1,25 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Spec was deleted in commit c9c93ee5 during the
-# big RSpec->Minitest cutover; original at spec/controllers/settings/profile_controller_spec.rb.
-#
-# Sharpened skip-stub reason (see PR #5257 batch A):
-#   VCR-tagged (`:vcr`) + ActiveStorage avatar attach/purge against MinIO (Aws::S3::Errors::AccessDenied) + GenerateSubscribePreviewJob enqueue assertions + SellerProfileSection factory + concurrent attachment race-condition stubs. Requires disk-service shim + S3 mocks. Defer.
-class Settings::ProfileControllerTest < ActiveSupport::TestCase
-  test "TODO migrate — fixture-hostile (see class comment for concrete blockers)" do
-    skip "TODO migrate — see class-level comment above for concrete blockers"
+class Settings::ProfileControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    sign_in_as_seller(@admin, @seller)
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET show returns success and renders Settings/Profile/Show" do
+    get :show
+    assert_response :success
+    page = JSON.parse(CGI.unescapeHTML(@response.body.match(/data-page="([^"]*)"/)[1]))
+    assert_equal "Settings/Profile/Show", page["component"]
+    assert page["props"].present?
   end
 end

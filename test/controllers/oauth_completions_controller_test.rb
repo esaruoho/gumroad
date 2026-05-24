@@ -2,13 +2,42 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Spec was deleted in commit c9c93ee5 during the
-# big RSpec->Minitest cutover; original at spec/controllers/oauth_completions_controller_spec.rb.
-#
-# Sharpened skip-stub reason (see PR #5257 batch A):
-#   VCR-tagged. Exercises Stripe Connect OAuth completion flow: Stripe::Account.retrieve against real auth_uid cassettes, MerchantAccount creation across countries (Czechia/Canada), merchant_account_stripe_canada factory. Defer to dedicated Stripe-OAuth PR.
-class OauthCompletionsControllerTest < ActiveSupport::TestCase
-  test "TODO migrate — fixture-hostile (see class comment for concrete blockers)" do
-    skip "TODO migrate — see class-level comment above for concrete blockers"
+# Partial backfill: full coverage requires Stripe::Account.retrieve VCR cassettes
+# (originally :vcr). We migrate the cases that don't hit the Stripe API.
+class OauthCompletionsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+    @user = users(:basic_user)
+    @user.save! if @user.external_id.blank?
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "requires authentication when no user is signed in" do
+    post :stripe
+    assert_response :redirect
+    assert_match %r{/login\?next=}, @response.redirect_url
+  end
+
+  test "handles invalid session data (no stripe_connect_data)" do
+    sign_in @user
+    session[:stripe_connect_data] = nil
+    post :stripe
+    assert_redirected_to settings_payments_url
+    assert_equal "Invalid OAuth session", flash[:alert]
+  end
+
+  test "handles invalid session data (auth_uid missing)" do
+    sign_in @user
+    session[:stripe_connect_data] = { "referer" => settings_payments_path }
+    post :stripe
+    assert_redirected_to settings_payments_url
+    assert_equal "Invalid OAuth session", flash[:alert]
   end
 end

@@ -2,15 +2,161 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/admin/base_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 7). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Admin::BaseControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/admin/base_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  # Anonymous subclass exposing routes for testing the shared before_actions.
+  class AnonymousAdminController < ::Admin::BaseController
+    def index_with_policy
+      authorize :dummy
+      render json: { success: true }
+    end
+  end
+
+  class TestDummyPolicy < ApplicationPolicy
+    def index_with_policy?
+      false
+    end
+  end
+
+  tests AnonymousAdminController
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+    @admin = users(:admin_user)
+    @not_admin = users(:basic_user)
+    @not_admin.save! if @not_admin.external_id.blank?
+
+    # Pundit looks up policies via `Module.const_get(:DummyPolicy)` against the
+    # controller's ancestors. Stub by aliasing the symbol :dummy to our nested
+    # TestDummyPolicy via Pundit::PolicyFinder isn't possible without redefining
+    # the constant. The simplest approach: define a top-level DummyPolicy if
+    # missing, pointing at our impl.
+    unless Object.const_defined?(:DummyPolicy)
+      Object.const_set(:DummyPolicy, TestDummyPolicy)
+      @defined_dummy = true
+    end
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+    Object.send(:remove_const, :DummyPolicy) if @defined_dummy
+  end
+
+  def with_routes
+    with_routing do |routes|
+      routes.draw do
+        namespace :admin do
+          get :index, to: "base_controller_test/anonymous_admin#index"
+          get :index_with_policy, to: "base_controller_test/anonymous_admin#index_with_policy"
+          get :redirect_to_stripe_dashboard, to: "base_controller_test/anonymous_admin#redirect_to_stripe_dashboard"
+          get "/", to: "base_controller_test/anonymous_admin#index", as: :root
+        end
+        get "/admin", to: "admin/base_controller_test/anonymous_admin#index", as: :admin
+        get "/login", to: "logins#new", as: :login
+        get "/", to: "home#dashboard", as: :root
+      end
+      yield
+    end
+  end
+
+  test "require_admin! returns 404 for xhr request when not logged in" do
+    with_routes do
+      get :index, xhr: true
+      assert_response :not_found
+    end
+  end
+
+  test "require_admin! returns 404 for json request when not logged in" do
+    with_routes do
+      get :index, format: :json
+      assert_response :not_found
+    end
+  end
+
+  test "require_admin! redirects to login with next param when not logged in (html)" do
+    with_routes do
+      @request.path = "/about"
+      get :index
+      assert_response :redirect
+      assert_match %r{/login\?next=}, @response.redirect_url
+    end
+  end
+
+  test "require_admin! redirects non-admin to root_path without next param" do
+    with_routes do
+      sign_in @not_admin
+      get :index
+      assert_response :redirect
+      assert_match %r{^http://[^/]+/$}, @response.redirect_url
+    end
+  end
+
+  test "require_admin! returns 404 for json for non-admin user" do
+    with_routes do
+      sign_in @not_admin
+      get :index, format: :json
+      assert_response :not_found
+    end
+  end
+
+  test "admin user receives the desired response" do
+    with_routes do
+      sign_in @admin
+      get :index
+      assert_response :success
+      page = JSON.parse(CGI.unescapeHTML(@response.body.match(/data-page="([^"]*)"/)[1]))
+      assert_equal "Admin/Base/Index", page["component"]
+      assert_equal "Admin", page["props"]["title"]
+    end
+  end
+
+  test "user_not_authorized renders JSON for JSON request" do
+    with_routes do
+      sign_in @admin
+      get :index_with_policy, format: :json
+      assert_response :unauthorized
+      body = JSON.parse(@response.body)
+      assert_equal false, body["success"]
+      assert_equal "You are not allowed to perform this action.", body["error"]
+    end
+  end
+
+  test "user_not_authorized renders JSON for XHR request" do
+    with_routes do
+      sign_in @admin
+      get :index_with_policy, xhr: true
+      assert_response :unauthorized
+      body = JSON.parse(@response.body)
+      assert_equal false, body["success"]
+    end
+  end
+
+  test "user_not_authorized redirects for non-JSON request" do
+    with_routes do
+      sign_in @admin
+      get :index_with_policy
+      assert_response :redirect
+      assert_equal "You are not allowed to perform this action.", flash[:alert]
+    end
+  end
+
+  test "redirect_to_stripe_dashboard redirects to admin path when user not found" do
+    with_routes do
+      sign_in @admin
+      get :redirect_to_stripe_dashboard, params: { user_identifier: "nonexistent@example.com" }
+      assert_response :redirect
+      assert_equal "User not found", flash[:alert]
+    end
+  end
+
+  test "redirect_to_stripe_dashboard redirects to admin path when user has no Stripe account" do
+    with_routes do
+      sign_in @admin
+      get :redirect_to_stripe_dashboard, params: { user_identifier: @not_admin.email }
+      assert_response :redirect
+      assert_equal "Stripe account not found", flash[:alert]
+    end
   end
 end
