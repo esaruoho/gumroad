@@ -2,12 +2,41 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration.
-# Original: spec/sidekiq/compile_gumroad_daily_analytics_job_spec.rb (0 FactoryBot refs, 38 lines).
-#
-# Blocker for batch B backfill: Zero FB refs in source line but spec uses `create :purchase, ...` × 6 + `create :service_charge, ...` × 2 + `create :gumroad_daily_analytic, ...` and mutates `Purchase.all.map { |p| p.update!(fee_cents: ...) }`. The 43-row purchases fixture isn't scoped to the 2023-01-10..14 window the assertions check, and `Purchase.create!` runs heavy validations (skill pitfall). Plus `stub_const("CompileGumroadDailyAnalyticsJob::REFRESH_PERIOD", 5.days)` needs a `Klass.const_set` + ensure-block teardown. Out of scope — needs a dedicated time-windowed purchase fixture insertion.
 class CompileGumroadDailyAnalyticsJobTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/sidekiq/compile_gumroad_daily_analytics_job_spec.rb — Zero FB refs in source line but spec uses `create :purchase, ...` × 6 + `create :service_charge, ...` × 2 + `create :gumroad_daily_analytic, ...` and mutates `Purchase.all.map { |p| p.update!(fee_cents: ...) }`. The 43-row purchases fixture isn't scoped to the 2023-01-10..14 window the assertions check, and `Purchase.create!` runs heavy validati..."
+  # The worker iterates `(Date.today - REFRESH_PERIOD..Date.today)` and calls
+  # `GumroadDailyAnalytic.import(date)` for each day. Rather than seed time-windowed
+  # purchase fixtures (the original RSpec did this with 6+ FactoryBot rows that the
+  # 43-row purchases fixture can't express), assert the iteration shape by
+  # intercepting `.import` at the class level and recording invocations.
+
+  setup do
+    @original_import = GumroadDailyAnalytic.method(:import)
+    @import_calls = []
+    calls = @import_calls
+    GumroadDailyAnalytic.define_singleton_method(:import) { |date| calls << date }
+  end
+
+  teardown do
+    GumroadDailyAnalytic.singleton_class.send(:remove_method, :import)
+    GumroadDailyAnalytic.define_singleton_method(:import, @original_import) if @original_import
+  end
+
+  test "#perform invokes GumroadDailyAnalytic.import for each day in REFRESH_PERIOD up to today" do
+    travel_to Time.zone.local(2024, 6, 15, 12, 0, 0) do
+      CompileGumroadDailyAnalyticsJob.new.perform
+    end
+
+    # REFRESH_PERIOD is 45.days; range is inclusive on both ends → 46 iterations.
+    assert_equal 46, @import_calls.size
+    assert_equal Date.new(2024, 5, 1), @import_calls.first
+    assert_equal Date.new(2024, 6, 15), @import_calls.last
+  end
+
+  test "#perform passes Date objects (not Time) to import" do
+    travel_to Time.zone.local(2024, 1, 10, 0, 0, 0) do
+      CompileGumroadDailyAnalyticsJob.new.perform
+    end
+
+    assert @import_calls.all? { |d| d.is_a?(Date) && !d.is_a?(DateTime) }
   end
 end
