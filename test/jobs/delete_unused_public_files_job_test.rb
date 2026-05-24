@@ -5,10 +5,36 @@ require "test_helper"
 class DeleteUnusedPublicFilesJobTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
+  # Run outside the default test transaction so ActiveStorage's after-commit
+  # purge_later callbacks fire (and so Makara doesn't blacklist the connection
+  # when ActiveStorage talks to its service).
+  self.use_transactional_tests = false
+
   setup do
-    skip "ActiveStorage attachments hit S3 (localhost:9000 MinIO) in CI, " \
-         "which trips Makara::Errors::BlacklistedWhileInTransaction. " \
-         "Re-enable with ActiveStorage::Blob.service stubbed to a local disk service in CI."
+    require "active_storage/service/disk_service"
+    @storage_root = Rails.root.join("tmp/storage_test_#{SecureRandom.hex(4)}")
+    @disk_service = ActiveStorage::Service::DiskService.new(root: @storage_root)
+    @disk_service.name = :local_test
+    # Register in the service registry so Blob.service_name validation passes.
+    services = ActiveStorage::Blob.services.instance_variable_get(:@services)
+    @registered_prev = services[:local_test]
+    services[:local_test] = @disk_service
+    @original_service = ActiveStorage::Blob.service
+    ActiveStorage::Blob.service = @disk_service
+  end
+
+  teardown do
+    ActiveStorage::Blob.service = @original_service if @original_service
+    services = ActiveStorage::Blob.services.instance_variable_get(:@services)
+    if @registered_prev
+      services[:local_test] = @registered_prev
+    else
+      services.delete(:local_test)
+    end
+    FileUtils.rm_rf(@storage_root) if @storage_root
+    PublicFile.unscoped.delete_all
+    ActiveStorage::Attachment.unscoped.delete_all
+    ActiveStorage::Blob.unscoped.delete_all
   end
 
   def attach_audio(public_file)
@@ -17,7 +43,9 @@ class DeleteUnusedPublicFilesJobTest < ActiveSupport::TestCase
       filename: "test.mp3",
       content_type: "audio/mpeg",
     )
-    public_file.save!
+    unless public_file.save
+      raise "save failed: #{public_file.errors.full_messages.inspect}"
+    end
     public_file
   end
 

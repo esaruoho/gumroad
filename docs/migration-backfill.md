@@ -732,20 +732,20 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/helpers/products_helper_test.rb` | 1 |
-| ⬜ | `test/helpers/payouts_helper_test.rb` | 1 |
+| ✅ | `test/helpers/products_helper_test.rb` | 1 |
+| ✅ | `test/helpers/payouts_helper_test.rb` | 1 |
 
 ## `test/policies/` (1 files, 1 skips)
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/policies/comment_context_policy_test.rb` | 1 |
+| ✅ | `test/policies/comment_context_policy_test.rb` | 1 |
 
 ## `test/jobs/` (1 files, 1 skips)
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/jobs/delete_unused_public_files_job_test.rb` | 1 |
+| ✅ | `test/jobs/delete_unused_public_files_job_test.rb` | 1 |
 
 ## `test/root/` (1 files, 1 skips)
 
