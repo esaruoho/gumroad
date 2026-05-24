@@ -736,3 +736,34 @@ skus_updater_physical_product:
   flags: 384
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by RefreshSitemapMonthlyWorkerTest. Updated 1 month ago to fall in
+# the worker's last-month window, but created in distinct months so two
+# DAILY jobs are queued.
+sitemap_month_3:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Sitemap product 3mo
+  unique_permalink: sitemap3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 3.months.ago %>
+  updated_at: <%= 1.month.ago %>
+
+sitemap_month_2:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Sitemap product 2mo
+  unique_permalink: sitemap2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 2.months.ago %>
+  updated_at: <%= 1.month.ago %>
