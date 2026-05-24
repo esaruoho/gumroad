@@ -714,12 +714,12 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/lib/utilities/with_max_execution_time_test.rb` | 1 |
+| ✅ | `test/lib/utilities/with_max_execution_time_test.rb` | 1 |
 | ⬜ | `test/lib/utilities/replica_lag_watcher_test.rb` | 1 |
-| ⬜ | `test/lib/utilities/geo_ip_test.rb` | 1 |
+| ✅ | `test/lib/utilities/geo_ip_test.rb` | 1 |
 | ⬜ | `test/lib/utilities/dev_tools_test.rb` | 1 |
-| ⬜ | `test/lib/js_error_reporter_test.rb` | 1 |
-| ⬜ | `test/lib/elasticsearch_setup_test.rb` | 1 |
+| ✅ | `test/lib/js_error_reporter_test.rb` | 1 |
+| ✅ | `test/lib/elasticsearch_setup_test.rb` | 1 |
 
 ## `test/observers/` (2 files, 2 skips)
 
