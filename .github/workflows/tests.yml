@@ -259,6 +259,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: web_${{ github.run_id }}_${{ github.run_attempt }}_fast_${{ matrix.ci_node_index }}
     runs-on: ubicloud-standard-4
+    timeout-minutes: 15
     needs: build
     strategy:
       fail-fast: true
@@ -398,6 +399,7 @@ jobs:
       COMPOSE_PROJECT_NAME: web_${{ github.run_id }}_${{ github.run_attempt }}_slow_${{ matrix.ci_node_index }}
       WEB_REPO: gumroadteam/web
     runs-on: ubicloud-standard-4
+    timeout-minutes: 15
     needs: build
     strategy:
       fail-fast: false
