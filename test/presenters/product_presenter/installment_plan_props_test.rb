@@ -18,10 +18,7 @@ class ProductPresenter::InstallmentPlanPropsTest < ActiveSupport::TestCase
   end
 
   test "props returns correct props with installment plan details" do
-    skip "default product_installment_plan fixture removed (commit d4f3a568) because it crashed link-mutation tests via validate_installment_payment_price; restore via per-test attach when re-enabling"
-    product = links(:named_seller_product)
-    # Ensure the fixture-loaded installment plan is available on the product
-    assert product.installment_plan.present?, "expected fixture to attach an installment plan"
+    product = links(:po_test_installment_product) # fixture installment plan: 4 monthly
     presenter = ProductPresenter::InstallmentPlanProps.new(product:)
 
     assert_equal(
@@ -29,7 +26,7 @@ class ProductPresenter::InstallmentPlanPropsTest < ActiveSupport::TestCase
         eligible_for_installment_plans: true,
         allow_installment_plan: true,
         installment_plan: {
-          number_of_installments: 2,
+          number_of_installments: 4,
           recurrence: "monthly"
         }
       },

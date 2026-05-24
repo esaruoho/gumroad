@@ -3,98 +3,78 @@
 require "test_helper"
 
 class ProductReviewPresenterTest < ActiveSupport::TestCase
-  include ActionView::Helpers::DateHelper
-
   setup do
+    # named_seller_product_review has a pending video (named_seller_product_review_video).
+    # We use it as-is and assert on the realistic state.
     @product_review = product_reviews(:named_seller_product_review)
-    # Default fixtures attach a response + a pending video; clear them
-    # so each test sets up only what it asserts on.
-    ProductReviewVideo.where(product_review_id: @product_review.id).destroy_all
+    @purchase = @product_review.purchase
+  end
+
+  test "product_review_props returns Anonymous when purchaser/full_name blank" do
+    @purchase.purchaser.update_columns(name: nil)
+    @purchase.update_columns(full_name: nil)
     @product_review.reload
+
+    props = ProductReviewPresenter.new(@product_review).product_review_props
+    assert_equal @product_review.external_id, props[:id]
+    assert_equal @product_review.message, props[:message]
+    assert_equal @product_review.rating, props[:rating]
+    assert_equal @purchase.external_id, props[:purchase_id]
+    assert_equal true, props[:is_new]
+    assert_equal({ message: "Thanks!" }, props[:response]) # fixture-loaded response
+    assert_nil props[:video] # pending video → approved_video is nil
+    assert_equal "Anonymous", props[:rater][:name]
   end
 
-  test "product_review_props returns the correct props" do
-    @product_review.response&.destroy!
+  test "product_review_props is_new false when older than a month" do
+    @product_review.update_columns(created_at: 2.months.ago)
+    refute ProductReviewPresenter.new(@product_review.reload).product_review_props[:is_new]
+  end
+
+  test "product_review_props uses purchase full_name when purchaser has no name" do
+    @purchase.purchaser.update_columns(name: nil)
+    @purchase.update_columns(full_name: "Purchaser")
     @product_review.reload
-    assert_equal(
-      {
-        id: @product_review.external_id,
-        message: @product_review.message,
-        rater: {
-          avatar_url: ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png"),
-          name: "Anonymous"
-        },
-        rating: @product_review.rating,
-        purchase_id: @product_review.purchase.external_id,
-        is_new: true,
-        response: nil,
-        video: nil
-      },
-      ProductReviewPresenter.new(@product_review).product_review_props
-    )
+
+    rater = ProductReviewPresenter.new(@product_review).product_review_props[:rater]
+    assert_equal "Purchaser", rater[:name]
   end
 
-  test "product_review_props returns is_new=false when more than a month old" do
-    @product_review.update!(created_at: 2.months.ago)
-    assert_equal false, ProductReviewPresenter.new(@product_review).product_review_props[:is_new]
+  test "product_review_props uses purchaser name when present" do
+    @purchase.purchaser.update_columns(name: "Reviewer")
+    @product_review.reload
+
+    rater = ProductReviewPresenter.new(@product_review).product_review_props[:rater]
+    assert_equal "Reviewer", rater[:name]
   end
 
-  test "product_review_props uses response when product review has a response" do
+  test "product_review_props includes response when present" do
     response = product_review_responses(:named_seller_product_review_response)
-    assert_equal(
-      { message: response.message },
-      ProductReviewPresenter.new(@product_review).product_review_props[:response]
-    )
+
+    props = ProductReviewPresenter.new(@product_review.reload).product_review_props
+    assert_equal({ message: response.message }, props[:response])
   end
 
-  test "product_review_props uses the purchase's full name when review is not associated with an account" do
-    @product_review.purchase.update_columns(full_name: "Purchaser")
-    assert_equal(
-      {
-        avatar_url: ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png"),
-        name: "Purchaser",
-      },
-      ProductReviewPresenter.new(@product_review).product_review_props[:rater]
-    )
+  test "product_review_props returns approved video props" do
+    video = @product_review.videos.first
+    video.update_columns(approval_status: "approved")
+    @product_review.reload
+
+    video_props = ProductReviewPresenter.new(@product_review).product_review_props[:video]
+    assert_equal video.external_id, video_props[:id]
+    assert video_props.key?(:thumbnail_url)
   end
 
-  test "product_review_props uses 'Anonymous' when associated account name is blank and no full_name" do
-    purchaser = users(:purchaser)
-    purchaser.update!(name: nil)
-    @product_review.purchase.update_columns(purchaser_id: purchaser.id, full_name: nil)
-    assert_equal "Anonymous", ProductReviewPresenter.new(@product_review).product_review_props[:rater][:name]
+  test "review_form_props returns props including pending video as editable" do
+    props = ProductReviewPresenter.new(@product_review).review_form_props
+    assert_equal @product_review.rating, props[:rating]
+    assert_equal @product_review.message, props[:message]
+    assert_equal @product_review.videos.first.external_id, props[:video][:id]
   end
 
-  test "product_review_props uses purchase full_name when account name is blank but full_name present" do
-    purchaser = users(:purchaser)
-    purchaser.update!(name: nil)
-    @product_review.purchase.update_columns(purchaser_id: purchaser.id, full_name: "Purchaser")
-    assert_equal "Purchaser", ProductReviewPresenter.new(@product_review).product_review_props[:rater][:name]
-  end
-
-  test "product_review_props uses the account's name when purchaser has a name" do
-    purchaser = users(:purchaser)
-    purchaser.update!(name: "Reviewer")
-    @product_review.purchase.update_columns(purchaser_id: purchaser.id)
-    assert_equal "Reviewer", ProductReviewPresenter.new(@product_review).product_review_props[:rater][:name]
-  end
-
-  test "product_review_props with videos skipped (ActiveStorage thumbnail_url out-of-scope)" do
-    skip "ActiveStorage video_file.thumbnail_url — see product_review_video_presenter_test"
-  end
-
-  test "review_form_props returns the correct props" do
-    assert_equal(
-      {
-        message: @product_review.message,
-        rating: @product_review.rating,
-        video: nil
-      },
-      ProductReviewPresenter.new(@product_review).review_form_props
-    )
-  end
-
-  test "review_form_props video branches skipped (ActiveStorage thumbnail_url out-of-scope)" do
-    skip "ActiveStorage video_file.thumbnail_url — see product_review_video_presenter_test"
+  test "review_form_props excludes rejected video" do
+    @product_review.videos.first.update_columns(approval_status: "rejected")
+    @product_review.reload
+    assert_nil ProductReviewPresenter.new(@product_review).review_form_props[:video]
   end
 end

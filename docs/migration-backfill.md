@@ -567,7 +567,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | Status | File | Skips |
 |---|---|---:|
 | ⬜ | `test/presenters/product_presenter/card_test.rb` | 5 |
-| ⬜ | `test/presenters/product_review_presenter_test.rb` | 2 |
+| ✅ | `test/presenters/product_review_presenter_test.rb` | 2 |
 | ⬜ | `test/presenters/workflow_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/wishlist_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/utm_links_stats_presenter_test.rb` | 1 |
@@ -580,7 +580,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/receipt_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/receipt_presenter/recommended_products_info_test.rb` | 1 |
 | ⬜ | `test/presenters/receipt_presenter/payment_info_test.rb` | 1 |
-| ⬜ | `test/presenters/receipt_presenter/mail_subject_test.rb` | 1 |
+| ✅ | `test/presenters/receipt_presenter/mail_subject_test.rb` | 1 |
 | ⬜ | `test/presenters/receipt_presenter/item_info_test.rb` | 1 |
 | ⬜ | `test/presenters/receipt_presenter/giftee_manage_subscription_test.rb` | 1 |
 | ⬜ | `test/presenters/receipt_presenter/footer_info_test.rb` | 1 |
@@ -589,15 +589,15 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/public_file_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/profile_sections_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/profile_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/product_review_video_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/product_review_video_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/product_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/product_presenter/product_props_test.rb` | 1 |
-| ⬜ | `test/presenters/product_presenter/installment_plan_props_test.rb` | 1 |
+| ✅ | `test/presenters/product_presenter/installment_plan_props_test.rb` | 1 |
 | ⬜ | `test/presenters/post_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/payouts_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/paginated_utm_links_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/paginated_product_posts_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/paginated_installments_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/paginated_installments_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/library_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/invoice_presenter/supplier_info_test.rb` | 1 |
 | ⬜ | `test/presenters/invoice_presenter/order_info_test.rb` | 1 |
@@ -607,7 +607,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/discover/taxonomy_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/discover/autocomplete_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/dashboard_products_page_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/customers_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/customers_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/customer_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/creator_home_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/comment_presenter_test.rb` | 1 |
@@ -615,8 +615,8 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/collaborator_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/collab_products_page_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/checkout_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/checkout/upsells_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/checkout/form_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/checkout/upsells_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/checkout/form_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/checkout/discounts_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/cart_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/bundle_presenter_test.rb` | 1 |

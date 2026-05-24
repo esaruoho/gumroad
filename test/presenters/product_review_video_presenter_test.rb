@@ -2,15 +2,29 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only migration.
-# ActiveStorage `video.thumbnail_url` chain (ActiveStorage::Variant /
-# analyzed blob) — same hostility class as dispute_evidence_page. The
-# macOS/Minitest CI lane does not have MinIO and Makara blacklists on attach
-# per gumroad-fixtures-migration skill pitfall.
-#
-# Original spec: spec/presenters/product_review_video_presenter_spec.rb (deleted)
 class ProductReviewVideoPresenterTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — ActiveStorage video.thumbnail_url hostile to Minitest CI" do
-    skip "TODO: migrate spec/presenters/product_review_video_presenter_spec.rb (6 FB refs, ActiveStorage thumbnail/video blobs)"
+  setup do
+    @video = product_review_videos(:prvt_approved_video)
+    @seller = @video.product_review.link.user
+    @another_seller = users(:basic_user)
+  end
+
+  test "props returns id, approval_status, and thumbnail_url with permissions" do
+    pundit_user = SellerContext.new(user: @seller, seller: @seller)
+    props = ProductReviewVideoPresenter.new(@video).props(pundit_user:)
+
+    assert_equal @video.external_id, props[:id]
+    assert_equal @video.approval_status, props[:approval_status]
+    assert props.key?(:thumbnail_url)
+    assert_equal true, props[:can_approve]
+    assert_equal true, props[:can_reject]
+  end
+
+  test "props returns can_approve/can_reject false for unrelated seller" do
+    pundit_user = SellerContext.new(user: @another_seller, seller: @another_seller)
+    props = ProductReviewVideoPresenter.new(@video).props(pundit_user:)
+
+    assert_equal false, props[:can_approve]
+    assert_equal false, props[:can_reject]
   end
 end
