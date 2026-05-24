@@ -17,7 +17,7 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/models/` | 104 | 104 |
 | `test/services/` | 99 | 99 |
 | `test/sidekiq/` | 61 | 61 |
-| `test/presenters/` | 62 | 67 |
+| `test/presenters/` | 60 | 65 |
 | `test/modules/` | 28 | 28 |
 | `test/business/` | 25 | 25 |
 | `test/mailers/` | 0 | 0 |
@@ -27,7 +27,7 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/policies/` | 1 | 1 |
 | `test/jobs/` | 1 | 1 |
 | `test/root/` | 1 | 1 |
-| **Total** | **570** | **574** |
+| **Total** | **568** | **572** |
 
 ## Suggested batch order
 Models first (core behavior), then services/sidekiq (business logic), then controllers/presenters (thinner orchestration), then leaves (mailers/helpers/policies).
@@ -562,7 +562,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/sidekiq/block_stripe_suspected_fraudulent_payments_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/annual_payout_export_worker_test.rb` | 1 |
 
-## `test/presenters/` (62 files, 67 skips)
+## `test/presenters/` (60 files, 65 skips)
 
 | Status | File | Skips |
 |---|---|---:|
@@ -610,8 +610,8 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ✅ | `test/presenters/customers_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/customer_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/creator_home_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/comment_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/collaborators_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/comment_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/collaborators_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/collaborator_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/collab_products_page_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/checkout_presenter_test.rb` | 1 |
