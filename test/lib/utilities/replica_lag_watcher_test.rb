@@ -114,7 +114,21 @@ class ReplicaLagWatcherTest < ActiveSupport::TestCase
   end
 
   test ".connect_to_replicas sets connections if they weren't set before" do
-    skip "Mysql2::Client.stub interacts with Makara connection pool, poisoning the suite. " \
-         "Re-enable when we can isolate without touching real ActiveRecord::Base config."
+    with_const(:REPLICAS_HOSTS, ["web-replica-1.aaaaaa.us-east-1.rds.amazonaws.com"]) do
+      connection_double = Object.new
+      cfg = ActiveRecord::Base.connection_db_config.configuration_hash
+      captured_args = nil
+      stub_new = ->(**kwargs) { captured_args = kwargs; connection_double }
+      Mysql2::Client.stub(:new, stub_new) do
+        ReplicaLagWatcher.connect_to_replicas
+      end
+      assert_equal({
+        host: "web-replica-1.aaaaaa.us-east-1.rds.amazonaws.com",
+        username: cfg[:username],
+        password: cfg[:password],
+        database: cfg[:database],
+      }, captured_args)
+      assert_equal [connection_double], ReplicaLagWatcher.connections
+    end
   end
 end

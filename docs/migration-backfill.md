@@ -21,13 +21,13 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/modules/` | 32 | 32 |
 | `test/business/` | 25 | 25 |
 | `test/mailers/` | 9 | 10 |
-| `test/lib/` | 6 | 6 |
-| `test/observers/` | 2 | 2 |
+| `test/lib/` | 4 | 4 |
+| `test/observers/` | 0 | 0 |
 | `test/helpers/` | 2 | 2 |
 | `test/policies/` | 1 | 1 |
 | `test/jobs/` | 1 | 1 |
 | `test/root/` | 1 | 1 |
-| **Total** | **643** | **649** |
+| **Total** | **639** | **645** |
 
 ## Suggested batch order
 Models first (core behavior), then services/sidekiq (business logic), then controllers/presenters (thinner orchestration), then leaves (mailers/helpers/policies).
@@ -714,19 +714,19 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 
 | Status | File | Skips |
 |---|---|---:|
-| ✅ | `test/lib/utilities/with_max_execution_time_test.rb` | 1 |
-| ⬜ | `test/lib/utilities/replica_lag_watcher_test.rb` | 1 |
-| ✅ | `test/lib/utilities/geo_ip_test.rb` | 1 |
-| ⬜ | `test/lib/utilities/dev_tools_test.rb` | 1 |
-| ✅ | `test/lib/js_error_reporter_test.rb` | 1 |
-| ✅ | `test/lib/elasticsearch_setup_test.rb` | 1 |
+| ✅ | `test/lib/utilities/with_max_execution_time_test.rb` | 0 |
+| ✅ | `test/lib/utilities/replica_lag_watcher_test.rb` | 0 |
+| ✅ | `test/lib/utilities/geo_ip_test.rb` | 0 |
+| ✅ | `test/lib/utilities/dev_tools_test.rb` | 0 |
+| ✅ | `test/lib/js_error_reporter_test.rb` | 0 |
+| ✅ | `test/lib/elasticsearch_setup_test.rb` | 0 |
 
 ## `test/observers/` (2 files, 2 skips)
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/observers/email_delivery_observer/handle_email_event_test.rb` | 1 |
-| ⬜ | `test/observers/email_delivery_observer/handle_customer_email_info_test.rb` | 1 |
+| ✅ | `test/observers/email_delivery_observer/handle_email_event_test.rb` | 0 |
+| ✅ | `test/observers/email_delivery_observer/handle_customer_email_info_test.rb` | 0 |
 
 ## `test/helpers/` (2 files, 2 skips)
 

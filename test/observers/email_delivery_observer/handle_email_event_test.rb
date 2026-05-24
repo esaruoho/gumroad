@@ -4,17 +4,31 @@ require "test_helper"
 
 class EmailDeliveryObserver::HandleEmailEventTest < ActiveSupport::TestCase
   setup do
-    skip "EmailEvent is a Mongoid model — MongoDB not available in Minitest CI lane. Covered by RSpec integration."
+    EmailEvent.delete_all
+  end
+
+  teardown do
+    EmailEvent.delete_all
   end
 
   test ".perform logs email sent event" do
-    user = users(:named_seller)
+    user = users(:two_factor_user)
     email_digest = Digest::SHA1.hexdigest(user.email).first(12)
     timestamp = Time.current
 
+    # The original spec drove this through `TwoFactorAuthenticationMailer.authentication_token(...).deliver_now`.
+    # `.deliver_now` runs the full ActionMailer pipeline, which triggers Premailer's email.scss
+    # asset lookup — Vite assets aren't built in `bin/rails test`, so the call explodes with
+    # `Premailer::Rails::CSSHelper::FileNotFound` (see gumroad-fixtures-migration pitfall #13).
+    #
+    # The unit under test is `EmailDeliveryObserver::HandleEmailEvent.perform(message)`, which
+    # only reads `message.to` and `message.date`. We synthesize a Mail::Message with that shape
+    # — the assertion surface is identical and the observer code path is exercised verbatim.
+    message = Mail.new(to: user.email, from: "noreply@gumroad.com", date: timestamp)
+
     travel_to timestamp do
       assert_difference -> { EmailEvent.count }, 1 do
-        TwoFactorAuthenticationMailer.authentication_token(user.id).deliver_now
+        EmailDeliveryObserver::HandleEmailEvent.perform(message)
       end
 
       record = EmailEvent.find_by(email_digest:)
