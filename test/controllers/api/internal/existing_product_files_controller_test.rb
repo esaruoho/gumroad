@@ -2,15 +2,39 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/internal/existing_product_files_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 9). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::Internal::ExistingProductFilesControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/internal/existing_product_files_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @seller = users(:named_seller)
+    @product = links(:named_seller_product)
+    @admin = users(:admin_for_named_seller)
+    sign_in @admin
+    cookies.encrypted[:current_seller_id] = @seller.id
+  end
+
+  test "GET index returns error response when not signed in" do
+    sign_out @admin
+    cookies.encrypted[:current_seller_id] = nil
+    get :index, format: :json, params: { product_id: @product.unique_permalink }
+    # devise-jwt for API endpoints returns 401/redirect/404 depending on session adapter;
+    # we just assert the request is not authorized (not 2XX).
+    refute response.successful?
+  end
+
+  test "GET index raises 404 when product does not belong to current_seller" do
+    other_product = links(:another_seller_product)
+    assert_raises(ActionController::RoutingError) do
+      get :index, format: :json, params: { product_id: other_product.unique_permalink }
+    end
+  end
+
+  test "GET index returns existing_files for an owned product" do
+    get :index, format: :json, params: { product_id: @product.unique_permalink }
+    assert_response :success
+    body = response.parsed_body
+    assert body.key?("existing_files")
+    assert body["existing_files"].is_a?(Array)
   end
 end
