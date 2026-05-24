@@ -1184,3 +1184,51 @@ followers_test_creator_two:
   recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# ----- Fixtures for PayoutEstimatesTest -----
+# 4 sellers each holding a Stripe-managed (Gumroad-USA-held) merchant account
+# plus an ACH bank account. Used to exercise estimate_held_amount_cents and
+# estimate_payments_for_balances_up_to_date_for_users.
+payout_estimates_user_0:
+  email: payout-estimates-0@example.com
+  username: poe0
+  name: PoE Zero
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  payment_address: payout-estimates-0-pp@example.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_1:
+  email: payout-estimates-1@example.com
+  username: poe1
+  name: PoE One
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  payment_address: payout-estimates-1-pp@example.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_2:
+  email: payout-estimates-2@example.com
+  username: poe2
+  name: PoE Two
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  payment_address: payout-estimates-2-pp@example.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_3:
+  email: payout-estimates-3@example.com
+  username: poe3
+  name: PoE Three
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  payment_address: payout-estimates-3-pp@example.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

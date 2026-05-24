@@ -19,3 +19,52 @@ payout_info_uk_bank_account:
   country: GB
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# ACH bank accounts for PayoutEstimatesTest.
+payout_estimates_user_0_ach:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0) %>
+  type: AchAccount
+  bank_number: "110000000"
+  account_number_last_four: "1230"
+  account_holder_full_name: "PoE Zero"
+  country: US
+  account_type: checking
+  stripe_bank_account_id: ba_poe0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_1_ach:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1) %>
+  type: AchAccount
+  bank_number: "110000000"
+  account_number_last_four: "1231"
+  account_holder_full_name: "PoE One"
+  country: US
+  account_type: checking
+  stripe_bank_account_id: ba_poe1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_2_ach:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2) %>
+  type: AchAccount
+  bank_number: "110000000"
+  account_number_last_four: "1232"
+  account_holder_full_name: "PoE Two"
+  country: US
+  account_type: checking
+  stripe_bank_account_id: ba_poe2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_3_ach:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_3) %>
+  type: AchAccount
+  bank_number: "110000000"
+  account_number_last_four: "1233"
+  account_holder_full_name: "PoE Three"
+  country: US
+  account_type: checking
+  stripe_bank_account_id: ba_poe3
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

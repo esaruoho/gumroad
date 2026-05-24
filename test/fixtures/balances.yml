@@ -101,3 +101,117 @@ aff_credit_test_balance:
   state: unpaid
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# ----- Balances for PayoutEstimatesTest, estimate_held_amount_cents -----
+# payout_date = Date.today - 1 in the test. Use the same ERB anchor.
+# u0 carries one Gumroad-held + two STRIPE-held balances (one inside the
+# payout window, one outside).
+poe_user_0_bal_gumroad:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0) %>
+  date: <%= Date.today - 4 %>
+  amount_cents: 1000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 1000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_gumroad_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_0_bal_stripe_in:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0) %>
+  date: <%= Date.today - 3 %>
+  amount_cents: 10000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 10000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_0_bal_stripe_out:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0) %>
+  date: <%= Date.today %>
+  amount_cents: 100000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 100000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_1_bal_gumroad:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1) %>
+  date: <%= Date.today - 4 %>
+  amount_cents: 1000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 1000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_gumroad_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_1_bal_stripe_in:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1) %>
+  date: <%= Date.today - 3 %>
+  amount_cents: 10000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 10000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_1_bal_stripe_out:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1) %>
+  date: <%= Date.today %>
+  amount_cents: 100000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 100000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# u2: 6000c balance + 10000c completed payment in same period → payable
+poe_user_2_bal_a:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2) %>
+  date: <%= Date.today - 3 %>
+  amount_cents: 1000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 1000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+poe_user_2_bal_b:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2) %>
+  date: <%= Date.today - 2 %>
+  amount_cents: 5000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 5000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# u3: only 1000c balance, not enough → not payable
+poe_user_3_bal:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_3) %>
+  date: <%= Date.today - 3 %>
+  amount_cents: 1000
+  state: unpaid
+  currency: usd
+  holding_currency: usd
+  holding_amount_cents: 1000
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_3_stripe_account) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

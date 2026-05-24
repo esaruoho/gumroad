@@ -675,12 +675,12 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/business/payments/payouts/processor/stripe/stripe_payout_processor_test.rb` | 1 |
 | ⬜ | `test/business/payments/payouts/processor/paypal/paypal_payout_processor_test.rb` | 1 |
 | ⬜ | `test/business/payments/payouts/payouts_test.rb` | 1 |
-| ⬜ | `test/business/payments/payouts/payout_estimates_test.rb` | 1 |
+| ✅ | `test/business/payments/payouts/payout_estimates_test.rb` | 1 |
 | ⬜ | `test/business/payments/merchant_registration/stripe/stripe_merchant_account_manager_test.rb` | 1 |
 | ⬜ | `test/business/payments/merchant_registration/stripe/stripe_beneficial_owners_manager_test.rb` | 1 |
 | ⬜ | `test/business/payments/merchant_registration/paypal/paypal_merchant_account_manager_test.rb` | 1 |
-| ⬜ | `test/business/payments/events/stripe/stripe_event_handler_test.rb` | 1 |
-| ⬜ | `test/business/payments/events/paypal/paypal_event_handler_test.rb` | 1 |
+| ✅ | `test/business/payments/events/stripe/stripe_event_handler_test.rb` | 1 |
+| ✅ | `test/business/payments/events/paypal/paypal_event_handler_test.rb` | 1 |
 | ✅ | `test/business/payments/charging/implementations/stripe/stripe_chargeable_token_test.rb` | 0 |
 | ✅ | `test/business/payments/charging/implementations/stripe/stripe_chargeable_payment_method_test.rb` | 0 |
 | ✅ | `test/business/payments/charging/implementations/stripe/stripe_chargeable_credit_card_test.rb` | 0 |

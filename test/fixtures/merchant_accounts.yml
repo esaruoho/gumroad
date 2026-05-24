@@ -86,3 +86,47 @@ payout_info_stripe_account:
   charge_processor_alive_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Stripe-managed (Gumroad-USA-held) merchant accounts for PayoutEstimatesTest.
+# These are NOT Stripe Connect accounts (no json_data meta.stripe_connect=true),
+# so their `holder_of_funds` returns STRIPE via StripeChargeProcessor#holder_of_funds
+# (merchant_account.user present, not stripe_connect).
+payout_estimates_user_0_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_0) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_poe0
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_1_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_1) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_poe1
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_2_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_poe2
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_estimates_user_3_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_3) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_poe3
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -183,3 +183,16 @@ vip_non_completed_payment:
   payout_period_end_date: <%= Date.yesterday %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Completed payment for PoE user 2 to push them over the minimum payout amount.
+poe_user_2_completed_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_estimates_user_2) %>
+  state: completed
+  processor: paypal
+  correlation_id: poe-user-2-completed
+  txn_id: poe-user-2-completed
+  processor_fee_cents: 10
+  amount_cents: 10000
+  payout_period_end_date: <%= Date.today - 1 %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
