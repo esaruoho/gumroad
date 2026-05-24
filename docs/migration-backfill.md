@@ -382,7 +382,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 |---|---|---:|
 | ⬜ | `test/services/workflow/save_installments_service_test.rb` | 1 |
 | ⬜ | `test/services/workflow/manage_service_test.rb` | 1 |
-| ⬜ | `test/services/username_generator_service_test.rb` | 1 |
+| ✅ | `test/services/username_generator_service_test.rb` | 1 |
 | ⬜ | `test/services/user_balance_stats_service_test.rb` | 1 |
 | ⬜ | `test/services/update_user_country_test.rb` | 1 |
 | ⬜ | `test/services/update_payout_method_test.rb` | 1 |
@@ -431,14 +431,14 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/onetime/backfill_license_uses_for_seller_test.rb` | 1 |
 | ⬜ | `test/services/onetime/backfill_inventory_counter_cache_test.rb` | 1 |
 | ⬜ | `test/services/offer_code_discount_computing_service_test.rb` | 1 |
-| ⬜ | `test/services/notion_api_test.rb` | 1 |
+| ✅ | `test/services/notion_api_test.rb` | 1 |
 | ⬜ | `test/services/mailer_attachment_or_link_service_test.rb` | 1 |
 | ⬜ | `test/services/integrations/discord_integration_service_test.rb` | 1 |
 | ⬜ | `test/services/integrations/circle_integration_service_test.rb` | 1 |
 | ⬜ | `test/services/instant_payouts_service_test.rb` | 1 |
 | ⬜ | `test/services/installment_search_service_test.rb` | 1 |
 | ⬜ | `test/services/helper_user_info_service_test.rb` | 1 |
-| ⬜ | `test/services/helper/unblock_email_service_test.rb` | 1 |
+| ✅ | `test/services/helper/unblock_email_service_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_receipt_email_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_installment_email_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_abandoned_cart_email_test.rb` | 1 |
@@ -457,9 +457,9 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/creator_analytics/sales_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/product_page_views_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/churn_test.rb` | 1 |
-| ⬜ | `test/services/creator_analytics/churn/product_scope_test.rb` | 1 |
+| ✅ | `test/services/creator_analytics/churn/product_scope_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/churn/elasticsearch_fetcher_test.rb` | 1 |
-| ⬜ | `test/services/creator_analytics/churn/date_window_test.rb` | 1 |
+| ✅ | `test/services/creator_analytics/churn/date_window_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/caching_proxy_test.rb` | 1 |
 | ⬜ | `test/services/content_moderation/content_extractor_test.rb` | 1 |
 | ⬜ | `test/services/community_chat_recap_generator_service_test.rb` | 1 |
