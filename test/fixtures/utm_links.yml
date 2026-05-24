@@ -1,0 +1,10 @@
+utm_link_for_named_seller:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  title: Test UTM link
+  target_resource_type: profile_page
+  permalink: testperm
+  utm_campaign: spring
+  utm_medium: social
+  utm_source: twitter
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
