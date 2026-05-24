@@ -2,15 +2,18 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/internal/ai_product_details_generations_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 11). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::Internal::AiProductDetailsGenerationsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/internal/ai_product_details_generations_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  test "POST create redirects unauthenticated users to login" do
+    post :create, params: { prompt: "anything" }
+    assert_response :redirect
+    assert_match %r{/login}, response.location
+  end
+
+  test "POST create with no params still redirects unauthenticated users" do
+    post :create
+    assert_response :redirect
+    assert_match %r{/login}, response.location
   end
 end
