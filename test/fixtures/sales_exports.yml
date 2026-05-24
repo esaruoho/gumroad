@@ -1,0 +1,3 @@
+basic_export:
+  recipient_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  query: "---\nbool: {}\n"
