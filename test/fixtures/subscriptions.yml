@@ -15,6 +15,60 @@ basic_user_product_subscription:
   updated_at: <%= Time.current %>
   flags: 0
 
+# Subscriptions for FindExpiredSubscriptionsToSetAsDeactivatedWorkerTest. The
+# worker enqueues SetSubscriptionAsDeactivatedWorker for subscriptions whose
+# cancelled_at/failed_at/ended_at is in the past AND deactivated_at is nil AND
+# is_test_subscription is false.
+
+active_expired_sub_default:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cancelled_future_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  cancelled_at: <%= 1.day.from_now %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cancelled_past_test_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  cancelled_at: <%= 1.day.ago %>
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cancelled_past_deactivated_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  cancelled_at: <%= 1.day.ago %>
+  deactivated_at: <%= 1.hour.ago %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cancelled_past_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  cancelled_at: <%= 1.day.ago %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+failed_past_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  failed_at: <%= 1.day.ago %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ended_past_sub:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  ended_at: <%= 1.day.ago %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Used by Subscriptions::MagicLinkPresenterTest.
 magic_link_subscription:
   link_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_product) %>
