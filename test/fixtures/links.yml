@@ -662,3 +662,63 @@ restartable_regular_product:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Bundle::UpdateProductsServiceTest.
+# bit 26 => is_bundle (2^25 = 33554432)
+bundle_update_products_bundle:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products bundle
+  unique_permalink: bupbund
+  price_cents: 2000
+  purchase_type: 0
+  native_type: bundle
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 33554432
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bundle_update_products_replacement:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products replacement
+  unique_permalink: bupreplc
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bundle_update_products_stale:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products stale
+  unique_permalink: bupstale
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Product::SkusUpdaterServiceTest.
+# bit 8 => is_physical (128), bit 9 => skus_enabled (256). Combined = 384.
+skus_updater_physical_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Skus updater physical product
+  unique_permalink: skusupd
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 384
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
