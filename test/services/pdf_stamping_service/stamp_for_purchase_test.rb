@@ -3,10 +3,24 @@
 require "test_helper"
 
 class PdfStampingService::StampForPurchaseTest < ActiveSupport::TestCase
-  # Sharpened skip-stub.
-  # Original: spec/services/pdf_stamping_service/stamp_for_purchase_spec.rb
-  # Blocker: PDF stamping pipeline (CombinePDF + S3-backed product_files); service downloads files from S3, stamps each page, re-uploads. Requires real MinIO/S3 plus a stamped PDF fixture corpus.
-  test "TODO: migrate spec/services/pdf_stamping_service/stamp_for_purchase_spec.rb" do
-    skip "Fixture-hostile — see top-of-file blocker note"
+  test "exposes a module-level perform! method via `extend self`" do
+    assert PdfStampingService::StampForPurchase.respond_to?(:perform!)
+    # Module methods can also be invoked through the singleton method list.
+    assert_includes PdfStampingService::StampForPurchase.singleton_class.instance_methods, :perform!
   end
+
+  test "perform! short-circuits with nil when the product has no stampable PDFs" do
+    purchase = Object.new
+    link = Object.new
+    link.define_singleton_method(:has_stampable_pdfs?) { false }
+    purchase.define_singleton_method(:link) { link }
+
+    assert_nil PdfStampingService::StampForPurchase.perform!(purchase)
+  end
+
+  # TODO: end-to-end stamping flow downloads each PDF from S3, stamps every
+  # page via CombinePDF, re-uploads, and marks the UrlRedirect done. That
+  # requires real MinIO/S3 plus a stamped-PDF fixture corpus. Out of scope
+  # for the fixture-only Minitest lane. Original:
+  # spec/services/pdf_stamping_service/stamp_for_purchase_spec.rb
 end

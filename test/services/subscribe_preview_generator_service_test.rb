@@ -3,12 +3,24 @@
 require "test_helper"
 
 class SubscribePreviewGeneratorServiceTest < ActiveSupport::TestCase
-  # Sharpened skip-stub.
-  # spec/services/subscribe_preview_generator_service_spec.rb is a Capybara
-  # system test (`type: :system, js: true`) that boots a real Selenium-driven
-  # browser and visits user_subscribe_preview_path to render the page.
-  # The Minitest lane has no Capybara/Selenium harness.
-  test "TODO: migrate spec/services/subscribe_preview_generator_service_spec.rb (Capybara system + Selenium webdriver)" do
-    skip "Capybara/Selenium not available in Minitest lane"
+  test "constants are configured for retina viewport" do
+    assert_equal 2, SubscribePreviewGeneratorService::RETINA_PIXEL_RATIO
+    assert_equal 512, SubscribePreviewGeneratorService::WIDTH
+    assert_equal 128 / 67r, SubscribePreviewGeneratorService::ASPECT_RATIO
+    assert_equal 512 / (128 / 67r), SubscribePreviewGeneratorService::HEIGHT
   end
+
+  test "Chrome args include headless and sandbox flags" do
+    args = SubscribePreviewGeneratorService::CHROME_ARGS
+    assert_includes args, "headless"
+    assert_includes args, "no-sandbox"
+    assert_includes args, "disable-setuid-sandbox"
+    assert_includes args, "disable-dev-shm-usage"
+    assert(args.any? { |a| a.start_with?("force-device-scale-factor=") })
+  end
+
+  # The integration path (generate_pngs) boots a real Selenium-driven Chromium
+  # to render the page, which is the system-spec lane (Capybara/Selenium).
+  # That harness is not wired into the Minitest pass. Original:
+  # spec/services/subscribe_preview_generator_service_spec.rb
 end
