@@ -1,16 +1,62 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/oauth/access_tokens_constroller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 9). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
-class Oauth::AccessTokensConstrollerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/oauth/access_tokens_constroller_spec.rb — controller spec with shared auth/Pundit contexts"
+class Oauth::AccessTokensControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    [@seller, @admin].each { |u| u.save(validate: false) if u.external_id.blank? }
+    sign_in_as_seller(@admin, @seller)
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  def make_app(owner: @seller)
+    OauthApplication.create!(
+      name: "test-app-#{SecureRandom.hex(4)}",
+      redirect_uri: "https://example.com/callback",
+      owner: owner,
+      scopes: "edit_products"
+    )
+  end
+
+  test "POST create creates an access token when user owns the application" do
+    app = make_app
+    assert_difference -> { Doorkeeper::AccessToken.count }, 1 do
+      post :create, params: { application_id: app.external_id, format: :json }
+    end
+    assert_response :success
+    body = JSON.parse(@response.body)
+    assert_equal true, body["success"]
+    assert_equal app.access_tokens.last.token, body["token"]
+  end
+
+  test "POST create returns 404 when user does not own the application" do
+    other = users(:another_seller)
+    other.save(validate: false) if other.external_id.blank?
+    app = make_app(owner: other)
+    assert_no_difference -> { Doorkeeper::AccessToken.count } do
+      post :create, params: { application_id: app.external_id, format: :json }
+    end
+    assert_response :not_found
+    body = JSON.parse(@response.body)
+    assert_equal false, body["success"]
+  end
+
+  test "POST create returns 404 when application has been deleted" do
+    app = make_app
+    app.mark_deleted!
+    assert_no_difference -> { Doorkeeper::AccessToken.count } do
+      post :create, params: { application_id: app.external_id, format: :json }
+    end
+    assert_response :not_found
+    body = JSON.parse(@response.body)
+    assert_equal false, body["success"]
+    assert_equal "Application not found or you don't have the permissions to modify it.", body["message"]
   end
 end

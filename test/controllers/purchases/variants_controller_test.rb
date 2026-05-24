@@ -1,12 +1,37 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (35 FactoryBot refs).
-# Original: spec/controllers/purchases/variants_controller_spec.rb (deleted in this commit; see git history).
-class Purchases::VariantsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/purchases/variants_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/purchases/variants_controller_spec.rb (35 FactoryBot refs) — see comment above"
+class Purchases::VariantsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    @purchase = purchases(:named_seller_call_purchase)
   end
+
+  test "PUT update returns 404 when unauthenticated" do
+    boot_controller_test!
+    put :update, params: { purchase_id: @purchase.external_id, variant_id: "x", quantity: 1 }, format: :json
+    assert_response :not_found
+    body = JSON.parse(@response.body)
+    assert_equal false, body["success"]
+    assert_equal "Not found", body["error"]
+  end
+
+  test "PUT update returns 404 when authenticated as a different user" do
+    other = users(:basic_user)
+    boot_controller_test!
+    sign_in other
+    @request.cookie_jar.encrypted[:current_seller_id] = other.id
+    put :update, params: { purchase_id: @purchase.external_id, variant_id: "x", quantity: 1 }, format: :json
+    assert_response :not_found
+    body = JSON.parse(@response.body)
+    assert_equal false, body["success"]
+  end
+
+  teardown { restore_protect_against_forgery! }
 end

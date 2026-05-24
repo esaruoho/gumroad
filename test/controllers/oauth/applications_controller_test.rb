@@ -1,16 +1,58 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/oauth/applications_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 30). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Oauth::ApplicationsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/oauth/applications_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    [@seller, @admin].each { |u| u.save(validate: false) if u.external_id.blank? }
+    sign_in_as_seller(@admin, @seller)
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET index redirects to settings_advanced_path" do
+    get :index
+    assert_redirected_to settings_advanced_path
+  end
+
+  test "GET new redirects to settings_advanced_path" do
+    get :new
+    assert_redirected_to settings_advanced_path
+  end
+
+  test "POST create creates a new application and redirects to edit" do
+    assert_difference -> { @seller.oauth_applications.count }, 1 do
+      post :create, params: { oauth_application: { name: "appname", redirect_uri: "http://hi" } }
+    end
+    app = OauthApplication.last
+    assert_redirected_to edit_oauth_application_path(app.external_id)
+    assert_equal "Application created.", flash[:notice]
+  end
+
+  test "POST create creates a new application with no affiliate_basis_points" do
+    assert_difference -> { OauthApplication.count }, 1 do
+      post :create, params: { oauth_application: { name: "appname2", redirect_uri: "http://hi" } }
+    end
+    assert_nil OauthApplication.last.affiliate_basis_points
+  end
+
+  test "GET show redirects to edit_oauth_application_path" do
+    app = OauthApplication.create!(name: "showtest", redirect_uri: "https://example.com", owner: @seller, scopes: "edit_products")
+    get :show, params: { id: app.external_id }
+    assert_redirected_to edit_oauth_application_path(app.external_id)
+  end
+
+  test "DELETE destroy marks the application as deleted and redirects" do
+    app = OauthApplication.create!(name: "deltest", redirect_uri: "https://example.com", owner: @seller, scopes: "edit_products")
+    delete :destroy, params: { id: app.external_id }
+    assert_redirected_to settings_advanced_path
+    assert_equal "Application deleted.", flash[:notice]
+    assert app.reload.deleted_at.present?
   end
 end
