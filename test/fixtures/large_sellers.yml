@@ -1,0 +1,14 @@
+# Large sellers for GenerateLargeSellersAnalyticsCacheWorkerTest. Marks two
+# distinct user fixtures as large sellers; the worker iterates User.joins(:large_seller).
+
+large_seller_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  sales_count: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+large_seller_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  sales_count: 200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
