@@ -359,22 +359,22 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/models/concerns/charge/chargeable_test.rb` | 1 |
 | ⬜ | `test/models/concerns/balance/searchable_test.rb` | 1 |
 | ⬜ | `test/models/concerns/attribute_blockable_test.rb` | 1 |
-| ⬜ | `test/models/community_chat_recap_run_test.rb` | 1 |
-| ⬜ | `test/models/commission_test.rb` | 1 |
-| ⬜ | `test/models/comment_test.rb` | 1 |
-| ⬜ | `test/models/collaborator_test.rb` | 1 |
-| ⬜ | `test/models/charge_test.rb` | 1 |
-| ⬜ | `test/models/cart_test.rb` | 1 |
+| ✅ | `test/models/community_chat_recap_run_test.rb` | 1 |
+| ✅ | `test/models/commission_test.rb` | 1 |
+| ✅ | `test/models/comment_test.rb` | 1 |
+| ✅ | `test/models/collaborator_test.rb` | 1 |
+| ✅ | `test/models/charge_test.rb` | 1 |
+| ✅ | `test/models/cart_test.rb` | 1 |
 | ⬜ | `test/models/card_bank_account_test.rb` | 1 |
-| ⬜ | `test/models/call_test.rb` | 1 |
+| ✅ | `test/models/call_test.rb` | 1 |
 | ⬜ | `test/models/call_limitation_info_test.rb` | 1 |
-| ⬜ | `test/models/bundle_product_test.rb` | 1 |
+| ✅ | `test/models/bundle_product_test.rb` | 1 |
 | ⬜ | `test/models/balance_transaction_test.rb` | 1 |
 | ⬜ | `test/models/audience_member_test.rb` | 1 |
-| ⬜ | `test/models/asset_preview_test.rb` | 1 |
-| ⬜ | `test/models/affiliate_test.rb` | 1 |
-| ⬜ | `test/models/affiliate_request_test.rb` | 1 |
-| ⬜ | `test/models/ach_account_test.rb` | 1 |
+| ✅ | `test/models/asset_preview_test.rb` | 1 |
+| ✅ | `test/models/affiliate_test.rb` | 1 |
+| ✅ | `test/models/affiliate_request_test.rb` | 1 |
+| ✅ | `test/models/ach_account_test.rb` | 1 |
 
 ## `test/services/` (99 files, 99 skips)
 

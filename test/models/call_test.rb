@@ -1,13 +1,19 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-# TODO: Migrate from RSpec. This spec was skip-batched during the bulk
-# fixtures-only migration because it has 47 FactoryBot/create references —
-# too coupled to factory chains to convert mechanically. Revisit post-deadline
-# with a manual rewrite using fixtures, or split into smaller test files.
+# TODO: Migrate from RSpec. Call spec (318 LOC, 47 create() refs) needs the
+# `call_product` + `:available_for_a_year` trait (Link + CallLimitationInfo
+# + 7-days-a-week CallAvailability fixtures) plus successful_purchase chain
+# (Purchase via cc_token_chargeable, full validation pass) and Sidekiq job
+# enqueue assertions (ScheduleCallReminderJob, ScheduleSubmitVideoCallUrlReminderJob).
+# `call_product` factory alone wires Link + CallLimitationInfo + 4 sub-rows;
+# multiplied by the calls-on-a-given-date matrix. Out of scope for mechanical
+# model backfill.
 #
-# Original spec: spec/models/call_spec.rb (deleted in this commit; see git history)
+# Original spec: spec/models/call_spec.rb
 class CallTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/models/call_spec.rb (47 FactoryBot refs) — see comment above"
+  test "TODO: migrate — call_product + availability + successful_purchase + Sidekiq" do
+    skip "47 create() refs through call_product (Link + CallLimitationInfo + CallAvailability) + successful_purchase + ScheduleCallReminderJob enqueues. Out of scope for mechanical model backfill."
   end
 end

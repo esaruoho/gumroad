@@ -1,13 +1,18 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-# TODO: Migrate from RSpec. This spec was skip-batched during the bulk
-# fixtures-only migration because it has 80 FactoryBot/create references —
-# too coupled to factory chains to convert mechanically. Revisit post-deadline
-# with a manual rewrite using fixtures, or split into smaller test files.
+# TODO: Migrate from RSpec. Charge spec (530 LOC, 80 create() refs) is
+# `:vcr`-tagged top-level and includes StripeChargesHelper. The whole
+# combined-charge lifecycle (purchase aggregation, refund, dispute) threads
+# through real Stripe Charge / PaymentIntent objects under VCR cassettes
+# that aren't ported to the Minitest harness. Without VCR + StripeChargesHelper
+# every test crashes at charge creation. Out of scope for mechanical model
+# backfill (same family as BalanceTransaction / Charge::Disputable).
 #
-# Original spec: spec/models/charge_spec.rb (deleted in this commit; see git history)
+# Original spec: spec/models/charge_spec.rb
 class ChargeTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/models/charge_spec.rb (80 FactoryBot refs) — see comment above"
+  test "TODO: migrate — :vcr + StripeChargesHelper + combined-charge lifecycle" do
+    skip "Top-level :vcr; 80 create() refs through StripeChargesHelper + Stripe Charge/PaymentIntent + purchase aggregation/refund/dispute. Out of scope for mechanical model backfill."
   end
 end
