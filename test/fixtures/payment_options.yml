@@ -30,3 +30,13 @@ cancel_subs_active_payment_option:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Phantom PO so po_test_validation_subscription passes must_have_payment_option
+# when we flip is_installment_plan.
+po_test_validation_phantom_payment_option:
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:po_test_validation_subscription) %>
+  price_id: <%= ActiveRecord::FixtureSet.identify(:po_test_subscription_product_price) %>
+  product_installment_plan_id: <%= ActiveRecord::FixtureSet.identify(:po_test_installment_plan) %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

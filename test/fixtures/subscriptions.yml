@@ -109,3 +109,19 @@ cancel_subs_active_subscription:
   updated_at: <%= Time.current %>
   flags: 0
 
+
+# Used by PaymentOptionTest. Plain (non-installment-plan) subscription. No payment_options
+# in fixtures — test creates them.
+po_test_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:po_test_subscription_product) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+po_test_validation_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:po_test_subscription_product) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0

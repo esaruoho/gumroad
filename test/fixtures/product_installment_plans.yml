@@ -3,3 +3,12 @@
 # whenever Link is touched (mark_deleted!, update!), which crashes any test that
 # mutates named_seller_product because the plan validation requires
 # link.price_cents >= currency.min_price * number_of_installments.
+
+# Used by PaymentOptionTest only — installment plan attached to po_test_installment_product
+# (price_cents 1000, supports 4 installments at min currency price).
+po_test_installment_plan:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:po_test_installment_product) %>
+  number_of_installments: 4
+  recurrence: monthly
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

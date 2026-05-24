@@ -646,6 +646,37 @@ product_utils_custom_b:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by PaymentOptionTest. Subscription/membership product (is_recurring_billing bit 2 = 2).
+po_test_subscription_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: PaymentOption test sub product
+  unique_permalink: potsub
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by PaymentOptionTest installment-plan branch. Plain digital eligible for installment plan.
+po_test_installment_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: PaymentOption test installment product
+  unique_permalink: potinst
+  price_cents: 1000
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Used by Subscription::RestartableTest. Membership = is_recurring_billing flag bit 2 (= 2).
 restartable_membership_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
