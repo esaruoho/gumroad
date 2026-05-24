@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-# TODO: Migrate from RSpec. 43 FactoryBot refs. Original: spec/services/product_duplicator_service_spec.rb
-# Skip-batched during fixtures-only migration (mig-a) — service specs are Tier 3-4
-# (subscription / purchase / Stripe / Elasticsearch / VCR chains) and require
-# manual rewrite with fixtures post-deadline.
 class ProductDuplicatorServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/services/product_duplicator_service_spec.rb (43 FactoryBot refs)"
+  # Sharpened skip-stub.
+  # Original: spec/services/product_duplicator_service_spec.rb (482 lines, 43 FB refs)
+  # Blocker: Full product clone matrix — VariantCategory + Variant + SKU multi-level,
+  # ShippingDestination, ProductRefundPolicy, product_files via save_files! (S3 URLs),
+  # product_cached_values, installment_plans, asset_previews, integrations. Requires
+  # ~12 net-new fixture tables + S3 URL stubbing + post-clone reload semantics.
+  test "TODO: migrate spec/services/product_duplicator_service_spec.rb" do
+    skip "Fixture-hostile — multi-table product clone (variants/SKUs/shipping/files/policy) + S3"
   end
 end

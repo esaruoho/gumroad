@@ -442,7 +442,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/handle_email_event_info/for_receipt_email_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_installment_email_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_abandoned_cart_email_test.rb` | 1 |
-| ⬜ | `test/services/gdpr_data_erasure_service_test.rb` | 1 |
+| ✅ | `test/services/gdpr_data_erasure_service_test.rb` | 5 |
 | ⬜ | `test/services/gdpr_buyer_erasure_service_test.rb` | 1 |
 | ⬜ | `test/services/follower/create_service_test.rb` | 1 |
 | ⬜ | `test/services/exports/tax_summary/annual_test.rb` | 1 |
