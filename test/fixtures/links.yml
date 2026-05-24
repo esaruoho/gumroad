@@ -767,3 +767,22 @@ sitemap_month_2:
   flags: 0
   created_at: <%= 2.months.ago %>
   updated_at: <%= 1.month.ago %>
+
+# Used by CancelSubscriptionsForProductWorkerTest. Deleted membership product
+# whose active subscriptions should be cancelled on perform.
+cancel_subs_deleted_membership:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Cancel subs deleted membership
+  unique_permalink: csdelmem
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # flag bit 2 (is_recurring_billing = 2)
+  flags: 2
+  deleted_at: <%= 1.day.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -101,3 +101,11 @@ magic_link_subscription:
   updated_at: <%= Time.current %>
   flags: 0
 
+# Used by CancelSubscriptionsForProductWorkerTest.
+cancel_subs_active_subscription:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:cancel_subs_deleted_membership) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+

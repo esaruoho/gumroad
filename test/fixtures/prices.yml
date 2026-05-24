@@ -258,3 +258,12 @@ skus_updater_physical_product_price:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+cancel_subs_deleted_membership_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:cancel_subs_deleted_membership) %>
+  price_cents: 100
+  currency: usd
+  recurrence: monthly
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
