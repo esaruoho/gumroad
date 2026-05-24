@@ -1,16 +1,31 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/collaborators/incomings_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 18). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Collaborators::IncomingsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/collaborators/incomings_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save(validate: false) if @seller.external_id.blank?
+    sign_in_as_seller(@seller)
+    @request.headers["X-Inertia"] = "true"
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET index renders the Collaborators/Incomings/Index inertia component" do
+    get :index
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Collaborators/Incomings/Index", page["component"]
+  end
+
+  test "GET accept returns 404 for non-existent invitation" do
+    assert_raises(ActionController::RoutingError) do
+      put :accept, params: { id: "does-not-exist" }
+    end
   end
 end

@@ -2,11 +2,26 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (40 FactoryBot refs).
-# Original: spec/controllers/utm_links_controller_spec.rb (deleted in this commit; see git history).
-class UtmLinksControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/utm_links_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/utm_links_controller_spec.rb (40 FactoryBot refs) — see comment above"
+class UtmLinksControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "GET index redirects to login when not authenticated" do
+    get :index
+    assert_response :redirect
+  end
+
+  test "POST create redirects to login when not authenticated" do
+    post :create, params: { utm_link: { title: "T" } }
+    assert_response :redirect
   end
 end

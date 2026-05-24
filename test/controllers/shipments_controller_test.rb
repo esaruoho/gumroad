@@ -2,14 +2,21 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. The verify_shipping_address path calls EasyPost's
-# API under VCR cassettes that don't exist in the Minitest harness. The
-# mark_as_shipped paths require fixture purchases tied to a physical product
-# (require_shipping column + native_type physical) with admin-for-seller
-# membership — net-new fixture surface.
-# Original: spec/controllers/shipments_controller_spec.rb.
-class ShipmentsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/shipments_controller_spec.rb" do
-    skip "TODO: EasyPost VCR cassettes + physical purchase fixture surface"
+class ShipmentsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "POST mark_as_shipped redirects to login when not authenticated" do
+    post :mark_as_shipped, params: { purchase_id: "any" }
+    assert_response :redirect
   end
 end

@@ -2,11 +2,26 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (15 FactoryBot refs).
-# Original: spec/controllers/product_review_responses_controller_spec.rb (deleted in this commit; see git history).
-class ProductReviewResponsesControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/product_review_responses_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/product_review_responses_controller_spec.rb (15 FactoryBot refs) — see comment above"
+class ProductReviewResponsesControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "PATCH update redirects to login when not authenticated" do
+    patch :update, params: { id: "any", message: "Thanks" }
+    assert_response :redirect
+  end
+
+  test "DELETE destroy redirects to login when not authenticated" do
+    delete :destroy, params: { id: "any" }
+    assert_response :redirect
   end
 end

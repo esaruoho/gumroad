@@ -1,12 +1,39 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (2 FactoryBot refs).
-# Original: spec/controllers/workflows_controller_spec.rb (deleted in this commit; see git history).
-class WorkflowsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/workflows_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/workflows_controller_spec.rb (2 FactoryBot refs) — see comment above"
+class WorkflowsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save(validate: false) if @seller.external_id.blank?
+    sign_in_as_seller(@seller)
+    @request.headers["X-Inertia"] = "true"
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET index renders the Workflows/Index inertia component" do
+    get :index
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Workflows/Index", page["component"]
+    assert page["props"].key?("workflows")
+  end
+
+  test "GET new renders the Workflows/New inertia component" do
+    get :new
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Workflows/New", page["component"]
+  end
+
+  test "GET edit returns 404 for non-existent workflow" do
+    assert_raises(ActionController::RoutingError) do
+      get :edit, params: { id: "nonexistent-workflow-id" }
+    end
   end
 end

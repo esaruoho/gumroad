@@ -2,11 +2,28 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (6 FactoryBot refs).
-# Original: spec/controllers/purchase_custom_fields_controller_spec.rb (deleted in this commit; see git history).
-class PurchaseCustomFieldsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/purchase_custom_fields_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/purchase_custom_fields_controller_spec.rb (6 FactoryBot refs) — see comment above"
+class PurchaseCustomFieldsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "POST create raises ActiveRecord::RecordNotFound when purchase is missing" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      post :create, params: { purchase_id: "doesnotexist", custom_field_id: "x", value: "v" }
+    end
+  end
+
+  test "POST create requires purchase_id parameter" do
+    assert_raises(ActionController::ParameterMissing) do
+      post :create, params: { custom_field_id: "x", value: "v" }
+    end
   end
 end
