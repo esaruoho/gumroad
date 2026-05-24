@@ -1,0 +1,23 @@
+preorder_failed:
+  preorder_link_id: <%= ActiveRecord::FixtureSet.identify(:preorder_test_link) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: authorization_failed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+preorder_successful:
+  preorder_link_id: <%= ActiveRecord::FixtureSet.identify(:preorder_test_link) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: authorization_successful
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+preorder_charged:
+  preorder_link_id: <%= ActiveRecord::FixtureSet.identify(:preorder_test_link) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: charge_successful
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
