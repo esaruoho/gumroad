@@ -432,11 +432,11 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/onetime/backfill_inventory_counter_cache_test.rb` | 1 |
 | ⬜ | `test/services/offer_code_discount_computing_service_test.rb` | 1 |
 | ✅ | `test/services/notion_api_test.rb` | 1 |
-| ⬜ | `test/services/mailer_attachment_or_link_service_test.rb` | 1 |
+| ✅ | `test/services/mailer_attachment_or_link_service_test.rb` | 1 |
 | ⬜ | `test/services/integrations/discord_integration_service_test.rb` | 1 |
 | ⬜ | `test/services/integrations/circle_integration_service_test.rb` | 1 |
 | ⬜ | `test/services/instant_payouts_service_test.rb` | 1 |
-| ⬜ | `test/services/installment_search_service_test.rb` | 1 |
+| ✅ | `test/services/installment_search_service_test.rb` | 1 |
 | ⬜ | `test/services/helper_user_info_service_test.rb` | 1 |
 | ✅ | `test/services/helper/unblock_email_service_test.rb` | 1 |
 | ⬜ | `test/services/handle_email_event_info/for_receipt_email_test.rb` | 1 |
@@ -451,7 +451,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/exports/audience_export_service_test.rb` | 1 |
 | ⬜ | `test/services/exports/affiliate_export_service_test.rb` | 1 |
 | ✅ | `test/services/expiring_s3_file_service_test.rb` | 1 |
-| ⬜ | `test/services/email_suppression_manager_test.rb` | 1 |
+| ✅ | `test/services/email_suppression_manager_test.rb` | 1 |
 | ⬜ | `test/services/early_fraud_warning/update_service_test.rb` | 1 |
 | ⬜ | `test/services/dispute_evidence/create_from_dispute_service_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/sales_test.rb` | 1 |
@@ -461,7 +461,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/creator_analytics/churn/elasticsearch_fetcher_test.rb` | 1 |
 | ✅ | `test/services/creator_analytics/churn/date_window_test.rb` | 1 |
 | ⬜ | `test/services/creator_analytics/caching_proxy_test.rb` | 1 |
-| ⬜ | `test/services/content_moderation/content_extractor_test.rb` | 1 |
+| ✅ | `test/services/content_moderation/content_extractor_test.rb` | 1 |
 | ⬜ | `test/services/community_chat_recap_generator_service_test.rb` | 1 |
 | ⬜ | `test/services/collaborator/update_service_test.rb` | 1 |
 | ⬜ | `test/services/collaborator/create_service_test.rb` | 1 |
@@ -474,9 +474,9 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/api/v2/sales_summary_test.rb` | 1 |
 | ⬜ | `test/services/admin_search_service_test.rb` | 1 |
 | ⬜ | `test/services/admin_funds_csv_report_service_test.rb` | 1 |
-| ⬜ | `test/services/admin/unreviewed_users_service_test.rb` | 1 |
+| ✅ | `test/services/admin/unreviewed_users_service_test.rb` | 1 |
 | ⬜ | `test/services/admin/scheduled_payout_enrichment_service_test.rb` | 1 |
-| ⬜ | `test/services/admin/related_users_service_test.rb` | 1 |
+| ✅ | `test/services/admin/related_users_service_test.rb` | 1 |
 | ⬜ | `test/services/admin/related_users_service_benchmark_test.rb` | 1 |
 | ✅ | `test/services/abn_validation_service_test.rb` | 1 |
 
