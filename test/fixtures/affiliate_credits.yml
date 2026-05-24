@@ -1,0 +1,13 @@
+# Used by AffiliateCreditTest.
+
+aff_credit_test_partials_credit:
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:aff_credit_test_partials_purchase) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:aff_credit_test_direct_affiliate_per_product) %>
+  basis_points: 1000
+  amount_cents: 50
+  fee_cents: 5
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -61,3 +61,19 @@ affiliate_sorting_aff_3_p3:
   affiliate_basis_points: 1100
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# AffiliateCreditTest: per-product commission of 2000 bps on named_seller_product.
+aff_credit_test_per_product_link:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:aff_credit_test_direct_affiliate_per_product) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  affiliate_basis_points: 2000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# AffiliateCreditTest: apply-to-all-products has no per-product override row.
+aff_credit_test_all_products_link:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:aff_credit_test_direct_affiliate_all_products) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  affiliate_basis_points: 1000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

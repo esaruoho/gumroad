@@ -80,3 +80,23 @@ affiliate_sorting_aff_3:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by AffiliateCreditTest. Direct affiliate for named_seller.
+# flag bit 1 => apply_to_all_products (= 1)
+aff_credit_test_direct_affiliate_per_product:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+aff_credit_test_direct_affiliate_all_products:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  affiliate_basis_points: 1000
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

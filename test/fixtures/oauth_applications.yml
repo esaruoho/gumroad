@@ -23,3 +23,14 @@ notion_app_for_named_seller:
   owner_type: User
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by AffiliateCreditTest.
+aff_credit_test_oauth_app:
+  name: AffCredit OAuth App
+  uid: <%= SecureRandom.hex(20) %>
+  secret: <%= SecureRandom.hex(20) %>
+  redirect_uri: https://foo
+  owner_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  owner_type: User
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

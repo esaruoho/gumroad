@@ -88,3 +88,16 @@ money_balance_user_balance:
   state: unpaid
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by AffiliateCreditTest. Affiliate balance for basic_user.
+aff_credit_test_balance:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_gumroad_stripe_account) %>
+  date: <%= Date.current %>
+  amount_cents: 1000
+  holding_amount_cents: 1000
+  currency: usd
+  holding_currency: usd
+  state: unpaid
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
