@@ -20,7 +20,7 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/presenters/` | 62 | 67 |
 | `test/modules/` | 32 | 32 |
 | `test/business/` | 25 | 25 |
-| `test/mailers/` | 9 | 10 |
+| `test/mailers/` | 0 | 0 |
 | `test/lib/` | 4 | 4 |
 | `test/observers/` | 0 | 0 |
 | `test/helpers/` | 2 | 2 |
@@ -696,19 +696,19 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/business/payments/charging/chargeable_test.rb` | 1 |
 | ⬜ | `test/business/payments/charging/charge_processor_test.rb` | 1 |
 
-## `test/mailers/` (9 files, 10 skips)
+## `test/mailers/` (9 files, 0 skips — all backfilled)
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/mailers/one_off_mailer_test.rb` | 2 |
-| ⬜ | `test/mailers/customer_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/customer_low_priority_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/creator_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/contacting_creator_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/affiliate_request_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/affiliate_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/admin_mailer_test.rb` | 1 |
-| ⬜ | `test/mailers/accounting_mailer_test.rb` | 1 |
+| ✅ | `test/mailers/one_off_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/customer_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/customer_low_priority_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/creator_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/contacting_creator_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/affiliate_request_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/affiliate_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/admin_mailer_test.rb` | 0 |
+| ✅ | `test/mailers/accounting_mailer_test.rb` | 0 |
 
 ## `test/lib/` (6 files, 6 skips)
 
@@ -751,5 +751,4 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 
 | Status | File | Skips |
 |---|---|---:|
-| ⬜ | `test/factory_bot_linting_test.rb` | 1 |
 

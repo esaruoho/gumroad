@@ -74,11 +74,34 @@ class OneOffMailerTest < ActionMailer::TestCase
   end
 
   test "email uses default sender_domain (customers) when sender_domain not provided" do
-    skip "deliver_now path requires built email.scss asset (premailer); covered by integration runs"
+    captured_domains = []
+    original = MailerInfo.method(:random_delivery_method_options)
+    MailerInfo.define_singleton_method(:random_delivery_method_options) do |**kwargs|
+      captured_domains << kwargs[:domain]
+      original.call(**kwargs)
+    end
+    begin
+      OneOffMailer.email(email: @email, subject: @subject, body: @body).message
+    ensure
+      MailerInfo.define_singleton_method(:random_delivery_method_options, original)
+    end
+    assert_equal [:customers], captured_domains
   end
 
   test "email uses custom sender_domain when sender_domain provided" do
-    skip "deliver_now path requires built email.scss asset (premailer); covered by integration runs"
+    captured_domains = []
+    original = MailerInfo.method(:random_delivery_method_options)
+    MailerInfo.define_singleton_method(:random_delivery_method_options) do |**kwargs|
+      captured_domains << kwargs[:domain]
+      original.call(**kwargs)
+    end
+    custom_from = "Custom Name <custom@#{CREATOR_CONTACTING_CUSTOMERS_MAIL_DOMAIN}>"
+    begin
+      OneOffMailer.email(email: @email, subject: @subject, body: @body, from: custom_from, sender_domain: "creators").message
+    ensure
+      MailerInfo.define_singleton_method(:random_delivery_method_options, original)
+    end
+    assert_equal [:creators], captured_domains
   end
 
   # #email_using_installment

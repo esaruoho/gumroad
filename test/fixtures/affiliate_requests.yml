@@ -1,0 +1,31 @@
+pending_request_to_named_seller:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Aspiring Affiliate
+  email: aspiring-affiliate@example.com
+  promotion_text: I will promote your products to my newsletter audience.
+  state: created
+  locale: en
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+approved_request_to_named_seller:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Approved Affiliate
+  email: approved-affiliate@example.com
+  promotion_text: I have an audience interested in your work.
+  state: approved
+  state_transitioned_at: <%= Time.current %>
+  locale: en
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ignored_request_to_named_seller:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Ignored Affiliate
+  email: ignored-affiliate@example.com
+  promotion_text: I would love to be an affiliate.
+  state: ignored
+  state_transitioned_at: <%= Time.current %>
+  locale: en
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -20,3 +20,13 @@ bare_scheduled_payout:
   payout_amount_cents: 2000
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+chargeback_hold_scheduled_payout:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:scheduled_payout_seller) %>
+  action: payout
+  status: pending
+  delay_days: 0
+  scheduled_at: <%= Time.current %>
+  payout_amount_cents: 1500
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

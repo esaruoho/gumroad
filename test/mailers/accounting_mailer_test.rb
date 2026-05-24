@@ -90,10 +90,24 @@ class AccountingMailerTest < ActionMailer::TestCase
 
   # --- #email_outstanding_balances_csv --------------------------------------
 
-  test "email_outstanding_balances_csv: TODO migrate factory-heavy block" do
-    # Original spec built 5 users + 6 Balance rows + 2 bank_accounts + merchant_account
-    # to assert the html totals. Skip-batched — needs a dedicated fixtures pass.
-    skip "TODO: migrate email_outstanding_balances_csv test (requires Balance/BankAccount/MerchantAccount fixtures)"
+  test "email_outstanding_balances_csv goes to payments and accounting, has zeroed totals when no users" do
+    original = User.method(:holding_non_zero_balance)
+    User.define_singleton_method(:holding_non_zero_balance) { User.none }
+    begin
+      mail = AccountingMailer.email_outstanding_balances_csv
+      assert_equal [ApplicationMailer::PAYMENTS_EMAIL], mail.to
+      assert_equal %w[solson@earlygrowthfinancialservices.com ndelgado@earlygrowthfinancialservices.com], mail.cc
+      assert_equal "Outstanding balances", mail.subject
+      html_part = mail.body.parts.find { |p| p.content_type.include?("html") }
+      body = html_part.body.to_s
+      assert_includes body, "Total Outstanding Balances for Paypal: Active $0.0, Suspended $0.0"
+      assert_includes body, "Total Outstanding Balances for Stripe(Held by Gumroad): Active $0.0, Suspended $0.0"
+      assert_includes body, "Total Outstanding Balances for Stripe(Held by Stripe): Active $0.0, Suspended $0.0"
+      assert_equal 1, mail.attachments.length
+      assert_equal "outstanding_balances.csv", mail.attachments[0].filename
+    ensure
+      User.define_singleton_method(:holding_non_zero_balance, original)
+    end
   end
 
   # --- #us_states_sales_summary_report_failed --------------------------------
