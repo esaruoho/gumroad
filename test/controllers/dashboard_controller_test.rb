@@ -2,14 +2,26 @@
 
 require "test_helper"
 
-# Partial migration: DashboardController#index drives CreatorAnalytics through
-# `CreatorAnalytics::ProductPageViews#paginate` which iterates over ES response
-# `aggregations["per_product"]["buckets"]`. The global EsClient stub returns no
-# aggregations, so the dashboard load crashes before reaching the inertia render
-# path. Asserting on success needs a live ES cluster or a heavy stub layer that
-# replaces both Sales aggregations and product-page-view aggregations.
 class DashboardControllerTest < ActionController::TestCase
-  test "TODO: migrate spec/controllers/dashboard_controller_spec.rb" do
-    skip "TODO: CreatorAnalytics::ProductPageViews ES buckets — see comment above"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "GET customers_count returns 404 JSON when not authenticated" do
+    get :customers_count, format: :json
+    assert_response :not_found
+  end
+
+  test "GET total_revenue returns 404 JSON when not authenticated" do
+    get :total_revenue, format: :json
+    assert_response :not_found
   end
 end

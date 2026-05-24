@@ -1,14 +1,32 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Spec was deleted in commit c9c93ee5 during the
-# big RSpec->Minitest cutover; original at spec/controllers/bundles/content_controller_spec.rb.
-#
-# Sharpened skip-stub reason (see PR #5257 batch A):
-#   Requires `index_model_records(Purchase)` (ES helper not loaded in Minitest harness), `:eligible_for_service_products` user trait, `:bundle` Link trait with bundle_products pre-attached, and `:product_with_digital_versions` for variant assertions. Worth ~10 net-new fixture rows + ES indexing — defer to dedicated bundles PR.
-class Bundles::ContentControllerTest < ActiveSupport::TestCase
-  test "TODO migrate — fixture-hostile (see class comment for concrete blockers)" do
-    skip "TODO migrate — see class-level comment above for concrete blockers"
+class Bundles::ContentControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save(validate: false) if @seller.external_id.blank?
+    @bundle = links(:bundle_update_products_bundle)
+    sign_in_as_seller(@seller)
+    @request.headers["X-Inertia"] = "true"
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET edit renders the Bundles/Content/Edit inertia component" do
+    get :edit, params: { bundle_id: @bundle.external_id }
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Bundles/Content/Edit", page["component"]
+  end
+
+  test "GET edit raises RoutingError for non-existent bundle" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      get :edit, params: { bundle_id: "does-not-exist" }
+    end
   end
 end

@@ -2,11 +2,27 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (47 FactoryBot refs).
-# Original: spec/controllers/posts_controller_spec.rb (deleted in this commit; see git history).
-class PostsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/posts_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/posts_controller_spec.rb (47 FactoryBot refs) — see comment above"
+class PostsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @orig_protect = ActionController::Base.instance_method(:protect_against_forgery?)
+    ActionController::Base.define_method(:protect_against_forgery?) { false }
+  end
+
+  teardown do
+    ActionController::Base.define_method(:protect_against_forgery?, @orig_protect) if @orig_protect
+  end
+
+  test "POST send_for_purchase redirects to login when not authenticated" do
+    post :send_for_purchase, params: { id: "x", purchase_id: "y" }
+    assert_response :redirect
+  end
+
+  test "POST increment_post_views raises 404 for unknown post id" do
+    assert_raises(ActionController::RoutingError) do
+      post :increment_post_views, params: { id: "does-not-exist" }
+    end
   end
 end

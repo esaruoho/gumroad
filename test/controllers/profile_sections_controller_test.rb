@@ -1,12 +1,37 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (17 FactoryBot refs).
-# Original: spec/controllers/profile_sections_controller_spec.rb (deleted in this commit; see git history).
-class ProfileSectionsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/profile_sections_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/profile_sections_controller_spec.rb (17 FactoryBot refs) — see comment above"
+class ProfileSectionsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save(validate: false) if @seller.external_id.blank?
+    sign_in_as_seller(@seller)
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "POST create returns 422 with errors when type is missing" do
+    post :create, params: { header: "Hi" }, as: :json
+    assert_response :unprocessable_entity
+    body = JSON.parse(@response.body)
+    assert body.key?("error")
+  end
+
+  test "POST create returns 422 with invalid section type" do
+    post :create, params: { type: "InvalidType", header: "Hi" }, as: :json
+    assert_response :unprocessable_entity
+    body = JSON.parse(@response.body)
+    assert_equal "Invalid section type", body["error"]
+  end
+
+  test "PATCH update returns 404 when section not found" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      patch :update, params: { id: "does-not-exist", header: "Hi" }, as: :json
+    end
   end
 end
