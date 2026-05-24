@@ -310,3 +310,36 @@ zoom_integration_deleted_pi_product_price:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+variant_price_test_membership_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:variant_price_test_membership_product) %>
+  price_cents: 100
+  currency: usd
+  recurrence: monthly
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+abandoned_cart_product_1_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_1) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+abandoned_cart_product_2_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+abandoned_cart_archived_product_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_archived_product) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0

@@ -7,6 +7,26 @@ integrations_test_variant_v1:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Tier variant for the variant_price_test membership product.
+variant_price_test_tier:
+  variant_category_id: <%= ActiveRecord::FixtureSet.identify(:variant_price_test_tier_category) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:variant_price_test_membership_product) %>
+  name: Untitled
+  type: Variant
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Standalone variant for VariantPriceTest (non-membership / non-default recurrence checks).
+variant_price_test_standalone_variant:
+  variant_category_id: <%= ActiveRecord::FixtureSet.identify(:variant_price_test_standalone_category) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  name: standalone
+  type: Variant
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 # Default Sku for Product::SkusUpdaterServiceTest.
 # bit 1 => is_default_sku (1).
 skus_updater_default_sku:
@@ -15,5 +35,23 @@ skus_updater_default_sku:
   type: Sku
   price_difference_cents: 0
   flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+abandoned_cart_product_2_variant_1:
+  variant_category_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2_versions_category) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2) %>
+  name: Product 2 - Version 1
+  type: Variant
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+abandoned_cart_product_2_variant_2:
+  variant_category_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2_versions_category) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2) %>
+  name: Product 2- Version 2
+  type: Variant
+  flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>

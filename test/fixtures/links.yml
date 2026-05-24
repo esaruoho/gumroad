@@ -1052,3 +1052,62 @@ review_stat_test_product_d:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Membership product for VariantPriceTest. Flags:
+#   bit 2 => is_recurring_billing (2^1 = 2)
+#   bit 19 => is_tiered_membership (2^18 = 262144)
+# Total: 262146
+variant_price_test_membership_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: VariantPriceTest membership product
+  unique_permalink: vptmem
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  filetype: link
+  filegroup: url
+  subscription_duration: monthly
+  flags: 262146
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Products for Workflow::AbandonedCartProductsTest.
+abandoned_cart_product_1:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_seller) %>
+  name: Product 1
+  unique_permalink: acp1
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+abandoned_cart_product_2:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_seller) %>
+  name: Product 2
+  unique_permalink: acp2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# bit 5 => archived (2^4 = 16)
+abandoned_cart_archived_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_seller) %>
+  name: Archived product
+  unique_permalink: acparchived
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  flags: 16
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

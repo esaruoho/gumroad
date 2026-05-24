@@ -2,3 +2,22 @@ integrations_test_versions_category:
   link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
   title: versions
   flags: 0
+
+# Tier category for the variant_price_test membership product (title must be
+# "Tier" so it's selected by Link#tier_categories scope).
+variant_price_test_tier_category:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:variant_price_test_membership_product) %>
+  title: Tier
+  flags: 0
+
+# A non-tier variant category on a non-membership product for tests that only
+# need a Variant without it being a default-recurrence tier.
+variant_price_test_standalone_category:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  title: versions
+  flags: 0
+
+abandoned_cart_product_2_versions_category:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:abandoned_cart_product_2) %>
+  title: versions
+  flags: 0
