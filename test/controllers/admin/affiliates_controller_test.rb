@@ -2,15 +2,26 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/admin/affiliates_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 13). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Admin::AffiliatesControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/admin/affiliates_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @admin = users(:admin_user)
+    sign_in @admin
+  end
+
+  test "inherits from Admin::BaseController" do
+    assert_includes Admin::AffiliatesController.ancestors, Admin::BaseController
+  end
+
+  test "GET index with query renders successfully" do
+    get :index, params: { query: "nobody@nowhere.example" }
+    assert_response :success
+  end
+
+  test "GET show raises RoutingError (404) when no matching affiliate user" do
+    assert_raises(ActionController::RoutingError) do
+      get :show, params: { external_id: "definitely-not-a-real-id" }
+    end
   end
 end

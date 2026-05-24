@@ -2,13 +2,21 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Spec was deleted in commit c9c93ee5 during the
-# big RSpec->Minitest cutover; original at spec/controllers/signup_controller_spec.rb.
-#
-# Sharpened skip-stub reason (see PR #5257 batch A):
-#   Heavy auth/recaptcha/HTTPS Devise signup flow (~503 lines, 34 FB refs). Spec uses InvitesService, OAuth, social provider stubs, FollowMailer/ActionMailer assertions, Twitter/Facebook auth, recaptcha bypass. Needs WebMock for api.pwnedpasswords, recaptcha stubs, multi-format Devise routing — defer to a focused signup-flow PR.
-class SignupControllerTest < ActiveSupport::TestCase
-  test "TODO migrate — fixture-hostile (see class comment for concrete blockers)" do
-    skip "TODO migrate — see class-level comment above for concrete blockers"
+class SignupControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+  end
+
+  test "GET new renders the signup page" do
+    get :new
+    assert_response :success
+  end
+
+  test "GET new with /oauth/authorize next param sets noindex header" do
+    get :new, params: { next: "/oauth/authorize?client_id=foo" }
+    assert_response :success
+    assert_equal "noindex", @response.headers["X-Robots-Tag"]
   end
 end

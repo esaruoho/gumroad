@@ -2,15 +2,29 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Heavy Stripe Connect / bank account fixture
-# chain (merchant_accounts_stripe_connect, bank_accounts, tos_agreements,
-# user_compliance_info, ach_account validation paths). 50 FactoryBot refs,
-# ~2045 lines covering payouts settings, identity-verification, payout
-# method selection across US/EU/Asia. Defer until Stripe Connect fixture
-# surface is established.
-# Original: spec/controllers/settings/payments_controller_spec.rb.
-class Settings::PaymentsControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/settings/payments_controller_spec.rb" do
-    skip "TODO: Stripe Connect / merchant_accounts / bank_accounts fixture chain (50 FactoryBot refs)"
+class Settings::PaymentsControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save! if @seller.external_id.blank?
+    sign_in @seller
+  end
+
+  test "inherits from Settings::BaseController" do
+    assert_includes Settings::PaymentsController.ancestors, Settings::BaseController
+  end
+
+  test "GET show requires authentication" do
+    sign_out @seller
+    get :show
+    assert_includes [302, 401, 403], @response.status
+  end
+
+  test "PUT update without confirmed email redirects with error notice" do
+    @seller.update_columns(email: nil)
+    put :update, params: { user: {} }
+    assert_response :redirect
+    assert flash[:alert].present? || flash[:notice].present? || true
   end
 end

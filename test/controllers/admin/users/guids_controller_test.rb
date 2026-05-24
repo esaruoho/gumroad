@@ -2,15 +2,23 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/admin/users/guids_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 17). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Admin::Users::GuidsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/admin/users/guids_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @admin = users(:admin_user)
+    @user = users(:named_seller)
+    @user.save! if @user.external_id.blank?
+    sign_in @admin
+  end
+
+  test "inherits from Admin::Users::BaseController" do
+    assert_includes Admin::Users::GuidsController.ancestors, Admin::Users::BaseController
+  end
+
+  test "GET index returns an empty array when user has no events" do
+    get :index, params: { user_external_id: @user.external_id }, format: :json
+    assert_response :success
+    assert_equal [], response.parsed_body
   end
 end

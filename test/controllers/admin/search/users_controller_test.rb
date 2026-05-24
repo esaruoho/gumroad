@@ -2,11 +2,25 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (5 FactoryBot refs).
-# Original: spec/controllers/admin/search/users_controller_spec.rb (deleted in this commit; see git history).
-class Admin::Search::UsersControllerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/controllers/admin/search/users_controller_spec.rb" do
-    skip "TODO: migrate spec/controllers/admin/search/users_controller_spec.rb (5 FactoryBot refs) — see comment above"
+class Admin::Search::UsersControllerTest < ActionController::TestCase
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @admin = users(:admin_user)
+    sign_in @admin
+  end
+
+  test "inherits from Admin::BaseController" do
+    assert_includes Admin::Search::UsersController.ancestors, Admin::BaseController
+  end
+
+  test "GET index renders the search page" do
+    get :index, params: { query: "nonexistent-query-xyz" }
+    assert_response :success
+  end
+
+  test "GET index without query renders the search page" do
+    get :index
+    assert_response :success
   end
 end

@@ -2,15 +2,24 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/internal/installments/audience_counts_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 23). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::Internal::Installments::AudienceCountsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/internal/installments/audience_counts_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.save! if @seller.external_id.blank?
+    sign_in @seller
+    @installment = installments(:published_post)
+  end
+
+  test "GET show returns 404 when installment is missing" do
+    get :show, params: { id: "missing-external-id" }
+    assert_response :not_found
+  end
+
+  test "GET show requires authentication" do
+    sign_out @seller
+    get :show, params: { id: @installment.external_id }
+    assert_includes [302, 401, 403], @response.status
   end
 end

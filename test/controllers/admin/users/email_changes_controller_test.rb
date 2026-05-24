@@ -2,15 +2,25 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/admin/users/email_changes_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 3). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Admin::Users::EmailChangesControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/admin/users/email_changes_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @admin = users(:admin_user)
+    @user = users(:named_seller)
+    @user.save! if @user.external_id.blank?
+    sign_in @admin
+  end
+
+  test "inherits from Admin::BaseController" do
+    assert_includes Admin::Users::EmailChangesController.ancestors, Admin::BaseController
+  end
+
+  test "GET index returns email_changes payload as JSON" do
+    get :index, params: { user_external_id: @user.external_id }, format: :json
+    assert_response :success
+    body = response.parsed_body
+    assert_kind_of Array, body["email_changes"]
+    assert_equal %w(email payment_address), body["fields"]
   end
 end
