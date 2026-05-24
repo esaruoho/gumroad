@@ -18,3 +18,46 @@ widget_user_direct_affiliate_link:
   link_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_product) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Affiliate::SortingTest. fee_percent test relies on per-row basis points set in test setup.
+affiliate_sorting_aff_1_p1:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_1) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_1) %>
+  affiliate_basis_points: 3000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_2_p1:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_2) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_1) %>
+  affiliate_basis_points: 2000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_2_p2:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_2) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_2) %>
+  affiliate_basis_points: 2100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_2_p3:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_2) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_3) %>
+  affiliate_basis_points: 2200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_3_p1:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_3) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_1) %>
+  affiliate_basis_points: 1000
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_3_p3:
+  affiliate_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_aff_3) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_product_3) %>
+  affiliate_basis_points: 1100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

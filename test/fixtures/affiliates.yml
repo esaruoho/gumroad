@@ -52,3 +52,31 @@ widget_user_direct_affiliate:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Affiliate::SortingTest. 3 affiliates linked to different product sets.
+affiliate_sorting_aff_1:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_user_1) %>
+  affiliate_basis_points: 0
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_2:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_user_2) %>
+  affiliate_basis_points: 0
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_aff_3:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:affiliate_sorting_user_3) %>
+  affiliate_basis_points: 0
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

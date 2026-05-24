@@ -1017,3 +1017,106 @@ vip_non_completed_user:
   recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by User::AsJsonTest
+as_json_user:
+  email: as-json-user@example.com
+  name: Gumbot
+  username: asjsonuser
+  payment_address: as-json-user-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+as_json_user_with_bio:
+  email: as-json-user-bio@example.com
+  name: Gumbot
+  username: asjsonbio
+  bio: A short bio
+  payment_address: as-json-user-bio-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+as_json_user_with_twitter:
+  email: as-json-user-twitter@example.com
+  name: Gumbot
+  username: asjsontwitter
+  twitter_handle: gumbot
+  payment_address: as-json-user-twitter-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by User::PayoutInfoTest. flag bit for payouts_paused_internally = 524288.
+payout_info_user:
+  email: payout-info-user@example.com
+  username: payoutinfouser
+  payment_address: test@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  flags: 524288
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Affiliate::SortingTest.
+affiliate_sorting_seller:
+  email: aff-sort-seller@example.com
+  username: affsortseller
+  payment_address: aff-sort-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_user_1:
+  email: aff-sort-1@example.com
+  name: aff1
+  username: affsortuser1
+  external_id: "affsortext1"
+  payment_address: aff-sort-1@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_user_2:
+  email: aff-sort-2@example.com
+  name: aff2
+  username: affsortuser2
+  external_id: "affsortext2"
+  payment_address: aff-sort-2@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+affiliate_sorting_user_3:
+  email: aff-sort-3@example.com
+  name: aff3
+  username: affsortuser3
+  external_id: "affsortext3"
+  payment_address: aff-sort-3@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

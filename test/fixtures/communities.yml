@@ -28,3 +28,11 @@ bubbles_app_community:
   resource_id: <%= ActiveRecord::FixtureSet.identify(:bubbles_app_product) %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by LastReadCommunityChatMessageTest — isolated community with no seed messages.
+last_read_test_community:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:analytics_alive_product) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

@@ -75,3 +75,14 @@ money_balance_stripe_account:
   charge_processor_alive_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by User::PayoutInfoTest.
+payout_info_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_info_user) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_payout_info
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

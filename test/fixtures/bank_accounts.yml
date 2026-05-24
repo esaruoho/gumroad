@@ -8,3 +8,14 @@ basic_ach_account:
   account_type: checking
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by User::PayoutInfoTest. UkBankAccount STI.
+payout_info_uk_bank_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_info_user) %>
+  type: UkBankAccount
+  bank_number: "06-21-11"
+  account_number_last_four: "4567"
+  account_holder_full_name: "Gumbot Gumstein I"
+  country: GB
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
