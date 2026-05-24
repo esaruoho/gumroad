@@ -14,7 +14,6 @@ class SendWorkflowPostEmailsJob
 
     @filters = @post.audience_members_filter_params
     @filters[:created_after] = Time.zone.parse(earliest_valid_time) if earliest_valid_time
-    Makara::Context.release_all
     @members = AudienceMember.filter(seller_id: @post.seller_id, params: @filters, with_ids: true).
       select(:id, :email, :details, :purchase_id, :follower_id, :affiliate_id).to_a
 
