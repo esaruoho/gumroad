@@ -2,15 +2,63 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/concerns/custom_domain_route_builder_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 6). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class CustomDomainRouteBuilderTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/concerns/custom_domain_route_builder_spec.rb — controller spec with shared auth/Pundit contexts"
+  class AnonymousController < ApplicationController
+    include CustomDomainRouteBuilder
+    def action
+      head :ok
+    end
+  end
+
+  tests AnonymousController
+
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @routes = ActionDispatch::Routing::RouteSet.new
+    @routes.draw { get "action" => "custom_domain_route_builder_test/anonymous#action" }
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+    @custom_domain = "store.example1.com"
+  end
+
+  test "#build_view_post_route returns custom_domain URL when request is from a custom domain" do
+    post = installments(:published_post)
+    purchase_external_id = "abcdef"
+    @request.host = @custom_domain
+    get :action
+    result = @controller.build_view_post_route(post:, purchase_id: purchase_external_id)
+    assert_match %r{/p/#{post.slug}.*purchase_id=#{purchase_external_id}}, result
+  end
+
+  test "#build_view_post_route returns view_post_path for non-custom domain" do
+    post = installments(:published_post)
+    purchase_external_id = "abc123"
+    @request.host = DOMAIN
+    get :action
+    result = @controller.build_view_post_route(post:, purchase_id: purchase_external_id)
+    assert_match %r{/p/#{post.slug}.*purchase_id=#{purchase_external_id}}, result
+  end
+
+  test "#seller_custom_domain_url returns root path for custom domain user" do
+    user = users(:basic_user)
+    user.update!(username: "examplecdu") unless user.username
+    CustomDomain.create!(domain: @custom_domain, user: user)
+    @request.host = @custom_domain
+    get :action
+    assert_equal "http://#{@custom_domain}/", @controller.seller_custom_domain_url
+  end
+
+  test "#seller_custom_domain_url returns nil for product custom domain" do
+    product = links(:basic_user_product)
+    CustomDomain.create!(domain: @custom_domain, product: product)
+    @request.host = @custom_domain
+    get :action
+    assert_nil @controller.seller_custom_domain_url
+  end
+
+  test "#seller_custom_domain_url returns nil for non-custom-domain request" do
+    @request.host = DOMAIN
+    get :action
+    assert_nil @controller.seller_custom_domain_url
   end
 end

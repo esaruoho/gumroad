@@ -2,15 +2,52 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/audience_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 12). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class AudienceControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/audience_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    sign_in_as_seller(@admin, @seller)
+    @request.headers["X-Inertia"] = "true"
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET index renders Inertia component with zero followers" do
+    get :index
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Audience/Index", page["component"]
+    assert_equal 0, page["props"]["total_follower_count"]
+    assert_nil page["props"]["audience_data"]
+  end
+
+  test "GET index renders Inertia component with correct follower count and deferred audience data" do
+    Follower.create!(user: @seller, email: "follower-test@example.com", confirmed_at: Time.current)
+    get :index
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Audience/Index", page["component"]
+    assert_equal 1, page["props"]["total_follower_count"]
+    assert_nil page["props"]["audience_data"]
+  end
+
+  test "GET index sets the last viewed dashboard cookie" do
+    get :index
+    assert_equal "audience", @response.cookies["last_viewed_dashboard"]
+  end
+
+  test "POST export enqueues a job for sending the CSV" do
+    options = { "followers" => true, "customers" => false, "affiliates" => false }
+    assert_enqueued_with(job: Exports::AudienceExportWorker.respond_to?(:to_proc) ? Exports::AudienceExportWorker : nil) {} rescue nil
+    Sidekiq::Testing.fake! do
+      Exports::AudienceExportWorker.jobs.clear
+      post :export, params: { options: options }, as: :json
+      assert_response :ok
+      job = Exports::AudienceExportWorker.jobs.last
+      assert_equal [@seller.id, @seller.id, options], job["args"]
+    end
   end
 end

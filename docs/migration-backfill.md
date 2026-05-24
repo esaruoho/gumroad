@@ -64,7 +64,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/tax_center_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/subscriptions_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/subscriptions/magic_links_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/stripe/setup_intents_controller_test.rb` | 1 |
+| ✅ | `test/controllers/stripe/setup_intents_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/signup_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/shipments_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/settings/totp_controller_test.rb` | 1 |
@@ -83,7 +83,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/settings/beneficial_owners_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/settings/authorized_applications_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/settings/advanced_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/sellers/switch_controller_test.rb` | 1 |
+| ✅ | `test/controllers/sellers/switch_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/sellers/base_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/s3_utility_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/reviews_controller_test.rb` | 1 |
@@ -137,7 +137,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/gumroad_blog/posts_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/global_affiliates/product_eligibility_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/foreign_webhooks_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/followers_controller_test.rb` | 1 |
+| ✅ | `test/controllers/followers_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/emails_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/dropbox_files_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/discover_controller_test.rb` | 1 |
@@ -147,14 +147,14 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/customer_surcharge_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/custom_domain/verifications_controller_test.rb` | 1 |
 | ✅ | `test/controllers/consumption_analytics_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/connections_controller_test.rb` | 1 |
+| ✅ | `test/controllers/connections_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/concerns/utm_link_tracking_test.rb` | 1 |
 | ⬜ | `test/controllers/concerns/two_factor_authentication_validator_test.rb` | 1 |
 | ⬜ | `test/controllers/concerns/pundit_authorization_test.rb` | 1 |
-| ⬜ | `test/controllers/concerns/impersonate_test.rb` | 1 |
-| ⬜ | `test/controllers/concerns/custom_domain_route_builder_test.rb` | 1 |
+| ✅ | `test/controllers/concerns/impersonate_test.rb` | 1 |
+| ✅ | `test/controllers/concerns/custom_domain_route_builder_test.rb` | 1 |
 | ⬜ | `test/controllers/concerns/current_seller_test.rb` | 1 |
-| ⬜ | `test/controllers/concerns/current_api_user_test.rb` | 1 |
+| ✅ | `test/controllers/concerns/current_api_user_test.rb` | 1 |
 | ⬜ | `test/controllers/communities_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/communities/notification_settings_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/communities/last_read_chat_messages_controller_test.rb` | 1 |
@@ -177,7 +177,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/bundles/content_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/braintree_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/balance_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/audience_controller_test.rb` | 1 |
+| ✅ | `test/controllers/audience_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/asset_previews_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/application_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/api/v2/variants_controller_test.rb` | 1 |
@@ -234,7 +234,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/controllers/api/internal/admin/payouts_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/api/internal/admin/base_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/api/internal/admin/auth_controller_test.rb` | 1 |
-| ⬜ | `test/controllers/analytics_controller_test.rb` | 1 |
+| ✅ | `test/controllers/analytics_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/affiliates_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/affiliate_requests_controller_test.rb` | 1 |
 | ⬜ | `test/controllers/affiliate_requests/onboarding_form_controller_test.rb` | 1 |

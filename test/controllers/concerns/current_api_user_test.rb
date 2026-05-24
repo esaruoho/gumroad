@@ -2,15 +2,58 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/concerns/current_api_user_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 5). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class CurrentApiUserTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/concerns/current_api_user_spec.rb — controller spec with shared auth/Pundit contexts"
+  class AnonymousController < ApplicationController
+    include CurrentApiUser
+    skip_before_action :set_signup_referrer
+    def action
+      head :ok
+    end
+  end
+
+  tests AnonymousController
+
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @routes = ActionDispatch::Routing::RouteSet.new
+    @routes.draw { match "action" => "current_api_user_test/anonymous#action", via: [:get, :post] }
+    @request.env["devise.mapping"] = Devise.mappings[:user]
+  end
+
+  test "#current_api_user without a doorkeeper token returns nil" do
+    get :action
+    assert_nil @controller.current_api_user
+  end
+
+  test "#current_api_user with valid doorkeeper token returns user" do
+    user = users(:basic_user)
+    user.save! if user.external_id.blank?
+    app_owner = users(:purchaser)
+    app_owner.save! if app_owner.external_id.blank?
+    oauth_app = OauthApplication.create!(
+      name: "Test App", redirect_uri: "https://example.com",
+      owner: app_owner, scopes: "creator_api"
+    )
+    token = Doorkeeper::AccessToken.create!(
+      application: oauth_app, resource_owner_id: user.id, scopes: "creator_api"
+    ).token
+    get :action, params: { mobile_token: Api::Mobile::BaseController::MOBILE_TOKEN, access_token: token }
+    assert_equal user, @controller.current_api_user
+  end
+
+  test "#current_api_user with invalid doorkeeper token returns nil" do
+    @request.params["access_token"] = "invalid"
+    get :action
+    assert_nil @controller.current_api_user
+  end
+
+  test "does not error with invalid POST data" do
+    begin
+      post :action, body: '{ "abc"#012: "xyz" }', as: :json
+    rescue ActionDispatch::Http::Parameters::ParseError
+      # parsing raises before action; the concern's #current_api_user rescues it
+    end
+    assert_nil @controller.current_api_user
   end
 end

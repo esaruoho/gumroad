@@ -2,15 +2,37 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/connections_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 5). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class ConnectionsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/connections_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @seller.twitter_user_id = "123"
+    @seller.twitter_handle = "gumroad"
+    @seller.save!
+    sign_in_as_seller(@seller)
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "POST unlink_twitter unsets all twitter properties" do
+    post :unlink_twitter
+    @seller.reload
+    User::SocialTwitter::TWITTER_PROPERTIES.each do |property|
+      assert_nil @seller.attributes[property]
+    end
+    assert_equal({ success: true }.to_json, @response.body)
+  end
+
+  test "POST unlink_twitter responds with an error message if the unlink fails" do
+    orig = User.instance_method(:save!)
+    User.define_method(:save!) { |*_a, **_k| raise "Failed to unlink Twitter" }
+    begin
+      post :unlink_twitter
+      assert_equal({ success: false, error_message: "Failed to unlink Twitter" }.to_json, @response.body)
+    ensure
+      User.define_method(:save!, orig)
+    end
   end
 end
