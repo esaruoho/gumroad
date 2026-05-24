@@ -27,6 +27,12 @@ module Gumroad
     config.active_support.cache_format_version = 7.1
     config.active_storage.variant_processor = :mini_magick
 
+    # Rails 7.1 default would remove autoload paths from `$LOAD_PATH`. App code
+    # still does `require "namespace/file"` for autoloaded constants, so keep the
+    # legacy behavior. MUST be set here (not an initializer) — the load path is
+    # populated before initializers run.
+    config.add_autoload_paths_to_load_path = true
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.

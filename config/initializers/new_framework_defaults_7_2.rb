@@ -17,10 +17,8 @@
 # Rails 7.1 defaults deferred from the previous upgrade
 # ---------------------------------------------------------------------------
 
-# Keep autoloaded paths on `$LOAD_PATH` so `require` of autoloaded files still
-# works. Toggling this off can break legacy code that requires autoloaded files
-# manually; flip in a follow-up after auditing.
-Rails.application.config.add_autoload_paths_to_load_path = true
+# NOTE: `add_autoload_paths_to_load_path = true` is set in config/application.rb,
+# not here — it must be applied before initializers run.
 
 # Continue running `after_commit` callbacks on the FIRST of multiple AR
 # instances saved within a transaction (legacy behavior). Some app code
