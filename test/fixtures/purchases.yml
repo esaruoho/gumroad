@@ -740,3 +740,43 @@ affiliate_sorting_purchase_a3_1:
   succeeded_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by ZoomIntegrationTest.
+zoom_integration_enabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:zoom_integration_enabled_product) %>
+  email: zint-enabled-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_disabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:zoom_integration_disabled_product) %>
+  email: zint-disabled-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_deleted_pi_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:zoom_integration_deleted_pi_product) %>
+  email: zint-deleted-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

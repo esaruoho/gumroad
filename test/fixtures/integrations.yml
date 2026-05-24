@@ -29,3 +29,46 @@ circle_integration_for_variant_two:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by ZoomIntegrationTest.
+zoom_integration_basic:
+  type: ZoomIntegration
+  json_data: '{"user_id":"0","email":"test@zoom.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_same_connection:
+  type: ZoomIntegration
+  json_data: '{"user_id":"0","email":"test@zoom.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_other:
+  type: ZoomIntegration
+  json_data: '{"user_id":"1","email":"test@zoom.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_for_enabled_product:
+  type: ZoomIntegration
+  json_data: '{"user_id":"0","email":"test@zoom.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+zoom_integration_for_deleted_pi:
+  type: ZoomIntegration
+  json_data: '{"user_id":"0","email":"test@zoom.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discord_integration_for_not_enabled_product:
+  type: DiscordIntegration
+  json_data: '{"server_id":"123","discord_user_id":"0","keep_inactive_members":false}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
