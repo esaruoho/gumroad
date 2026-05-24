@@ -118,3 +118,18 @@ another_seller_post:
   flags: 128
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Installment::SearchableTest.
+searchable_first_post:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  workflow_id:
+  name: First post
+  message: "<p>body</p>"
+  slug: searchable-first-post-slug
+  installment_type: product
+  published_at: <%= Time.current %>
+  deleted_at:
+  flags: 1280
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
