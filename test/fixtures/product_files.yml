@@ -1,0 +1,132 @@
+# Fixtures for ProductFile.
+# url is the public S3 URL of the file; s3_key/s3_filename are derived from it.
+
+signed_url_helper_pdf:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "http://s3.amazonaws.com/gumroad-specs/attachments/23b2d41ac63a40b5afa1a99bf38a0982/original/nyt.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_file_one:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/billion-dollar-company-chapter-0.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_encrypted_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/encrypted_pdf.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_file_three:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/another-stampable.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 16
+  position: 3
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_unstamped_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/unstamped.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  position: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CdnDeletableTest
+cdn_alive_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "http://localhost:9000/gumroad-specs/specs/alive.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_already_deleted_from_cdn_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/deleted-from-cdn.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_from_cdn_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_record_deleted_only_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "http://localhost:9000/gumroad-specs/specs/record-deleted.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_record_and_cdn_deleted_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/both-deleted.pdf"
+  filetype: pdf
+  filegroup: document
+  flags: 0
+  deleted_at: <%= Time.current %>
+  deleted_from_cdn_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdn_deleted_external_link_file:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://example.com"
+  filetype: link
+  filegroup: url
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Product files for ExpireTranscodedVideosJobTest: each backs a transcoded_video
+# row with the `is_transcoded_for_hls` flag (bit 0 => flags: 1) set so we can
+# observe the flag being cleared when the matching TranscodedVideo is expired.
+transcoded_video_pf_nil:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/transcoded-nil.mp4"
+  filetype: mp4
+  filegroup: video
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+transcoded_video_pf_recent:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/transcoded-recent.mp4"
+  filetype: mp4
+  filegroup: video
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+transcoded_video_pf_old:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  url: "https://s3.amazonaws.com/gumroad-specs/specs/transcoded-old.mp4"
+  filetype: mp4
+  filegroup: video
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

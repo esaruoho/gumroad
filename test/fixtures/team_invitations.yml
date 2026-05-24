@@ -1,0 +1,57 @@
+# Team invitations for Settings::TeamPresenter tests.
+
+team_presenter_active_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_seller) %>
+  email: invitee@example.com
+  role: admin
+  expires_at: <%= 7.days.from_now %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_deleted_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_seller) %>
+  email: invitee-deleted@example.com
+  role: admin
+  expires_at: <%= 7.days.from_now %>
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Invitation for team_presenter_other_owner — should NOT appear in
+# team_presenter_seller's member_infos.
+team_presenter_other_owner_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_other_owner) %>
+  email: other-invitee@example.com
+  role: admin
+  expires_at: <%= 7.days.from_now %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by TeamMailer#invite test (named_seller invites member@example.com).
+team_invitation_to_member:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  email: member@example.com
+  role: admin
+  expires_at: <%= 7.days.from_now %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Settings::TeamPresenter::MemberInfo::InvitationInfoTest and
+# Settings::TeamPresenter::MemberInfo::MembershipInfoTest — expired invitation
+# on named_seller's team to assert is_expired=true.
+named_seller_expired_admin_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  email: joe@example.com
+  role: admin
+  expires_at: <%= 1.minute.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by AuthPresenterTest signup_props with a team invitation.
+auth_presenter_invitation:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  email: auth-invitee@example.com
+  role: admin
+  expires_at: <%= 7.days.from_now %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

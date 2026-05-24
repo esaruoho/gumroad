@@ -13,4 +13,31 @@ ENV["SHORT_DOMAIN"] = SHORT_DOMAIN
 ENV["DOMAIN"] = DOMAIN
 ENV["PROTOCOL"] = PROTOCOL
 
-ViteRuby.run(ARGV)
+def vite_mode_from_args(args)
+  mode = nil
+
+  args.each_with_index do |arg, index|
+    case arg
+    when "--mode", "-m"
+      mode = args[index + 1] if args[index + 1] && !args[index + 1].start_with?("-")
+    when /\A--mode=(.+)\z/
+      mode = Regexp.last_match(1)
+    when /\A-m(.+)\z/
+      mode = Regexp.last_match(1)
+    end
+  end
+
+  mode
+end
+
+if (mode = vite_mode_from_args(ARGV))
+  ENV["VITE_RUBY_MODE"] = mode
+  ViteRuby.env["VITE_RUBY_MODE"] = mode
+end
+
+if ARGV.first == "dev"
+  ENV["VITE_RUBY_VITE_BIN_PATH"] ||= File.expand_path("../node_modules/.bin/vite", __dir__)
+  ViteRuby.env["VITE_RUBY_VITE_BIN_PATH"] = ENV["VITE_RUBY_VITE_BIN_PATH"]
+end
+
+ViteRuby.run(ARGV, exec: ARGV.first == "dev")

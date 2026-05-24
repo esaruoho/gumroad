@@ -1,0 +1,4 @@
+integrations_test_versions_category:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  title: versions
+  flags: 0

@@ -1,0 +1,56 @@
+# Product cached values for DeleteExpiredProductCachedValuesWorkerTest. The
+# worker deletes all `expired` rows except the latest one per product.
+
+# product_1: 3 expired + 1 not-expired. Latest expired is NOT deleted (only
+# the 2 older expired ones); the not-expired is preserved.
+pcv_p1_expired_oldest:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  expired: true
+  created_at: <%= 5.days.ago %>
+  updated_at: <%= 5.days.ago %>
+
+pcv_p1_expired_middle:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  expired: true
+  created_at: <%= 4.days.ago %>
+  updated_at: <%= 4.days.ago %>
+
+pcv_p1_expired_newest:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  expired: true
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago %>
+
+pcv_p1_not_expired:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  expired: false
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+# product_2: 2 expired. The newer is the max-per-product, so only the older
+# is deleted.
+pcv_p2_expired_old:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  expired: true
+  created_at: <%= 5.days.ago %>
+  updated_at: <%= 5.days.ago %>
+
+pcv_p2_expired_new:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  expired: true
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago %>
+
+# product_3: 1 expired (== latest), 1 not-expired (max id overall) → expired
+# row is NOT the max, so it IS deleted; the not-expired is preserved.
+pcv_p3_expired:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  expired: true
+  created_at: <%= 4.days.ago %>
+  updated_at: <%= 4.days.ago %>
+
+pcv_p3_not_expired:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  expired: false
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>

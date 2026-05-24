@@ -1,0 +1,10 @@
+# Licenses for License-related controller specs.
+
+admin_lookup_license:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:licensed_admin_lookup_purchase) %>
+  serial: ABCD1234-EFGH5678-IJKL9012-MNOP3456
+  uses: 3
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

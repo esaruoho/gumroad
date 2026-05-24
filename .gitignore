@@ -69,3 +69,4 @@ test-branch-creation.log
 .claude/worktrees/
 autoresearch.*
 .codex/
+app/javascript/routes.*

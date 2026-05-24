@@ -1,0 +1,47 @@
+pdf_stamping_url_redirect:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_purchase) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  token: pdf-stamping-token
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# URL redirects for ExpireRentalPurchasesWorkerTest. is_rental flag bit 1 = 1.
+
+rental_expiry_url_redirect_1:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_1) %>
+  token: rental-expiry-1
+  flags: 1
+  created_at: <%= 32.days.ago %>
+  updated_at: <%= 32.days.ago %>
+
+rental_expiry_non_rental_url_redirect:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_non_rental_purchase) %>
+  token: rental-expiry-non
+  flags: 1
+  created_at: <%= 32.days.ago %>
+  updated_at: <%= 32.days.ago %>
+
+rental_expiry_url_redirect_2:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_2) %>
+  token: rental-expiry-2
+  flags: 1
+  created_at: <%= 20.days.ago %>
+  updated_at: <%= 20.days.ago %>
+
+rental_expiry_url_redirect_3:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_3) %>
+  token: rental-expiry-3
+  flags: 1
+  rental_first_viewed_at: <%= 80.hours.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+rental_expiry_url_redirect_4:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_4) %>
+  token: rental-expiry-4
+  flags: 1
+  rental_first_viewed_at: <%= 50.hours.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+

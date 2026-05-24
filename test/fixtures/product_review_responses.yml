@@ -1,0 +1,13 @@
+named_seller_product_review_response:
+  product_review_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_review) %>
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  message: "Thanks!"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_product_review_response:
+  product_review_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product_review) %>
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  message: "Thanks!"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

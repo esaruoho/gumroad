@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Runs the new Minitest + Playwright system-test suite (test/system).
+#
+#   bin/test-system                          # run all system tests
+#   bin/test-system test/system/smoke_test.rb
+#   HEADED=true bin/test-system              # show the browser (debug)
+#   SLOWMO=200 bin/test-system               # ms delay per action (debug)
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+bundle exec ruby -Itest -Itest/system -e '
+  files = ARGV.empty? ? Dir.glob("test/system/**/*_test.rb") : ARGV
+  files.each { |f| require File.expand_path(f) }
+' "$@"

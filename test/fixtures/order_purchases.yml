@@ -1,0 +1,7 @@
+# Order ↔ Purchase join rows. Mirrors `test/fixtures/charge_purchases.yml`.
+
+invoice_seller_op:
+  order_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_order) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

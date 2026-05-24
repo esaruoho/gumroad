@@ -1,0 +1,7 @@
+installment_event_one:
+  installment_id: <%= ActiveRecord::FixtureSet.identify(:published_post) %>
+  event_id: 1001
+
+installment_event_two:
+  installment_id: <%= ActiveRecord::FixtureSet.identify(:published_post) %>
+  event_id: 1002

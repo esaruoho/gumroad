@@ -1,0 +1,834 @@
+# Seed products (the underlying table is `links`) for policy specs.
+#
+# `flags` is a bitfield managed by FlagShihTzu. The relevant bits used here:
+#   bit 5 => :archived  (value 2^4 = 16)
+# See app/models/link.rb for the full flag map.
+
+named_seller_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Named seller's product
+  unique_permalink: nspprod
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # bit 30 => community_chat_enabled (2^29 = 536870912)
+  flags: 536870912
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by ChargeSuccessfulPreordersWorkerTest. bit 4 => is_in_preorder_state (2^3 = 8).
+preorder_test_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Preorder test product
+  unique_permalink: prtsp
+  price_cents: 600
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  flags: 8
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+basic_user_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  name: Basic user's product
+  unique_permalink: buprod
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: PDF stamping product
+  unique_permalink: pdfstamp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_annual_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  name: Payout annual product
+  unique_permalink: payoutann
+  price_cents: 1500
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_files_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Save public files product
+  unique_permalink: savepub
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_files_unused_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Save public files unused product
+  unique_permalink: savepubu
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_sample_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Recommended sample product
+  unique_permalink: recsample
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Product 1
+  unique_permalink: recprod1
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_seller) %>
+  name: Product 2
+  unique_permalink: recprod2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_product_three:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 3
+  unique_permalink: recprod3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_disabled_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 4
+  unique_permalink: recprod4
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  purchase_disabled_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_deleted_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 5
+  unique_permalink: recprod5
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  deleted_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_banned_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:recommended_products_other_seller) %>
+  name: Product 6
+  unique_permalink: recprod6
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  banned_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  name: Another seller's product
+  unique_permalink: asprod
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # bit 30 => community_chat_enabled (2^29 = 536870912)
+  flags: 536870912
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+named_seller_commission_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Named seller's commission product
+  unique_permalink: nscomm
+  price_cents: 200
+  purchase_type: 0
+  native_type: commission
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_commission_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  name: Another seller's commission product
+  unique_permalink: ascomm
+  price_cents: 200
+  purchase_type: 0
+  native_type: commission
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+named_seller_archived_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Named seller's archived product
+  unique_permalink: nsparch
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 16
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# AnalyticsPresenter fixtures: alive + 2 deleted products (one w/ a sale)
+analytics_alive_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Alive analytics product
+  unique_permalink: anlive
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_with_sales_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Deleted with sales analytics product
+  unique_permalink: andelws
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_without_sales_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  name: Deleted without sales analytics product
+  unique_permalink: andelnws
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Checkout::Upsells::ProductPresenter spec
+# Physical product for Audience::PurchasePolicy: flag bit 8 = is_physical (2^7 = 128).
+audience_physical_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Audience physical product
+  unique_permalink: aphyprod
+  price_cents: 100
+  purchase_type: 0
+  native_type: physical
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+upsell_test_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Test Product
+  unique_permalink: upsl
+  price_cents: 1000
+  purchase_type: 0
+  native_type: ebook
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Subscriptions::MagicLinkPresenterTest.
+magic_link_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_seller) %>
+  name: Test product name
+  unique_permalink: mlprod
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+
+# CommunityChatRecapMailerTest fixtures.
+snap_app_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  name: Snap app
+  unique_permalink: snapapp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 536870912
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bubbles_app_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  name: Bubbles app
+  unique_permalink: bubblesapp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 536870912
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# InvoicePresenter::SellerInfo + ReceiptPresenter::ShippingInfo fixtures.
+invoice_seller_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Invoice seller product
+  unique_permalink: invsprd
+  price_cents: 1499
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ReceiptPresenter::ShippingInfoTest: physical variant of invoice_seller_product.
+shipping_info_physical_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Shipping info physical product
+  unique_permalink: shpinp
+  price_cents: 1499
+  purchase_type: 0
+  native_type: physical
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  require_shipping: true
+  # flag bit 8 = is_physical (2^7 = 128)
+  flags: 128
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ReceiptPresenter::FooterInfo + GifteeManageSubscription membership fixtures.
+footer_membership_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  name: Footer membership product
+  unique_permalink: ftrmbp
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # flag bit 2 (is_recurring_billing = 2) + bit 19 (is_tiered_membership = 262144) = 262146
+  flags: 262146
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# WidgetPresenter spec: the "demo" product fetched via Link.fetch("demo").
+widget_demo_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_demo_owner) %>
+  name: The Works of Edgar Gumstein
+  unique_permalink: demo
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_single_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_single_product_owner) %>
+  name: Single Product
+  unique_permalink: wsing
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_seller) %>
+  name: Affiliate Product
+  unique_permalink: waffp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_multi_new_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_multi_owner) %>
+  name: New Product
+  unique_permalink: wnewp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 1.hour.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+widget_multi_old_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:widget_multi_owner) %>
+  name: Old Product
+  unique_permalink: woldp
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 2.hours.ago %>
+  updated_at: <%= 2.hours.ago %>
+
+# Used by RecommendedProducts::DiscoverServiceTest — 5 isolated products: 3 alive, 1 archived (flags=32), 1 deleted.
+discover_service_product_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 1
+  unique_permalink: dscv1
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 2
+  unique_permalink: dscv2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_three:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product 3
+  unique_permalink: dscv3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_archived:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product Archived
+  unique_permalink: dscv4
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 16   # bit-position 5 (FlagShihTzu) = archived
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_product_deleted:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product Deleted
+  unique_permalink: dscv5
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  deleted_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_nsfw_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Product NSFW
+  unique_permalink: dscv6
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 32768   # bit-position 16 (FlagShihTzu) = is_adult
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_cart_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  name: Discover Cart Product
+  unique_permalink: dscv7
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_utils_find_me_a_hex:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  name: Product Utils FindMeAHex
+  unique_permalink: pufmah
+  custom_permalink: FindMeAHex
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_utils_custom_a:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  name: Product Utils Custom A
+  unique_permalink: pucusa
+  custom_permalink: custom
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_utils_custom_b:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  name: Product Utils Custom B
+  unique_permalink: pucusb
+  custom_permalink: custom
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Subscription::RestartableTest. Membership = is_recurring_billing flag bit 2 (= 2).
+restartable_membership_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Restartable membership
+  unique_permalink: rstmem
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Subscription::RestartableTest as a non-membership negative-case product.
+restartable_regular_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Restartable regular product
+  unique_permalink: rstreg
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Bundle::UpdateProductsServiceTest.
+# bit 26 => is_bundle (2^25 = 33554432)
+bundle_update_products_bundle:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products bundle
+  unique_permalink: bupbund
+  price_cents: 2000
+  purchase_type: 0
+  native_type: bundle
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 33554432
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bundle_update_products_replacement:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products replacement
+  unique_permalink: bupreplc
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+bundle_update_products_stale:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Bundle update products stale
+  unique_permalink: bupstale
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Product::SkusUpdaterServiceTest.
+# bit 8 => is_physical (128), bit 9 => skus_enabled (256). Combined = 384.
+skus_updater_physical_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Skus updater physical product
+  unique_permalink: skusupd
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 384
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by RefreshSitemapMonthlyWorkerTest. Updated 1 month ago to fall in
+# the worker's last-month window, but created in distinct months so two
+# DAILY jobs are queued.
+sitemap_month_3:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Sitemap product 3mo
+  unique_permalink: sitemap3
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 3.months.ago %>
+  updated_at: <%= 1.month.ago %>
+
+sitemap_month_2:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Sitemap product 2mo
+  unique_permalink: sitemap2
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= 2.months.ago %>
+  updated_at: <%= 1.month.ago %>
+
+# Used by CancelSubscriptionsForProductWorkerTest. Deleted membership product
+# whose active subscriptions should be cancelled on perform.
+cancel_subs_deleted_membership:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Cancel subs deleted membership
+  unique_permalink: csdelmem
+  price_cents: 100
+  purchase_type: 0
+  native_type: membership
+  subscription_duration: monthly
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  # flag bit 2 (is_recurring_billing = 2)
+  flags: 2
+  deleted_at: <%= 1.day.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ProductTaggingTest seed:
+#   ptg_product_a (ptg_other_seller_a): tags "tag a", "tag b", "tag c"
+#   ptg_product_b (ptg_creator):       tags "tag b", "tag c"
+#   ptg_product_c (ptg_other_seller_c): tag  "tag b"
+ptg_product_a:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:ptg_other_seller_a) %>
+  name: PTG Product A
+  unique_permalink: ptgaaa
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ptg_product_b:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:ptg_creator) %>
+  name: PTG Product B
+  unique_permalink: ptgbbb
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ptg_product_c:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:ptg_other_seller_c) %>
+  name: PTG Product C
+  unique_permalink: ptgccc
+  price_cents: 100
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  discover_fee_per_thousand: 100
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

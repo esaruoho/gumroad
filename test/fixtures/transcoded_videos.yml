@@ -1,0 +1,64 @@
+# Transcoded videos for ExpireTranscodedVideosJobTest. Validation requires
+# original_video_key and transcoded_video_key; fixtures bypass validation but
+# we set them anyway. `streamable` is polymorphic to ProductFile.
+
+transcoded_video_nil_last_accessed:
+  streamable_type: ProductFile
+  streamable_id: <%= ActiveRecord::FixtureSet.identify(:transcoded_video_pf_nil) %>
+  original_video_key: gumroad-specs/original/nil.mp4
+  transcoded_video_key: gumroad-specs/transcoded/nil.mp4
+  state: completed
+  flags: 0
+  last_accessed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+transcoded_video_recent:
+  streamable_type: ProductFile
+  streamable_id: <%= ActiveRecord::FixtureSet.identify(:transcoded_video_pf_recent) %>
+  original_video_key: gumroad-specs/original/recent.mp4
+  transcoded_video_key: gumroad-specs/transcoded/recent.mp4
+  state: completed
+  flags: 0
+  last_accessed_at: <%= 10.days.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+transcoded_video_old:
+  streamable_type: ProductFile
+  streamable_id: <%= ActiveRecord::FixtureSet.identify(:transcoded_video_pf_old) %>
+  original_video_key: gumroad-specs/original/old.mp4
+  transcoded_video_key: gumroad-specs/transcoded/old.mp4
+  state: completed
+  flags: 0
+  last_accessed_at: <%= 9.months.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Transcoded videos for HandleGrmcCallbackJobTest. Same job_id targets the
+# primary processing video; the duplicate row shares original_video_key so the
+# worker batch-updates both.
+
+grmc_callback_processing:
+  streamable_type: ProductFile
+  streamable_id: <%= ActiveRecord::FixtureSet.identify(:transcoded_video_pf_nil) %>
+  job_id: grmc_test_job_id
+  original_video_key: grmc/original/source.mp4
+  transcoded_video_key: /attachments/68756f28973n28347/hls/
+  state: processing
+  flags: 0
+  last_accessed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+grmc_callback_processing_dup:
+  streamable_type: ProductFile
+  streamable_id: <%= ActiveRecord::FixtureSet.identify(:transcoded_video_pf_recent) %>
+  job_id: grmc_test_job_id_dup
+  original_video_key: grmc/original/source.mp4
+  transcoded_video_key: /attachments/68756f28973n28347/hls/
+  state: processing
+  flags: 0
+  last_accessed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

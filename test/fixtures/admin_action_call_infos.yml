@@ -1,0 +1,13 @@
+dashboard_calls:
+  controller_name: Admin::DashboardController
+  action_name: index
+  call_count: 3
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+stats_calls:
+  controller_name: Admin::DashboardController
+  action_name: stats
+  call_count: 5
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

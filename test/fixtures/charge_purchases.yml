@@ -1,0 +1,24 @@
+# Join rows wiring admin_charge_policy_charge to two purchases.
+admin_charge_policy_cp1:
+  charge_id: <%= ActiveRecord::FixtureSet.identify(:admin_charge_policy_charge) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:admin_charge_policy_purchase_1) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+admin_charge_policy_cp2:
+  charge_id: <%= ActiveRecord::FixtureSet.identify(:admin_charge_policy_charge) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:admin_charge_policy_purchase_2) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+invoice_seller_cp:
+  charge_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_charge) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+shipping_info_physical_cp:
+  charge_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_charge) %>
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

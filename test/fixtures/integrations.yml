@@ -1,0 +1,31 @@
+circle_integration_one:
+  type: CircleIntegration
+  api_key: dummy-api-key-1
+  json_data: '{"community_id":"3512","space_group_id":"43576"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+circle_integration_two:
+  type: CircleIntegration
+  api_key: dummy-api-key-2
+  json_data: '{"community_id":"3513","space_group_id":"43577"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+circle_integration_for_variant_one:
+  type: CircleIntegration
+  api_key: dummy-api-key-3
+  json_data: '{"community_id":"3514","space_group_id":"43578"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+circle_integration_for_variant_two:
+  type: CircleIntegration
+  api_key: dummy-api-key-4
+  json_data: '{"community_id":"3515","space_group_id":"43579"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

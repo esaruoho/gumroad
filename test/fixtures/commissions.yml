@@ -1,0 +1,11 @@
+named_seller_commission:
+  status: in_progress
+  deposit_purchase_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_commission_deposit_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_commission:
+  status: in_progress
+  deposit_purchase_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_commission_deposit_purchase) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

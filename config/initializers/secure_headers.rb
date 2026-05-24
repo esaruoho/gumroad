@@ -203,6 +203,14 @@ SecureHeaders::Configuration.default do |config|
     config.csp[:script_src] << ROOT_DOMAIN # Required to load gumroad.js for overlay/embed.
     config.csp[:connect_src] << "ws://#{ANYCABLE_HOST}:8080" # Required by AnyCable
     config.csp[:connect_src] << "wss://#{ANYCABLE_HOST}:8080" # Required by AnyCable
+    if ENV["VITE_RUBY_TEST_DEV_SERVER"] == "true"
+      vite_origin = ViteRuby.config.origin
+      vite_websocket_origin = "#{ViteRuby.config.https ? "wss" : "ws"}://#{ViteRuby.config.host_with_port}"
+      config.csp[:script_src] << vite_origin
+      config.csp[:style_src] << vite_origin
+      config.csp[:connect_src] << vite_origin
+      config.csp[:connect_src] << vite_websocket_origin
+    end
   elsif Rails.env.development?
     config.csp[:default_src] = ["'self'"]
     %w[localhost app.localhost].each do |host|

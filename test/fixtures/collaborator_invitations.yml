@@ -1,0 +1,13 @@
+# Pending invitations attached to a Collaborator. A pending invitation =
+# a CollaboratorInvitation row exists; absence of the row means accepted.
+# Used by CollaboratorInvitationPolicy specs.
+
+invitation_for_named_seller:
+  collaborator_id: <%= ActiveRecord::FixtureSet.identify(:collaborator_adding_named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+invitation_for_another_seller:
+  collaborator_id: <%= ActiveRecord::FixtureSet.identify(:collaborator_between_other_people) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

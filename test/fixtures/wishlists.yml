@@ -1,0 +1,17 @@
+# frozen_string_literal: true
+
+# Wishlists for policy tests. `named_seller_wishlist` is owned by named_seller
+# (subject of permission checks); `basic_user_wishlist` is owned by a different
+# user and used to assert WishlistPolicy denies access across owners.
+
+named_seller_wishlist:
+  user: named_seller
+  name: Named seller wishlist
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+basic_user_wishlist:
+  user: basic_user
+  name: Basic user wishlist
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

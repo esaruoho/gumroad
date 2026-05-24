@@ -1,0 +1,114 @@
+# Fixtures for PublicFile (app/models/public_file.rb).
+# resource is polymorphic; here we use the existing named_seller_product Link.
+# `file` attachment must be attached in test setup (Active Storage callbacks
+# don't fire from fixtures, and the actual blob bytes need to be wired up).
+
+scheduled_past:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  public_id: pubfilescheduled
+  display_name: Scheduled past
+  original_file_name: test.mp3
+  file_type: mp3
+  file_group: audio
+  scheduled_for_deletion_at: <%= 1.day.ago %>
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+not_scheduled:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  public_id: pubfilenotsched0
+  display_name: Not scheduled
+  original_file_name: test.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+scheduled_future:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  public_id: pubfilefuture000
+  display_name: Scheduled future
+  original_file_name: test.mp3
+  file_type: mp3
+  file_group: audio
+  scheduled_for_deletion_at: <%= 1.day.from_now %>
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+shared_blob_holder:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  public_id: pubfilesharedhol
+  display_name: Shared blob holder
+  original_file_name: test.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+save_public_file_one:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_product) %>
+  public_id: savepf0000000001
+  display_name: Audio 1
+  original_file_name: audio-1.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_file_two:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_product) %>
+  public_id: savepf0000000002
+  display_name: Audio 2
+  original_file_name: audio-2.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_one:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000001
+  display_name: Audio 1
+  original_file_name: audio-1.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_two:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000002
+  display_name: Audio 2
+  original_file_name: audio-2.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+save_public_unused_file_three:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  resource_type: Link
+  resource_id: <%= ActiveRecord::FixtureSet.identify(:save_public_files_unused_product) %>
+  public_id: savepu0000000003
+  display_name: Audio 3
+  original_file_name: audio-3.mp3
+  file_type: mp3
+  file_group: audio
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

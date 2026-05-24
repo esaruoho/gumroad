@@ -1,0 +1,5 @@
+# Empty — no tests currently depend on a pre-loaded installment plan fixture,
+# and a default plan triggers ProductInstallmentPlan#validate_installment_payment_price
+# whenever Link is touched (mark_deleted!, update!), which crashes any test that
+# mutates named_seller_product because the plan validation requires
+# link.price_cents >= currency.min_price * number_of_installments.

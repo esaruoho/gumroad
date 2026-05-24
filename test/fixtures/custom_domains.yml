@@ -1,0 +1,124 @@
+# CustomDomain fixtures for lib/*_custom_domain_constraint tests.
+# Distinct hosts so a single CustomDomain.find_by_host(...) returns the expected row.
+
+user_domain_user_only:
+  domain: user-only.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+product_domain:
+  domain: with-product.example.com
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Apex product custom domain (no subdomain) — exercises the www-prefix branch of
+# CustomDomain.find_by_host in UserCustomDomainRequestServiceTest.
+product_domain_apex:
+  domain: with-product.com
+  product_id: <%= ActiveRecord::FixtureSet.identify(:upsell_test_product) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# A second username-having user with a custom domain (for UserCustomDomainConstraint).
+user_domain_another_seller:
+  domain: another-domain.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by SslCertificates::LetsEncryptTest and SslCertificates::GenerateTest.
+ssl_www_example:
+  domain: www.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Additional domains used by SslCertificates::GenerateTest for hourly rate-limit
+# scenarios. Distinct hosts so set_ssl_certificate_issued_at! on each independently
+# increments certificates_younger_than's count.
+ssl_example_1:
+  domain: www.example-1.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ssl_example_2:
+  domain: www.example-2.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ssl_example_3:
+  domain: www.example-3.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by UrlServiceTest. `inactive` has state != verified so #active? is false;
+# `active` is verified with a fresh ssl_certificate_issued_at so #active? is true.
+url_service_inactive_custom_domain:
+  domain: url-service-inactive.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:url_service_user_inactive_cd) %>
+  state: unverified
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_active_custom_domain:
+  domain: url-service-active.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:url_service_user_active_cd) %>
+  state: verified
+  ssl_certificate_issued_at: <%= 1.day.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CustomDomainsVerificationWorkerTest.
+cdvw_unverified_one:
+  domain: cdvw-one.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: unverified
+  failed_verification_attempts_count: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdvw_too_many_failures:
+  domain: cdvw-two.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: unverified
+  failed_verification_attempts_count: 3
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdvw_verified:
+  domain: cdvw-three.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  failed_verification_attempts_count: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdvw_deleted:
+  domain: cdvw-four.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: verified
+  failed_verification_attempts_count: 0
+  deleted_at: <%= 2.days.ago %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cdvw_under_limit:
+  domain: cdvw-five.example.com
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  state: unverified
+  failed_verification_attempts_count: 2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

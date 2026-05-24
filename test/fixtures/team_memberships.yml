@@ -1,0 +1,199 @@
+# Owner + non-owner team memberships for the policy test users.
+#
+# Every seller needs an owner-role self-membership (TeamMembership validation
+# `owner_membership_must_exist` enforces this for any non-owner role to be
+# valid). Factory code in spec/ does this via a `before(:create)` hook;
+# fixtures inline it.
+
+# Owner self-membership for named_seller (required so the non-owner roles below
+# pass `owner_membership_must_exist` validation when they're loaded against the
+# same seller).
+named_seller_owner:
+  user: named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+accountant_for_named_seller_membership:
+  user: accountant_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: accountant
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+admin_for_named_seller_membership:
+  user: admin_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+marketing_for_named_seller_membership:
+  user: marketing_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: marketing
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+support_for_named_seller_membership:
+  user: support_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: support
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Settings::TeamPresenter::MemberInfo::MembershipInfoTest — second
+# admin on named_seller's team so admin_for_named_seller can view "another"
+# admin membership.
+other_admin_for_named_seller_membership:
+  user: other_admin_for_named_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Team presenter fixtures: team_presenter_seller (owner) + team_presenter_member
+# (admin) + one soft-deleted admin membership for the same pair.
+# Also: team_presenter_seller is itself a non-owner of team_presenter_other_owner's
+# team, which must NOT appear in team_presenter_seller's member_infos.
+team_presenter_seller_owner:
+  user: team_presenter_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_active_membership:
+  user: team_presenter_member
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_seller) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_deleted_membership:
+  user: team_presenter_member
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_seller) %>
+  role: admin
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_other_owner_self:
+  user: team_presenter_other_owner
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_other_owner) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# team_presenter_seller is a non-owner of team_presenter_other_owner's team —
+# should NOT show up in team_presenter_seller's own member_infos.
+team_presenter_seller_in_other_team:
+  user: team_presenter_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:team_presenter_other_owner) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Owner self-membership for another_seller (used by GumroadBlog::PostsPolicy tests).
+another_seller_owner:
+  user: another_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Owner self-membership for invited_user so InviteMailer/TeamMailer tests can
+# create non-owner memberships for them on named_seller's team.
+invited_user_owner:
+  user: invited_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:invited_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# UserMembershipsPresenterTest fixtures.
+# Focal user + three sellers they (or another user) are members of.
+ump_user_owner:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_one_owner:
+  user: ump_seller_one
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_one) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_two_owner:
+  user: ump_seller_two
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_two) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_three_owner:
+  user: ump_seller_three
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_three) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_other_user_owner:
+  user: ump_other_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_other_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Memberships of ump_user on the three sellers' teams.
+ump_user_in_seller_one:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_one) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_user_in_seller_two:
+  user: ump_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_two) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Membership belonging to another user — should NOT appear in ump_user's props.
+ump_other_user_in_seller_three:
+  user: ump_other_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:ump_seller_three) %>
+  role: admin
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# TeamMembershipTest — owner self-membership for tm_test_seller so non-owner
+# membership creation on this seller satisfies owner_membership_must_exist.
+tm_test_seller_owner:
+  user: tm_test_seller
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:tm_test_seller) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# TeamMembershipTest — owner self-membership for tm_test_user. The
+# `validates_owner_membership_must_exist` test relies on this NOT existing
+# (it uses TeamMembership.new directly with @seller), but the "creates new
+# admin membership" tests need @user to already have an owner self-membership
+# so the assertion passes for non-owner roles. We satisfy both by keeping
+# the owner row here and using TeamMembership.new in the negative-path test
+# (the `setup` build path runs through user.user_memberships.new whose
+# validation only blocks if user has no owner row — but since we DO load
+# this fixture row, that specific test needs to load with @user having no
+# owner. So instead: use a separate `tm_no_owner_user` for that test.)
+tm_test_user_owner:
+  user: tm_test_user
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:tm_test_user) %>
+  role: owner
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

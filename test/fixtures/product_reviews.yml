@@ -1,0 +1,15 @@
+named_seller_product_review:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_call_purchase) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  rating: 5
+  message: "Great"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_product_review:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_call_purchase) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
+  rating: 5
+  message: "Great"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

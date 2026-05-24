@@ -1,0 +1,12 @@
+# Account-level (seller) refund policies. SellerRefundPolicy inherits from
+# RefundPolicy with no STI column — the distinguishing feature is product_id IS NULL.
+# Normally created by `User#after_create :create_refund_policy!`; fixtures bypass
+# that, so we inline the row for any user whose specs touch `seller.refund_policy`.
+
+named_seller_refund_policy:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  product_id:
+  max_refund_period_in_days: 30
+  fine_print: "Default fine print"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

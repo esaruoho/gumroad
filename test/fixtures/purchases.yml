@@ -1,0 +1,631 @@
+# Used by SendAutoInvoiceEmailJobTest. Four purchases covering the four
+# eligibility branches.
+auto_invoice_enabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  email: auto-invoice-enabled@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_no_billing_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:auto_invoice_no_billing_user) %>
+  email: auto-invoice-no-billing-purchase@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_disabled_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:auto_invoice_disabled_user) %>
+  email: auto-invoice-disabled-purchase@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_anonymous_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: auto-invoice-anonymous@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by SetSubscriptionAsDeactivatedWorkerTest. Original subscription purchase
+# rows so `Subscription#deactivate!` can call original_purchase.
+deactivated_worker_past_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_past_subscription) %>
+  email: deactivated-past@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_future_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_cancelled_future_subscription) %>
+  email: deactivated-future@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deactivated_worker_alive_original_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:deactivated_worker_alive_subscription) %>
+  email: deactivated-alive@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+named_seller_call_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  email: buyer1@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_call_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
+  email: buyer2@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+pdf_stamping_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_product) %>
+  email: pdf-stamping-buyer@example.com
+  price_cents: 100
+  fee_cents: 0
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_annual_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_balance) %>
+  email: payout-annual-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-01-01 00:00:00
+  created_at: 2019-01-01 00:00:00
+  updated_at: 2019-01-01 00:00:00
+
+payout_annual_failed_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_failed_balance) %>
+  email: payout-annual-failed-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-01-02 00:00:00
+  created_at: 2019-01-02 00:00:00
+  updated_at: 2019-01-02 00:00:00
+
+payout_annual_outside_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_product) %>
+  purchase_success_balance_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_outside_balance) %>
+  email: payout-annual-outside-buyer@example.com
+  price_cents: 1500
+  fee_cents: 500
+  total_transaction_cents: 1500
+  displayed_price_cents: 1500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2018-12-29 00:00:00
+  created_at: 2018-12-29 00:00:00
+  updated_at: 2018-12-29 00:00:00
+
+# is_commission_deposit_purchase corresponds to flags bit 29 (2^28 = 268435456).
+named_seller_commission_deposit_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_commission_product) %>
+  email: buyer3@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 268435456
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller_commission_deposit_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_commission_product) %>
+  email: buyer4@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 268435456
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# CommunityPolicy: community_buyer's successful purchase of another_seller_product.
+community_buyer_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:community_buyer) %>
+  email: community-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Audience::PurchasePolicy fixtures
+audience_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: audience-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# is_access_revoked is flag bit 25 (2^24 = 16777216)
+audience_revoked_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: audience-revoked@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16777216
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+audience_physical_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:audience_physical_product) %>
+  email: audience-physical@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+audience_membership_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product_subscription) %>
+  email: audience-member@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_deleted_with_sales_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:analytics_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:analytics_deleted_with_sales_product) %>
+  email: analytics-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+# Admin::Charges::ChargePolicy test fixtures.
+# Two purchases ($1 each) for the named_seller, attached to one Charge via
+# charge_purchases. Tests manipulate purchase_state / stripe_refunded to
+# exercise the policy branches.
+admin_charge_policy_purchase_1:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: charge-buyer-1@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+admin_charge_policy_purchase_2:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: charge-buyer-2@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Subscriptions::MagicLinkPresenterTest. Original membership purchase
+# for magic_link_subscription. is_original_subscription_purchase => flag bit 3
+# (2^2 = 4).
+magic_link_membership_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_product) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:magic_link_subscription) %>
+  email: purchase@email.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 4
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# InvoicePresenter::SellerInfoTest + ReceiptPresenter::ShippingInfoTest purchase.
+# January 1 2023 created_at, 14.99 price, taxable, $1.00 gumroad tax.
+invoice_seller_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_product) %>
+  email: customer@example.com
+  price_cents: 1499
+  total_transaction_cents: 1499
+  displayed_price_cents: 1499
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  gumroad_tax_cents: 100
+  # flag bit 13 = was_purchase_taxable (2^12 = 4096)
+  flags: 4096
+  created_at: 2023-01-01 00:00:00
+  updated_at: 2023-01-01 00:00:00
+
+# ReceiptPresenter::ShippingInfoTest physical purchase.
+shipping_info_physical_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:shipping_info_physical_product) %>
+  email: customer@example.com
+  price_cents: 1499
+  total_transaction_cents: 1499
+  displayed_price_cents: 1499
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  full_name: Edgar Gumstein
+  street_address: 123 Gum Road
+  country: United States
+  state: CA
+  zip_code: "94107"
+  city: San Francisco
+  created_at: 2023-01-01 00:00:00
+  updated_at: 2023-01-01 00:00:00
+
+<% (1..12).each do |month| %>
+tax_summary_payable_purchase_<%= month %>:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_product) %>
+  email: tax-summary-buyer-<%= month %>@example.com
+  price_cents: <%= 1000 + month %>
+  total_transaction_cents: <%= 1000 + month %>
+  displayed_price_cents: <%= 1000 + month %>
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-<%= month.to_s.rjust(2, "0") %>-01 00:00:00
+  created_at: 2019-<%= month.to_s.rjust(2, "0") %>-01 00:00:00
+  updated_at: 2019-<%= month.to_s.rjust(2, "0") %>-01 00:00:00
+<% end %>
+
+tax_summary_payable_business_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_business_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:tax_summary_payable_business_product) %>
+  email: tax-summary-business-buyer@example.com
+  price_cents: 2500
+  total_transaction_cents: 2500
+  displayed_price_cents: 2500
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: 2019-01-01 00:00:00
+  created_at: 2019-01-01 00:00:00
+  updated_at: 2019-01-01 00:00:00
+
+# Used by RecommendedProducts::DiscoverServiceTest
+discover_service_purchaser_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_product_one) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:discover_service_purchaser) %>
+  email: discover-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Rental purchases for ExpireRentalPurchasesWorkerTest. is_rental is flag bit 15
+# (value 2^14 = 16384). rental_expired starts at false for rental purchases; a
+# nil value indicates a non-rental purchase. The worker scope joins url_redirect
+# and matches rows where url_redirects.created_at < 30 days ago OR
+# rental_first_viewed_at < 72 hours ago.
+
+rental_expiry_purchase_1:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: rental-1@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16384
+  rental_expired: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+rental_expiry_non_rental_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: rental-non@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+rental_expiry_purchase_2:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: rental-2@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16384
+  rental_expired: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+rental_expiry_purchase_3:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: rental-3@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16384
+  rental_expired: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+rental_expiry_purchase_4:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: rental-4@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  flags: 16384
+  rental_expired: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+
+# Used by UpdatePurchaseEmailToMatchAccountWorkerTest.
+email_sync_purchase_a:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:email_sync_purchaser) %>
+  email: old@gmail.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+email_sync_purchase_b:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:email_sync_purchaser) %>
+  email: synced@example.com
+  price_cents: 0
+  fee_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CancelSubscriptionsForProductWorkerTest. Original subscription
+# purchase (flag bit 3 = 8).
+cancel_subs_active_subscription_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:cancel_subs_deleted_membership) %>
+  subscription_id: <%= ActiveRecord::FixtureSet.identify(:cancel_subs_active_subscription) %>
+  email: cancel-subs-buyer@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  flags: 4
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CancelPreorderWorkerTest. Authorization purchase for
+# preorder_successful (purchases.first of the preorder = authorization purchase).
+preorder_successful_auth_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:preorder_test_product) %>
+  preorder_id: <%= ActiveRecord::FixtureSet.identify(:preorder_successful) %>
+  email: preorder-buyer@example.com
+  price_cents: 600
+  total_transaction_cents: 600
+  displayed_price_cents: 600
+  displayed_price_currency_type: usd
+  purchase_state: preorder_authorization_successful
+  # is_preorder_authorization => flag bit 4 (2^3 = 8)
+  flags: 8
+  fee_cents: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CreateMissingPurchaseEventsWorkerTest. Yesterday-dated purchase
+# without any Event row so the worker can manufacture one.
+missing_events_yesterday_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: missing-events@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  ip_country: United States
+  ip_state: CA
+  flags: 0
+  succeeded_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
+  created_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
+  updated_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
+
+# Used by MillionDollarMilestoneCheckWorkerTest. created_at 15 days ago places
+# it inside the worker's purchase-time range (3.weeks.ago.days_ago(2) .. 2.weeks.ago).
+million_dollar_recent_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: million-dollar@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  flags: 0
+  succeeded_at: <%= 15.days.ago %>
+  created_at: <%= 15.days.ago %>
+  updated_at: <%= 15.days.ago %>
+
+# Used by Api::Internal::Admin::LicensesControllerTest. Free, licensed-product purchase.
+licensed_admin_lookup_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: buyer@example.com
+  price_cents: 0
+  total_transaction_cents: 0
+  displayed_price_cents: 0
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  flags: 0
+  succeeded_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

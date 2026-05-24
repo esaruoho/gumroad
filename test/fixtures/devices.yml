@@ -1,0 +1,26 @@
+# Device fixtures for CleanupRpushDeviceServiceTest.
+# Three rows distinct by token; user_id points at the named_seller policy-seed user.
+
+cleanup_rpush_device_a:
+  token: token-aaaa
+  device_type: ios
+  app_type: consumer
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cleanup_rpush_device_b:
+  token: token-bbbb
+  device_type: ios
+  app_type: consumer
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+cleanup_rpush_device_c:
+  token: token-cccc
+  device_type: ios
+  app_type: consumer
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

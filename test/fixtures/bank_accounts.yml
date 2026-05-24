@@ -1,0 +1,10 @@
+basic_ach_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  type: AchAccount
+  bank_number: "110000000"
+  account_number_last_four: "6789"
+  account_holder_full_name: "Named Seller"
+  country: US
+  account_type: checking
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

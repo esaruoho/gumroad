@@ -1,0 +1,9 @@
+# Invite fixtures for mailer tests.
+
+basic_user_invite:
+  sender_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  receiver_id: <%= ActiveRecord::FixtureSet.identify(:invited_user) %>
+  receiver_email: invited@example.com
+  invite_state: signed_up
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

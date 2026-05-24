@@ -1,0 +1,107 @@
+# frozen_string_literal: true
+
+resolve_stuck_lost_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_call_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_stuck_lost
+  reason: fraudulent
+  state: lost
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_stuck_won_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_call_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_stuck_won
+  reason: fraudulent
+  state: won
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_still_active_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:audience_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_still_active
+  reason: fraudulent
+  state: formalized
+  formalized_at: <%= Time.current %>
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_already_resolved_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:audience_revoked_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_already_resolved
+  reason: fraudulent
+  state: lost
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Disputes for FightDisputesJobTest. Each is in `formalized` (non-terminal)
+# state by default; the lost/won variants assert TERMINAL_DISPUTE_STATES exclusion.
+
+fight_disputes_ready_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_call_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_fdj_ready
+  reason: fraudulent
+  state: formalized
+  formalized_at: <%= Time.current %>
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_not_ready_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:another_seller_call_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_fdj_not_ready
+  reason: fraudulent
+  state: formalized
+  formalized_at: <%= Time.current %>
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_resolved_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_purchase) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_fdj_resolved
+  reason: fraudulent
+  state: formalized
+  formalized_at: <%= Time.current %>
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_lost_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_1) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_fdj_lost
+  reason: fraudulent
+  state: lost
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_won_dispute:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:rental_expiry_purchase_2) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  charge_processor_id: stripe
+  charge_processor_dispute_id: dp_fdj_won
+  reason: fraudulent
+  state: won
+  event_created_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

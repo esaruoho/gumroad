@@ -1,0 +1,19 @@
+<%
+sample_id = ActiveRecord::FixtureSet.identify(:recommended_sample_product)
+related_products = {
+  recommended_product_one: 3,
+  recommended_product_two: 2,
+  recommended_product_three: 1,
+  recommended_disabled_product: 1,
+  recommended_deleted_product: 1,
+  recommended_banned_product: 1,
+}
+%>
+<% related_products.each do |fixture_name, sales_count| %>
+recommended_sample_to_<%= fixture_name %>:
+  smaller_product_id: <%= [sample_id, ActiveRecord::FixtureSet.identify(fixture_name)].min %>
+  larger_product_id: <%= [sample_id, ActiveRecord::FixtureSet.identify(fixture_name)].max %>
+  sales_count: <%= sales_count %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+<% end %>

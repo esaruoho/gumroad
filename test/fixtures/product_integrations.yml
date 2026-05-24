@@ -1,0 +1,11 @@
+named_seller_product_integration_1:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  integration_id: <%= ActiveRecord::FixtureSet.identify(:circle_integration_one) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+named_seller_product_integration_2:
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  integration_id: <%= ActiveRecord::FixtureSet.identify(:circle_integration_two) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

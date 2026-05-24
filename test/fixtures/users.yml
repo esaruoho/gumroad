@@ -1,0 +1,933 @@
+# Seed users for the test/system suite. Add new entries here as flows need
+# them. Passwords are bcrypt-hashed via Devise; plain text mirrored in
+# the fixture so tests can submit it.
+#
+# Plain passwords (for test submission):
+#   basic_user        → "test-password-123!"
+#   suspended_user    → "test-password-123!"  (suspended for TOS violation)
+#   deleted_user      → "test-password-123!"  (soft-deleted account)
+#   two_factor_user   → "test-password-123!"  (2FA enabled, OTP magic token 000000)
+#   reset_user        → "test-password-123!"  (used by password reset flow)
+#
+# Magic 2FA token in test/dev: User::DEFAULT_AUTH_TOKEN = "000000" — accepted
+# by token_authenticated? in any non-production env, so we don't need to
+# generate real TOTP codes or scrape emailed tokens.
+#
+# Flag bit 9 in `has_flags` (1-indexed) is two_factor_authentication_enabled,
+# which is value 2^(9-1) = 256. We set it raw on the fixture row because the
+# model's before_create callback that normally flips this bit is bypassed by
+# fixture loading.
+
+basic_user:
+  email: basic@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspended_user:
+  email: suspended@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_tos_violation
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deleted_user:
+  email: deleted@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  deleted_at: <%= 2.days.ago %>
+  created_at: <%= 30.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+referrer_user:
+  email: referrer@example.com
+  username: referrer
+  name: I am a referrer
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+two_factor_user:
+  email: 2fa@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  flags: 256
+  otp_secret_key: <%= ROTP::Base32.random_base32 %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+reset_user:
+  email: reset@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# ---------------------------------------------------------------------------
+# Policy spec seed: a named seller + 4 non-owner team-member users.
+# Used by test/policies/*_policy_test.rb to assert which role permits which
+# action. Corresponding owner+role rows live in test/fixtures/team_memberships.yml.
+
+# Used by ProductTaggingTest — isolated tagging creator owning only product_b.
+ptg_creator:
+  email: ptg_creator@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ptg_other_seller_a:
+  email: ptg_other_a@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ptg_other_seller_c:
+  email: ptg_other_c@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# TeamMembershipTest — a fresh user with no team_memberships (so the "requires
+# owner membership to be created first" assertion has a non-owner subject).
+tm_test_user:
+  email: tm_test_user@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# TeamMembershipTest — fresh user with NO memberships at all, used only for
+# the "owner_membership_must_exist" negative path.
+tm_no_owner_user:
+  email: tm_no_owner_user@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# TeamMembershipTest — a seller with an owner self-membership (loaded via
+# tm_test_seller_owner in team_memberships.yml).
+tm_test_seller:
+  email: tm_test_seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+named_seller:
+  email: seller@example.com
+  username: seller
+  name: Seller
+  payment_address: seller-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+accountant_for_named_seller:
+  email: accountant@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+admin_for_named_seller:
+  email: admin@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+marketing_for_named_seller:
+  email: marketing@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+support_for_named_seller:
+  email: support@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Settings::TeamPresenter::MemberInfo::MembershipInfoTest — a second
+# admin on named_seller's team so we can render an "other admin" membership
+# from the perspective of admin_for_named_seller.
+other_admin_for_named_seller:
+  email: other-admin@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+another_seller:
+  email: another-seller@example.com
+  username: anotherseller
+  name: Another Seller
+  payment_address: another-seller-payments@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Gumroad admin/staff user. `is_team_member` is flag bit 28 in `has_flags`
+# (1-indexed, value = 2^27 = 134217728). Used by Admin::Impersonators::UserPolicy.
+admin_user:
+  email: admin-staff@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  flags: 134217728
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Purchaser of named_seller_call_purchase — used by ProductReviewVideoPolicy
+# tests to verify the "purchaser can stream their own review video" path.
+# Used by SendAutoInvoiceEmailJobTest.
+auto_invoice_no_billing_user:
+  email: auto-invoice-no-billing@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_disabled_user:
+  email: auto-invoice-disabled@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+purchaser:
+  email: purchaser@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Plain buyer used by CommunityPolicy tests — owns no products, purchases
+# another_seller_product (see test/fixtures/purchases.yml :community_buyer_purchase).
+community_buyer:
+  email: community-buyer@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Invited user used by InviteMailer tests.
+invited_user:
+  email: invited@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used as the affiliate_user on a Collaborator for named_seller's product.
+collaborating_user:
+  email: collaborator@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Admin::UserRiskStatePresenter tests.
+compliant_user_for_risk:
+  email: compliant-risk@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspended_fraud_user_for_risk:
+  email: suspended-fraud-risk@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_fraud
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+flagged_fraud_user_for_risk:
+  email: flagged-fraud-risk@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: flagged_for_fraud
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Settings::TeamPresenter tests.
+team_presenter_seller:
+  email: team-presenter-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_member:
+  email: team-presenter-member@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+team_presenter_other_owner:
+  email: team-presenter-other-owner@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by AnalyticsPresenter tests — isolated seller so we control which
+# products show up in `products_for_creator_analytics`.
+# Used by Admin::ScheduledPayoutPresenter tests.
+scheduled_payout_seller:
+  email: scheduled-payout-seller@example.com
+  name: Seller One
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+scheduled_payout_admin:
+  email: scheduled-payout-admin@example.com
+  name: Admin One
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  flags: 134217728
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+analytics_seller:
+  email: analytics@example.com
+  username: analyticsseller
+  name: Analytics Seller
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by ServiceMailerTest.
+service_mailer_user:
+  email: service-mailer@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by Subscriptions::MagicLinkPresenterTest.
+magic_link_user:
+  email: user@email.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+magic_link_seller:
+  email: magic-link-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by InvoicePresenter::SellerInfoTest. Variant of named_seller with support_email.
+invoice_seller:
+  email: invoice-seller@example.com
+  username: invoiceseller
+  name: Invoice Seller
+  support_email: seller-support@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# CommunityChatRecapMailerTest fixtures.
+community_recap_recipient:
+  email: community-recap-recipient@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+community_recap_seller:
+  email: community-recap-seller@example.com
+  username: johndoe
+  name: John Doe
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by UserMembershipsPresenterTest. Four users: the focal user and three
+# seller accounts they're a member of. seller_one has no username (mirrors
+# the `:without_username` trait in the original spec).
+ump_user:
+  email: ump-user@example.com
+  username: umpuser
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_one:
+  email: ump-seller-one@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_two:
+  email: ump-seller-two@example.com
+  username: umpseller2
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_seller_three:
+  email: ump-seller-three@example.com
+  username: umpseller3
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ump_other_user:
+  email: ump-other-user@example.com
+  username: umpotheruser
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# WidgetPresenter spec — 5 users, each scoped to a single test scenario to
+# avoid product-leak between tests sharing the same user fixture.
+widget_demo_owner:
+  email: widget-demo-owner@example.com
+  username: widgetdemo
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_lonely_user:
+  email: widget-lonely@example.com
+  username: widgetlonely
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_single_product_owner:
+  email: widget-single@example.com
+  username: widgetsingle
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_user:
+  email: widget-aff@example.com
+  username: widgetaff
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_affiliate_seller:
+  email: widget-affsel@example.com
+  username: widgetaffsel
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+widget_multi_owner:
+  email: widget-multi@example.com
+  username: widgetmulti
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by GmailAbuseFilter tests (.rebuild! pulls suspended_for_fraud /
+# suspended_for_tos_violation / flagged_for_fraud users with @gmail.com).
+gmail_abuse_fraud_user:
+  email: "fraud+one@gmail.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_fraud
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+gmail_abuse_tos_user:
+  email: "tos.violator@gmail.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_tos_violation
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+gmail_abuse_flagged_user:
+  email: "flagged@gmail.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: flagged_for_fraud
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+gmail_abuse_compliant_user:
+  email: "good@gmail.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+gmail_abuse_nongmail_user:
+  email: "nongmail@example.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_fraud
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by ForfeitBalanceServiceTest. Named user with predictable email/username.
+forfeit_user:
+  name: Gumbot
+  username: forfeit_user
+  email: forfeit_user@example.com
+  payment_address: forfeit_user@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+paypal_seller:
+  email: "paypal-seller@example.com"
+  external_id: paypal_seller_ext_id
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+payout_annual_seller:
+  email: payout-annual-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_products_seller:
+  email: recommended-products-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+recommended_products_other_seller:
+  email: recommended-products-other-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+stripe_seller_for_paypal_check:
+  email: "stripe-seller-check@example.com"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+# Used by UrlServiceTest — widget_*_base_url contexts. Each user has a unique
+# custom domain (CustomDomain belongs_to :user with `has_one :custom_domain`).
+url_service_user_no_username:
+  email: url-service-no-username@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_with_username:
+  email: url-service-with-username@example.com
+  username: urlservicewith
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_inactive_cd:
+  email: url-service-inactive-cd@example.com
+  username: urlserviceinactive
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+url_service_user_active_cd:
+  email: url-service-active-cd@example.com
+  username: urlserviceactive
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+tax_summary_payable_seller:
+  email: tax-summary-payable@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+tax_summary_payable_business_seller:
+  email: tax-summary-payable-business@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by SubdomainTest — three sellers with controlled username/external_id shapes.
+subdomain_seller_old_style:
+  email: subdomain-old-style@example.com
+  username: test_user
+  external_id: "9000000001"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+subdomain_seller_new_style:
+  email: subdomain-new-style@example.com
+  username: testuser2subdomain
+  external_id: "9000000002"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+subdomain_seller_no_username:
+  email: subdomain-no-username@example.com
+  external_id: "9000000003"
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by BlockSuspendedAccountIpWorkerTest — share last_sign_in_ip across two
+# users, with a third user that has no IP for the negative branch.
+suspended_ip_user_one:
+  email: suspended-ip-one@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  last_sign_in_ip: 10.2.2.2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspended_ip_user_two:
+  email: suspended-ip-two@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  last_sign_in_ip: 10.2.2.2
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspended_ip_user_no_ip:
+  email: suspended-ip-no-ip@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by User::DeviseInternal test
+unconfirmed_user:
+  email: unconfirmed@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by RecommendedProducts::DiscoverServiceTest
+discover_service_seller:
+  email: discover-service-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+discover_service_purchaser:
+  email: discover-service-purchaser@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Two arbitrary users used by Admin::SuspendUsersControllerTest to verify
+# mass-suspension routes accept ID lists and external_id lists.
+suspend_target_one:
+  email: suspend-target-one@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  external_id: "1000000001"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+suspend_target_two:
+  email: suspend-target-two@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  external_id: "1000000002"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Unconfirmed user used by ConfirmationsControllerTest to verify the email
+# confirmation flow. `confirmation_token` is stored hashed; the raw token is
+# computed via `Devise.token_generator.generate(User, :confirmation_token)`
+# in test setup.
+unconfirmed_user:
+  email: unconfirmed@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Buyer used by Subscription::RestartableTest.
+restartable_buyer:
+  email: restartable-buyer@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Users for Product::CreationLimitTest.
+creation_limit_non_compliant:
+  email: creation-limit-noncompliant@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+creation_limit_compliant:
+  email: creation-limit-compliant@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+creation_limit_custom:
+  email: creation-limit-custom@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  json_data: '{"daily_product_creation_limit":5}'
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+creation_limit_higher:
+  email: creation-limit-higher@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: compliant
+  recommendation_type: own_products
+  json_data: '{"daily_product_creation_limit":150}'
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Team member (is_team_member flag bit 28 = 134217728).
+creation_limit_team_member:
+  email: creation-limit-team@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  flags: 134217728
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+unreviewed_user_with_balance:
+  email: unreviewed-with-balance@example.com
+  external_id: unreviewed_balance_ext_id
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= Time.current %>
+
+# Used by UpdateUserComplianceInfoTest.
+compliance_test_user:
+  email: compliance-test@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+compliance_test_us_business_user:
+  email: compliance-us-business@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+compliance_test_ie_business_user:
+  email: compliance-ie-business@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+compliance_test_uk_business_user:
+  email: compliance-uk-business@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by UpdatePurchaseEmailToMatchAccountWorkerTest.
+email_sync_purchaser:
+  email: synced@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

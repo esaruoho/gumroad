@@ -1,0 +1,8 @@
+# Follower fixtures for mailer tests.
+# `followed_id` is the seller being followed; user association maps via foreign_key.
+
+unconfirmed_follower_of_named_seller:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  email: unconfirmed-follower@example.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

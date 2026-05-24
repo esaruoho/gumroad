@@ -1,0 +1,70 @@
+# Comment fixtures for Admin::UserRiskStatePresenter tests.
+
+flagged_comment_for_compliant_user:
+  commentable_id: <%= ActiveRecord::FixtureSet.identify(:compliant_user_for_risk) %>
+  commentable_type: User
+  comment_type: flagged
+  content: flagged
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+compliant_comment_for_compliant_user:
+  commentable_id: <%= ActiveRecord::FixtureSet.identify(:compliant_user_for_risk) %>
+  commentable_type: User
+  comment_type: compliant
+  content: compliant
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
+note_comment_for_compliant_user:
+  commentable_id: <%= ActiveRecord::FixtureSet.identify(:compliant_user_for_risk) %>
+  commentable_type: User
+  comment_type: note
+  content: note
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Comment fixtures for mailer tests.
+# `commentable` is polymorphic — short-form `commentable: published_post (Installment)`
+# is supported by Rails for polymorphic columns.
+named_seller_comment_on_published_post:
+  commentable: published_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  author_name: Seller
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "Their -> they're"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Comment by basic_user on the named_seller's published post — used by CommentPresenter tests
+# to verify "signed in user is the commenter" branches.
+basic_user_comment_on_published_post:
+  commentable: published_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  author_name: Basic
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "Hello there"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Comments for PaginatedCommentsPresenter tests.
+pcp_comment1:
+  commentable: pcp_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  author_name: Basic
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "first comment"
+  ancestry_depth: 0
+  created_at: <%= 1.minute.ago %>
+  updated_at: <%= 1.minute.ago %>
+
+pcp_comment2:
+  commentable: pcp_post (Installment)
+  author_id: <%= ActiveRecord::FixtureSet.identify(:referrer_user) %>
+  author_name: Other
+  comment_type: <%= Comment::COMMENT_TYPE_USER_SUBMITTED %>
+  content: "second comment"
+  ancestry_depth: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+

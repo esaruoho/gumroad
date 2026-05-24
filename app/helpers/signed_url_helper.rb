@@ -22,7 +22,7 @@ module SignedUrlHelper
       raise e.exception("Key = #{s3_key}")
     end
     public_url_path = URI.parse(public_url_path).path
-    s3_path = public_url_path.to_s.sub(%r{^/#{Regexp.escape(S3_BUCKET)}}o, "") # remove the S3 bucket name portion
+    s3_path = public_url_path.to_s.delete_prefix("/#{S3_BUCKET}") # remove the S3 bucket name portion
     s3_path = s3_path.sub(%r{^/}, "") # remove the leading slash as the distribution URL will always end in a slash
     download_url = "#{file_download_host(content_length)}#{s3_path}?"
     download_url += "cache_group=#{CGI.escape(cache_group)}&" if cache_group.present?

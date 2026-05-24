@@ -1,0 +1,11 @@
+integrations_test_variant_integration_1:
+  base_variant_id: <%= ActiveRecord::FixtureSet.identify(:integrations_test_variant_v1) %>
+  integration_id: <%= ActiveRecord::FixtureSet.identify(:circle_integration_for_variant_one) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+integrations_test_variant_integration_2:
+  base_variant_id: <%= ActiveRecord::FixtureSet.identify(:integrations_test_variant_v1) %>
+  integration_id: <%= ActiveRecord::FixtureSet.identify(:circle_integration_for_variant_two) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

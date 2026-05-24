@@ -1,0 +1,17 @@
+# Stamped PDFs for sidekiq ExpireStampedPdfsJob test. The model has presence
+# validations for url_redirect, product_file, and url, but fixture loading
+# bypasses validations, so plain rows with timestamps work.
+
+old_stamped_pdf:
+  url_redirect_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_url_redirect) %>
+  product_file_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_file_one) %>
+  url: https://example.com/stamped/old.pdf
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.year.ago %>
+
+recent_stamped_pdf:
+  url_redirect_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_url_redirect) %>
+  product_file_id: <%= ActiveRecord::FixtureSet.identify(:pdf_stamping_encrypted_file) %>
+  url: https://example.com/stamped/recent.pdf
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>

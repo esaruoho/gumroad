@@ -1,0 +1,7 @@
+upsell_test_product_review_stat:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:upsell_test_product) %>
+  reviews_count: 1
+  average_rating: 5.0
+  ratings_of_five_count: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

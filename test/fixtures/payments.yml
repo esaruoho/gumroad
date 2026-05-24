@@ -1,0 +1,126 @@
+# frozen_string_literal: true
+#
+# Payment fixtures for PaypalBalanceCheckService tests.
+
+paypal_payment_recent:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: processing
+  processor: paypal
+  correlation_id: "12345"
+  amount_cents: 150
+  payout_period_end_date: <%= Date.yesterday %>
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.week.ago %>
+
+retry_failed_paypal_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: failed
+  processor: paypal
+  failure_reason:
+  amount_cents: 1234
+  payout_period_end_date: 2025-01-15
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.week.ago %>
+
+payout_annual_completed_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  state: completed
+  processor: paypal
+  correlation_id: payout-annual-completed
+  txn_id: payout-annual-completed
+  processor_fee_cents: 10
+  amount_cents: 1000
+  payout_period_end_date: 2019-01-01
+  created_at: 2019-01-01 00:00:00
+  updated_at: 2019-01-01 00:00:00
+
+payout_annual_failed_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  state: failed
+  processor: paypal
+  correlation_id: payout-annual-failed
+  txn_id: payout-annual-failed
+  processor_fee_cents: 10
+  amount_cents: 1000
+  payout_period_end_date: 2019-01-02
+  created_at: 2019-01-02 00:00:00
+  updated_at: 2019-01-02 00:00:00
+
+payout_annual_outside_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:payout_annual_seller) %>
+  state: failed
+  processor: paypal
+  correlation_id: payout-annual-outside
+  txn_id: payout-annual-outside
+  processor_fee_cents: 10
+  amount_cents: 1000
+  payout_period_end_date: 2018-12-29
+  created_at: 2018-12-29 00:00:00
+  updated_at: 2018-12-29 00:00:00
+
+# Used by ProcessPaymentWorkerTest. Cover all non-processing states.
+process_pw_creating:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: creating
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_unclaimed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: unclaimed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_failed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: failed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_completed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: completed
+  processor: paypal
+  txn_id: dummy
+  processor_fee_cents: 1
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_reversed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: reversed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_returned:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: returned
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_cancelled:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: cancelled
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_processing:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: processing
+  processor: STRIPE
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

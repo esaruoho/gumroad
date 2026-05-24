@@ -1,0 +1,74 @@
+# CommunityChatRecapMailerTest fixtures.
+
+daily_snap_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:daily_recap_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 10
+  summary: "<ul><li>Creator welcomed everyone to the community.</li><li>A customer asked about using <strong>a specific feature</strong>.</li><li>Creator provided detailed instructions on how to use the feature.</li><li>Two customers expressed their gratitude for the information and help.</li></ul>"
+  status: finished
+  input_token_count: 1000
+  output_token_count: 200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+weekly_snap_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:weekly_recap_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 104
+  summary: "<ul><li>The <strong>new version of the app</strong> was shared by the creator, along with a confirmed <strong>release date</strong> for Android.</li><li>Customers raised concerns regarding various <strong>product issues</strong>, which the creator acknowledged and assured would be addressed in the <strong>next version</strong>.</li></ul>"
+  status: finished
+  input_token_count: 1000
+  output_token_count: 200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+weekly_bubbles_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:weekly_recap_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:bubbles_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 24
+  summary: "<ul><li>Creator welcomed everyone to the community.</li><li>People discussed various <strong>product issues</strong>.</li></ul>"
+  status: finished
+  input_token_count: 1000
+  output_token_count: 200
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Recaps for ForceFinishLongRunningCommunityChatRecapRunsJobTest.
+force_finish_already_finished_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_already_finished_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_recent_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_recent_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_stuck_recap_pending:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_stuck_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_stuck_recap_finished:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_stuck_run_finished_recap) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: finished
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

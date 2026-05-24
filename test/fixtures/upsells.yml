@@ -1,0 +1,17 @@
+# Upsells for policy specs. seller_id + product_id are required.
+
+named_seller_upsell:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  product_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  name: Named seller upsell
+  cross_sell: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+basic_user_upsell:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  product_id: <%= ActiveRecord::FixtureSet.identify(:basic_user_product) %>
+  name: Basic user upsell
+  cross_sell: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

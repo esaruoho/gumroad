@@ -1,0 +1,54 @@
+# Affiliate is STI. `Collaborator` is the subclass used by LinkPolicy specs.
+# Join to products lives in test/fixtures/affiliates_links.yml (table `affiliates_links`).
+
+collaborator_for_named_seller_product:
+  type: Collaborator
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:collaborating_user) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Collaboration where named_seller is the affiliate (someone else's product).
+# Used by CollaboratorPolicy specs for the "collaboration_adding_seller" case
+# and by CollaboratorInvitationPolicy specs (invitation targets the seller).
+collaborator_adding_named_seller:
+  type: Collaborator
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Collaboration that has nothing to do with named_seller.
+collaborator_between_other_people:
+  type: Collaborator
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by AffiliatesHelper tests — a DirectAffiliate of another_seller, attached to
+# named_seller_product via affiliates_links.yml.
+direct_affiliate_for_helper:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  affiliate_basis_points: 1000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# WidgetPresenter spec
+widget_user_direct_affiliate:
+  type: DirectAffiliate
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:widget_affiliate_user) %>
+  affiliate_basis_points: 300
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

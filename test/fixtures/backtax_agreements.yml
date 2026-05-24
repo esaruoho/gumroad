@@ -1,0 +1,7 @@
+au_backtax_agreement_for_named_seller:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  jurisdiction: AUSTRALIA
+  signature: Edgar Gumstein
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

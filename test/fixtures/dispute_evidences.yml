@@ -1,0 +1,82 @@
+# frozen_string_literal: true
+
+resolve_stuck_lost:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:resolve_stuck_lost_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: stuck-lost@example.com
+  seller_contacted_at: <%= 1.day.ago %>
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_stuck_won:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:resolve_stuck_won_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: stuck-won@example.com
+  seller_contacted_at: <%= 1.day.ago %>
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_still_active:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:resolve_still_active_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: still-active@example.com
+  seller_contacted_at: <%= 1.day.ago %>
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+resolve_already_resolved:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:resolve_already_resolved_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: already-resolved@example.com
+  seller_contacted_at: <%= 1.day.ago %>
+  resolved_at: <%= Time.current %>
+  resolution: submitted
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Dispute evidences for FightDisputesJobTest.
+
+fight_disputes_ready:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:fight_disputes_ready_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: fdj-ready@example.com
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_not_ready:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:fight_disputes_not_ready_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: fdj-not-ready@example.com
+  seller_contacted_at: <%= Time.current %>
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_resolved:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:fight_disputes_resolved_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: fdj-resolved@example.com
+  resolved_at: <%= Time.current %>
+  resolution: submitted
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_lost:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:fight_disputes_lost_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: fdj-lost@example.com
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+fight_disputes_won:
+  dispute_id: <%= ActiveRecord::FixtureSet.identify(:fight_disputes_won_dispute) %>
+  purchased_at: <%= 2.days.ago %>
+  customer_email: fdj-won@example.com
+  resolution: unknown
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

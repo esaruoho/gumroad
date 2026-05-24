@@ -1,0 +1,31 @@
+# Watched-user rows used by SyncWatchedUsersJobTest. Three rows total:
+# two alive (one per watcher target) and one soft-deleted so the alive scope
+# can be exercised end-to-end.
+
+alive_watch_one:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  revenue_threshold_cents: 20000
+  revenue_cents: 0
+  unpaid_balance_cents: 0
+  notes: "Watching for repeat suspicious activity"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+alive_watch_two:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  revenue_threshold_cents: 20000
+  revenue_cents: 0
+  unpaid_balance_cents: 0
+  notes: "Watching for repeat suspicious activity"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+deleted_watch:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:another_seller) %>
+  revenue_threshold_cents: 20000
+  revenue_cents: 0
+  unpaid_balance_cents: 0
+  notes: "Watching for repeat suspicious activity"
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

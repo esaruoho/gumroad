@@ -1,0 +1,8 @@
+preorder_test_link:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:preorder_test_product) %>
+  state: unreleased
+  release_at: <%= 7.days.from_now %>
+  url: ""
+  custom_filetype: ""
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

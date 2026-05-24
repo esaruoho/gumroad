@@ -1,0 +1,9 @@
+# BlackRecurringService rows (STI uses `type` column).
+service_mailer_black_recurring:
+  type: BlackRecurringService
+  user_id: <%= ActiveRecord::FixtureSet.identify(:service_mailer_user) %>
+  state: active
+  price_cents: 1000
+  recurrence: 0 # monthly
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
