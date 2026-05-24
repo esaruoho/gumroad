@@ -402,3 +402,28 @@ tag_test_product_two_price:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Collaborator::UpdateServiceTest products.
+csu_product_1_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:csu_product_1) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+csu_product_2_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:csu_product_2) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0
+
+csu_product_3_price:
+  link_id: <%= ActiveRecord::FixtureSet.identify(:csu_product_3) %>
+  price_cents: 100
+  currency: usd
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+  flags: 0

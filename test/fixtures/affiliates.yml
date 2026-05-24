@@ -100,3 +100,24 @@ aff_credit_test_direct_affiliate_all_products:
   flags: 1
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Collaborator::UpdateServiceTest. seller=named_seller, affiliate=collaborating_user.
+# apply_to_all_products=false (flags=0). affiliate_basis_points=4000.
+csu_collaborator:
+  type: Collaborator
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:csu_seller) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:csu_affiliate) %>
+  affiliate_basis_points: 4000
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Collaborator owned by a different seller (basic_user). Used for cross-seller authorization test.
+csu_outsider_collaborator:
+  type: Collaborator
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  affiliate_user_id: <%= ActiveRecord::FixtureSet.identify(:csu_outsider_affiliate) %>
+  affiliate_basis_points: 1000
+  flags: 1
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

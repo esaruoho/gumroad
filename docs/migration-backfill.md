@@ -463,7 +463,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/creator_analytics/caching_proxy_test.rb` | 1 |
 | ✅ | `test/services/content_moderation/content_extractor_test.rb` | 1 |
 | ✅ | `test/services/community_chat_recap_generator_service_test.rb` | 1 |
-| ⬜ | `test/services/collaborator/update_service_test.rb` | 1 |
+| ✅ | `test/services/collaborator/update_service_test.rb` | 4 |
 | ⬜ | `test/services/collaborator/create_service_test.rb` | 1 |
 | ⬜ | `test/services/circle_api_test.rb` | 1 |
 | ⬜ | `test/services/charge/create_service_test.rb` | 1 |

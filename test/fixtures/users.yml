@@ -1282,3 +1282,34 @@ payout_estimates_user_3:
   payment_address: payout-estimates-3-pp@example.com
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by Collaborator::UpdateServiceTest. Seller (owns CSU products).
+csu_seller:
+  email: csu-seller@example.com
+  username: csuseller
+  name: CSU Seller
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+csu_affiliate:
+  email: csu-affiliate@example.com
+  username: csuaffiliate
+  name: CSU Affiliate
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+csu_outsider_affiliate:
+  email: csu-outsider@example.com
+  username: csuoutsider
+  name: CSU Outsider
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
