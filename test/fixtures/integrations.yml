@@ -29,3 +29,26 @@ circle_integration_for_variant_two:
   flags: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# GoogleCalendarIntegrationTest fixtures.
+google_calendar_integration_one:
+  type: GoogleCalendarIntegration
+  json_data: '{"calendar_id":"0","calendar_summary":"Holidays","email":"hi@gmail.com","access_token":"test_access_token","refresh_token":"test_refresh_token"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+google_calendar_integration_same_email:
+  type: GoogleCalendarIntegration
+  json_data: '{"calendar_id":"0","calendar_summary":"Holidays","email":"hi@gmail.com","access_token":"tok2","refresh_token":"rtok2"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+google_calendar_integration_other_email:
+  type: GoogleCalendarIntegration
+  json_data: '{"calendar_id":"0","calendar_summary":"Holidays","email":"other@gmail.com","access_token":"tok3","refresh_token":"rtok3"}'
+  flags: 0
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
