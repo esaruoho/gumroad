@@ -860,3 +860,13 @@ compliance_test_uk_business_user:
   recommendation_type: own_products
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by UpdatePurchaseEmailToMatchAccountWorkerTest.
+email_sync_purchaser:
+  email: synced@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

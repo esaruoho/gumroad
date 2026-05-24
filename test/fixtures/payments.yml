@@ -57,3 +57,70 @@ payout_annual_outside_payment:
   payout_period_end_date: 2018-12-29
   created_at: 2018-12-29 00:00:00
   updated_at: 2018-12-29 00:00:00
+
+# Used by ProcessPaymentWorkerTest. Cover all non-processing states.
+process_pw_creating:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: creating
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_unclaimed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: unclaimed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_failed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: failed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_completed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: completed
+  processor: paypal
+  txn_id: dummy
+  processor_fee_cents: 1
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_reversed:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: reversed
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_returned:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: returned
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_cancelled:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: cancelled
+  processor: paypal
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+process_pw_processing:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
+  state: processing
+  processor: STRIPE
+  amount_cents: 100
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

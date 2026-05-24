@@ -1,0 +1,20 @@
+visit_one:
+  utm_link_id: <%= ActiveRecord::FixtureSet.identify(:utm_link_for_named_seller) %>
+  ip_address: 127.0.0.1
+  browser_guid: abc123
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+visit_two:
+  utm_link_id: <%= ActiveRecord::FixtureSet.identify(:utm_link_for_named_seller) %>
+  ip_address: 127.0.0.1
+  browser_guid: def456
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+visit_three:
+  utm_link_id: <%= ActiveRecord::FixtureSet.identify(:utm_link_for_named_seller) %>
+  ip_address: 127.0.0.1
+  browser_guid: abc123
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
