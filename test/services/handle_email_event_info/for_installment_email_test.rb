@@ -2,14 +2,11 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during bulk fixtures-only migration:
-# 543 LoC RSpec with shared_examples × provider (SendGrid/Resend) contexts and
-# 17 FactoryBot refs (installment + creator + purchase chains). Mailer-event
-# fixture wiring is non-mechanical. Revisit individually post-deadline.
-#
-# Original spec: spec/services/handle_email_event_info/for_installment_email_spec.rb
 class HandleEmailEventInfo::ForInstallmentEmailTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — shared_examples-heavy, fixture-hostile" do
-    skip "TODO: migrate spec/services/handle_email_event_info/for_installment_email_spec.rb"
+  # Sharpened skip-stub.
+  # Original: spec/services/handle_email_event_info/for_installment_email_spec.rb
+  # Blocker: Renders CreatorMailer.installment with product_files + url_redirects; extracts post id, link id, type via HandleEmailEventInfo. Premailer + view + Installment fixture chain.
+  test "TODO: migrate spec/services/handle_email_event_info/for_installment_email_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-# TODO: Migrate from RSpec. 16 FactoryBot refs. Original: spec/services/gdpr_buyer_erasure_service_spec.rb
-# Skip-batched during fixtures-only migration (mig-a) — service specs are Tier 3-4
-# (subscription / purchase / Stripe / Elasticsearch / VCR chains) and require
-# manual rewrite with fixtures post-deadline.
 class GdprBuyerErasureServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/services/gdpr_buyer_erasure_service_spec.rb (16 FactoryBot refs)"
+  # Sharpened skip-stub.
+  # Original: spec/services/gdpr_buyer_erasure_service_spec.rb
+  # Blocker: 16 FactoryBot refs; iterates a buyer email across 6 user touchpoints (purchases, refunds, comments, subscriptions, followers, audience_members) + sends erasure-confirmation mail. Requires multi-table buyer fixture web.
+  test "TODO: migrate spec/services/gdpr_buyer_erasure_service_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

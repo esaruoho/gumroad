@@ -3,7 +3,10 @@
 require "test_helper"
 
 class Charge::CreateServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/services/charge/create_service_spec.rb (11 FB refs, :vcr Stripe charge intent end-to-end)" do
-    skip "Awaiting fixtures migration: spec drives Order::CreateService → 5 products across 2 sellers → real Stripe PaymentIntent via VCR + stripe-mock for success and decline branches; depends on chargeable factory + StripePaymentMethodHelper + ChargeProcessor.create_payment_intent_or_charge!. Not tractable as a fixture conversion."
+  # Sharpened skip-stub.
+  # Original: spec/services/charge/create_service_spec.rb
+  # Blocker: Stripe Charge.create + payment_intent confirm + ChargeIntent factory chain under VCR. Live charge processor flow.
+  test "TODO: migrate spec/services/charge/create_service_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

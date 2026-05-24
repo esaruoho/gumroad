@@ -3,7 +3,10 @@
 require "test_helper"
 
 class Helper::UnblockEmailServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/services/helper/unblock_email_service_spec.rb (extensive allow_any_instance_of on Helper::Client + EmailSuppressionManager)" do
-    skip "Awaiting fixtures migration: relies on RSpec any_instance partial-doubles for Helper::Client and EmailSuppressionManager + Feature toggling + PlatformBlock/BlockedCustomerObject fixtures"
+  # Sharpened skip-stub.
+  # Original: spec/services/helper/unblock_email_service_spec.rb
+  # Blocker: PlatformBlock + EmailSuppressionManager.unblock_email + Helper::Client (add_note/send_reply/close_conversation) + blocked_purchases recent_failed scope chain. Heavy mocking of Helper::Client.
+  test "TODO: migrate spec/services/helper/unblock_email_service_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

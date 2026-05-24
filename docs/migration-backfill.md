@@ -390,13 +390,13 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/subscription/updater_service/tiered_membership_variant_and_price_update_test.rb` | 1 |
 | ⬜ | `test/services/subscription/restart_at_checkout_service_test.rb` | 1 |
 | ⬜ | `test/services/subscribe_preview_generator_service_test.rb` | 1 |
-| ⬜ | `test/services/ssl_certificates/generate_test.rb` | 1 |
+| ✅ | `test/services/ssl_certificates/generate_test.rb` | 1 |
 | ⬜ | `test/services/ssl_certificates/base_test.rb` | 1 |
-| ⬜ | `test/services/sitemap_service_test.rb` | 1 |
+| ✅ | `test/services/sitemap_service_test.rb` | 1 |
 | ⬜ | `test/services/seller_mobile_analytics_service_test.rb` | 1 |
 | ⬜ | `test/services/save_installment_service_test.rb` | 1 |
 | ⬜ | `test/services/recommended_products/checkout_service_test.rb` | 1 |
-| ⬜ | `test/services/push_notification_service/android_test.rb` | 1 |
+| ✅ | `test/services/push_notification_service/android_test.rb` | 1 |
 | ⬜ | `test/services/purchase_search_service_test.rb` | 1 |
 | ⬜ | `test/services/purchase/variant_updater_service_test.rb` | 1 |
 | ⬜ | `test/services/purchase/update_bundle_purchase_content_service_test.rb` | 1 |
@@ -421,7 +421,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/pdf_stamping_service/stamp_test.rb` | 1 |
 | ⬜ | `test/services/pdf_stamping_service/stamp_for_purchase_test.rb` | 1 |
 | ⬜ | `test/services/payout_users_service_test.rb` | 1 |
-| ⬜ | `test/services/order/response_helpers_test.rb` | 1 |
+| ✅ | `test/services/order/response_helpers_test.rb` | 1 |
 | ⬜ | `test/services/order/create_service_test.rb` | 1 |
 | ⬜ | `test/services/order/confirm_service_test.rb` | 1 |
 | ⬜ | `test/services/order/charge_service_test.rb` | 1 |
@@ -450,7 +450,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/exports/payouts/csv_test.rb` | 1 |
 | ⬜ | `test/services/exports/audience_export_service_test.rb` | 1 |
 | ⬜ | `test/services/exports/affiliate_export_service_test.rb` | 1 |
-| ⬜ | `test/services/expiring_s3_file_service_test.rb` | 1 |
+| ✅ | `test/services/expiring_s3_file_service_test.rb` | 1 |
 | ⬜ | `test/services/email_suppression_manager_test.rb` | 1 |
 | ⬜ | `test/services/early_fraud_warning/update_service_test.rb` | 1 |
 | ⬜ | `test/services/dispute_evidence/create_from_dispute_service_test.rb` | 1 |
@@ -468,7 +468,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/circle_api_test.rb` | 1 |
 | ⬜ | `test/services/charge/create_service_test.rb` | 1 |
 | ⬜ | `test/services/bundle_search_products_service_test.rb` | 1 |
-| ⬜ | `test/services/black_friday_stats_service_test.rb` | 1 |
+| ✅ | `test/services/black_friday_stats_service_test.rb` | 1 |
 | ⬜ | `test/services/best_offer_code_service_test.rb` | 1 |
 | ⬜ | `test/services/balances_by_product_service_test.rb` | 1 |
 | ⬜ | `test/services/api/v2/sales_summary_test.rb` | 1 |
@@ -478,7 +478,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/admin/scheduled_payout_enrichment_service_test.rb` | 1 |
 | ⬜ | `test/services/admin/related_users_service_test.rb` | 1 |
 | ⬜ | `test/services/admin/related_users_service_benchmark_test.rb` | 1 |
-| ⬜ | `test/services/abn_validation_service_test.rb` | 1 |
+| ✅ | `test/services/abn_validation_service_test.rb` | 1 |
 
 ## `test/sidekiq/` (61 files, 61 skips)
 

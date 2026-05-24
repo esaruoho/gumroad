@@ -80,18 +80,8 @@ class SslCertificates::GenerateTest < ActiveSupport::TestCase
   end
 
   test "#can_order_certificates? returns false when no domain points to Gumroad" do
-    skip "TODO: rewrite to stub CustomDomainVerificationService#domains_pointed_to_gumroad — monkeypatching CustomDomain doesn't intercept the production code path"
-    CustomDomain.class_eval do
-      define_method(:cname_is_setup_correctly?) { false }
-      define_method(:alias_is_setup_correctly?) { false }
-    end
-
-    begin
-      assert_equal [false, "No domains pointed to Gumroad"], @obj.send(:can_order_certificates?)
-    ensure
-      CustomDomain.send(:remove_method, :cname_is_setup_correctly?) rescue nil
-      CustomDomain.send(:remove_method, :alias_is_setup_correctly?) rescue nil
-    end
+    @obj.instance_variable_get(:@domain_verification_service).define_singleton_method(:domains_pointed_to_gumroad) { [] }
+    assert_equal [false, "No domains pointed to Gumroad"], @obj.send(:can_order_certificates?)
   end
 
   test "#domain_check_cache_key formats correctly" do

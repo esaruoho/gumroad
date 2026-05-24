@@ -2,13 +2,11 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during bulk fixtures-only migration.
-# Original: spec/services/order/confirm_service_spec.rb
-# Reason: VCR-tagged Stripe SCA flow + MerchantAccount + Order::CreateService/ChargeService
-# integration; allow_any_instance_of(Purchase) chains. Migrating requires careful
-# stripe-mock setup for SCA + 3DS confirm pathway. Deferred.
 class Order::ConfirmServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — VCR Stripe SCA flow + allow_any_instance_of chains" do
-    skip "TODO: migrate spec/services/order/confirm_service_spec.rb (VCR Stripe SCA, MerchantAccount, allow_any_instance_of)"
+  # Sharpened skip-stub.
+  # Original: spec/services/order/confirm_service_spec.rb
+  # Blocker: VCR-tagged; runs Order::CreateService + Order::ChargeService + Order::ConfirmService end-to-end with StripePaymentMethodHelper.success_with_sca. Requires stripe-mock SCA + 3DS confirmation round-trips.
+  test "TODO: migrate spec/services/order/confirm_service_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

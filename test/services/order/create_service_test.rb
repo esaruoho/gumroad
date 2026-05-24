@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-# TODO: Migrate from RSpec. 24 FactoryBot refs. Original: spec/services/order/create_service_spec.rb
-# Skip-batched during fixtures-only migration (mig-a) — service specs are Tier 3-4
-# (subscription / purchase / Stripe / Elasticsearch / VCR chains) and require
-# manual rewrite with fixtures post-deadline.
 class Order::CreateServiceTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/services/order/create_service_spec.rb (24 FactoryBot refs)"
+  # Sharpened skip-stub.
+  # Original: spec/services/order/create_service_spec.rb
+  # Blocker: 24 FactoryBot refs across order/line_item/products/offer_codes/affiliates + Order::CreateService.perform mutates Purchase state through ChargeService — needs Stripe + multi-purchase fixtures.
+  test "TODO: migrate spec/services/order/create_service_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end

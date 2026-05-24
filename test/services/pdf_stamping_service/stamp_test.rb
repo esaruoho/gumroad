@@ -2,12 +2,11 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration.
-# Original: spec/services/pdf_stamping_service/stamp_spec.rb
-# Reason: depends on real S3-hosted PDF assets (specs/*.pdf via AWS_S3_ENDPOINT) and
-# the pdftk binary — binary-asset trap per skill skip-batch-authorization.
 class PdfStampingService::StampTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — PDF/binary asset trap" do
-    skip "TODO: migrate spec/services/pdf_stamping_service/stamp_spec.rb (S3 PDF assets + pdftk binary)"
+  # Sharpened skip-stub.
+  # Original: spec/services/pdf_stamping_service/stamp_spec.rb
+  # Blocker: Same as stamp_for_purchase: CombinePDF + S3 download/upload. Tests stamp positioning + content extraction against real PDFs.
+  test "TODO: migrate spec/services/pdf_stamping_service/stamp_spec.rb" do
+    skip "Fixture-hostile — see top-of-file blocker note"
   end
 end
