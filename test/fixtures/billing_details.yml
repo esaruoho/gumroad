@@ -1,0 +1,26 @@
+# Used by SendAutoInvoiceEmailJobTest. AutoInvoiceEligibility checks the
+# purchaser's billing_detail, so eligibility hinges on these rows.
+
+auto_invoice_disabled_billing_detail:
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:auto_invoice_disabled_user) %>
+  full_name: Disabled Person
+  street_address: 1 Main St
+  city: San Francisco
+  state: CA
+  zip_code: "94107"
+  country_code: US
+  auto_email_invoice_enabled: false
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+auto_invoice_enabled_billing_detail:
+  purchaser_id: <%= ActiveRecord::FixtureSet.identify(:purchaser) %>
+  full_name: Purchaser Person
+  street_address: 1 Main St
+  city: San Francisco
+  state: CA
+  zip_code: "94107"
+  country_code: US
+  auto_email_invoice_enabled: true
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
