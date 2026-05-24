@@ -493,8 +493,8 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/sidekiq/update_purchasing_power_parity_factors_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/update_product_files_archive_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/update_payout_status_worker_test.rb` | 1 |
-| ⬜ | `test/sidekiq/update_large_sellers_sales_count_job_test.rb` | 1 |
-| ⬜ | `test/sidekiq/update_integrations_on_tier_change_worker_test.rb` | 1 |
+| ✅ | `test/sidekiq/update_large_sellers_sales_count_job_test.rb` | 0 |
+| ✅ | `test/sidekiq/update_integrations_on_tier_change_worker_test.rb` | 0 |
 | ⬜ | `test/sidekiq/update_cached_sales_related_products_infos_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/update_bundle_purchases_content_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/unsubscribe_and_fail_worker_test.rb` | 1 |
@@ -513,7 +513,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/sidekiq/send_reminders_for_outstanding_user_compliance_info_requests_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/send_preorder_seller_summary_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/send_post_blast_emails_job_test.rb` | 1 |
-| ⬜ | `test/sidekiq/send_payment_reminder_worker_test.rb` | 1 |
+| ✅ | `test/sidekiq/send_payment_reminder_worker_test.rb` | 0 |
 | ⬜ | `test/sidekiq/send_memberships_price_update_emails_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/send_last_post_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/send_community_chat_recap_notifications_job_test.rb` | 1 |
@@ -523,7 +523,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/sidekiq/schedule_abandoned_cart_emails_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/review_reminder_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/reports/generate_ytd_sales_report_job_test.rb` | 1 |
-| ⬜ | `test/sidekiq/remove_deleted_files_from_s3_job_test.rb` | 1 |
+| ✅ | `test/sidekiq/remove_deleted_files_from_s3_job_test.rb` | 0 |
 | ⬜ | `test/sidekiq/reindex_recommendable_products_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/regenerate_sales_related_products_infos_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/refund_unpaid_purchases_worker_test.rb` | 1 |
@@ -531,7 +531,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/sidekiq/recurring_charge_reminder_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/recalculate_recent_wishlist_follower_count_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/push_notification_worker_test.rb` | 1 |
-| ⬜ | `test/sidekiq/publish_scheduled_post_job_test.rb` | 1 |
+| ✅ | `test/sidekiq/publish_scheduled_post_job_test.rb` | 0 |
 | ⬜ | `test/sidekiq/process_early_fraud_warning_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/post_to_ping_endpoints_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/post_to_individual_ping_endpoint_worker_test.rb` | 1 |
