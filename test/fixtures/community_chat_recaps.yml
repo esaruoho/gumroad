@@ -35,3 +35,40 @@ weekly_bubbles_recap:
   output_token_count: 200
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Recaps for ForceFinishLongRunningCommunityChatRecapRunsJobTest.
+force_finish_already_finished_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_already_finished_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_recent_recap:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_recent_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_stuck_recap_pending:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_stuck_run) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: pending
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+force_finish_running_stuck_recap_finished:
+  community_chat_recap_run_id: <%= ActiveRecord::FixtureSet.identify(:force_finish_running_stuck_run_finished_recap) %>
+  community_id: <%= ActiveRecord::FixtureSet.identify(:snap_app_community) %>
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:community_recap_seller) %>
+  summarized_message_count: 0
+  status: finished
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

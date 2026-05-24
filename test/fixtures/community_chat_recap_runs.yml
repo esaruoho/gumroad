@@ -16,3 +16,37 @@ weekly_recap_run:
   recaps_count: 0
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Recap runs for ForceFinishLongRunningCommunityChatRecapRunsJobTest.
+force_finish_already_finished_run:
+  recap_frequency: daily
+  from_date: <%= 1.day.ago.beginning_of_day %>
+  to_date: <%= 1.day.ago.end_of_day %>
+  recaps_count: 1
+  finished_at: <%= 1.hour.ago %>
+  created_at: <%= 10.hours.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+force_finish_running_recent_run:
+  recap_frequency: daily
+  from_date: <%= 3.days.ago.beginning_of_day %>
+  to_date: <%= 3.days.ago.end_of_day %>
+  recaps_count: 1
+  created_at: <%= 1.hour.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+force_finish_running_stuck_run:
+  recap_frequency: daily
+  from_date: <%= 4.days.ago.beginning_of_day %>
+  to_date: <%= 4.days.ago.end_of_day %>
+  recaps_count: 1
+  created_at: <%= 7.hours.ago %>
+  updated_at: <%= 7.hours.ago %>
+
+force_finish_running_stuck_run_finished_recap:
+  recap_frequency: daily
+  from_date: <%= 5.days.ago.beginning_of_day %>
+  to_date: <%= 5.days.ago.end_of_day %>
+  recaps_count: 1
+  created_at: <%= 7.hours.ago %>
+  updated_at: <%= 7.hours.ago %>
