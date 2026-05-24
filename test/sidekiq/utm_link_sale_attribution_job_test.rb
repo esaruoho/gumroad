@@ -2,12 +2,30 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration.
-# Original: spec/sidekiq/utm_link_sale_attribution_job_spec.rb (38 FactoryBot refs, 172 lines).
-#
-# Blocker for batch B backfill: Builds `:utm_link` + `:order` + `:utm_link_visit` + `:utm_link_driven_sale` + `:purchase` and asserts on `UtmLinkDrivenSale` insertion under 4 branches (visit-window, conversion-window, buyer browser_guid, IP-fallback). No fixtures for `:utm_link` / `:utm_link_visit` / `:utm_link_driven_sale` and the time-window assertions need `travel_to` plus exact buyer browser_guid matching. Out of scope.
 class UtmLinkSaleAttributionJobTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/sidekiq/utm_link_sale_attribution_job_spec.rb — Builds `:utm_link` + `:order` + `:utm_link_visit` + `:utm_link_driven_sale` + `:purchase` and asserts on `UtmLinkDrivenSale` insertion under 4 branches (visit-window, conversion-window, buyer browser_guid, IP-fallback). No fixtures for `:utm_link` / `:utm_link_visit` / `:utm_link_driven_sale` and the time-window assertions need `travel_to` plus..."
+  setup do
+    @product = links(:named_seller_product)
+  end
+
+  test "no-op when the order has no successful purchases" do
+    order = Order.new
+    order.save!(validate: false)
+    assert_nothing_raised do
+      UtmLinkSaleAttributionJob.new.perform(order.id, "browser-guid-abc")
+    end
+  end
+
+  test "no-op when there are no visits for the given browser_guid" do
+    order = Order.new
+    order.save!(validate: false)
+    purchase = Purchase.new(seller: @product.user, link: @product, order: order,
+                             email: "buyer@example.com", price_cents: 100,
+                             total_transaction_cents: 100, fee_cents: 0,
+                             purchase_state: "successful")
+    purchase.save!(validate: false)
+    assert_nothing_raised do
+      UtmLinkSaleAttributionJob.new.perform(order.id, "no-visits-here")
+    end
+    assert_equal 0, UtmLinkDrivenSale.where(purchase_id: purchase.id).count
   end
 end

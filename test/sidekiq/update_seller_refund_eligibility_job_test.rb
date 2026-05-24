@@ -2,11 +2,57 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (10 FactoryBot refs).
-# Original: spec/sidekiq/update_seller_refund_eligibility_job_spec.rb (deleted in this commit; see git history).
 class UpdateSellerRefundEligibilityJobTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/sidekiq/update_seller_refund_eligibility_job_spec.rb" do
-    skip "TODO: migrate spec/sidekiq/update_seller_refund_eligibility_job_spec.rb (10 FactoryBot refs) — see comment above"
+  setup do
+    @user = users(:named_seller)
+  end
+
+  test "enables refunds when unpaid balance positive and refunds were disabled" do
+    @user.define_singleton_method(:unpaid_balance_cents) { 5_000 }
+    @user.define_singleton_method(:refunds_disabled?) { true }
+    enable_called = false
+    disable_called = false
+    check_called = false
+    @user.define_singleton_method(:enable_refunds!) { enable_called = true }
+    @user.define_singleton_method(:disable_refunds!) { disable_called = true }
+    @user.define_singleton_method(:check_for_high_balance_and_remove_low_balance_probation!) { check_called = true }
+    User.stub(:find, ->(_id) { @user }) do
+      UpdateSellerRefundEligibilityJob.new.perform(@user.id)
+    end
+    assert enable_called
+    refute disable_called
+    assert check_called
+  end
+
+  test "disables refunds when unpaid balance below -100 dollars and refunds not disabled" do
+    @user.define_singleton_method(:unpaid_balance_cents) { -20_000 }
+    @user.define_singleton_method(:refunds_disabled?) { false }
+    enable_called = false
+    disable_called = false
+    @user.define_singleton_method(:enable_refunds!) { enable_called = true }
+    @user.define_singleton_method(:disable_refunds!) { disable_called = true }
+    @user.define_singleton_method(:check_for_high_balance_and_remove_low_balance_probation!) {}
+    User.stub(:find, ->(_id) { @user }) do
+      UpdateSellerRefundEligibilityJob.new.perform(@user.id)
+    end
+    refute enable_called
+    assert disable_called
+  end
+
+  test "no-op when balance is within range" do
+    @user.define_singleton_method(:unpaid_balance_cents) { 0 }
+    @user.define_singleton_method(:refunds_disabled?) { false }
+    enable_called = false
+    disable_called = false
+    check_called = false
+    @user.define_singleton_method(:enable_refunds!) { enable_called = true }
+    @user.define_singleton_method(:disable_refunds!) { disable_called = true }
+    @user.define_singleton_method(:check_for_high_balance_and_remove_low_balance_probation!) { check_called = true }
+    User.stub(:find, ->(_id) { @user }) do
+      UpdateSellerRefundEligibilityJob.new.perform(@user.id)
+    end
+    refute enable_called
+    refute disable_called
+    assert check_called
   end
 end

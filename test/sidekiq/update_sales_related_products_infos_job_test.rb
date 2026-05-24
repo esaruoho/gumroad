@@ -2,12 +2,29 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration.
-# Original: spec/sidekiq/update_sales_related_products_infos_job_spec.rb (6 FactoryBot refs, 56 lines).
-#
-# Blocker for batch B backfill: Builds `create(:named_seller)` + 3 `:product` + 3 `:purchase` + asserts on `SalesRelatedProductsInfo` cross-product counts. The job hits `Purchase.successful.where(...)` joined against `purchases.product_id` pairs — needs at minimum 3 purchases of distinct products by the same buyer email + Feature.activate(:update_sales_related_products_infos). The existing 43-row purchases fixture doesn't have a buyer with 3 distinct product purchases that would produce the expected `(product_a_id, product_b_id) → count: N` rows. Would need a curated 4-row purchases fixture insertion.
 class UpdateSalesRelatedProductsInfosJobTest < ActiveSupport::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/sidekiq/update_sales_related_products_infos_job_spec.rb — Builds `create(:named_seller)` + 3 `:product` + 3 `:purchase` + asserts on `SalesRelatedProductsInfo` cross-product counts. The job hits `Purchase.successful.where(...)` joined against `purchases.product_id` pairs — needs at minimum 3 purchases of distinct products by the same buyer email + Feature.activate(:update_sales_related_products_infos)...."
+  test "returns early when feature flag is inactive" do
+    Feature.stub(:inactive?, ->(name) { name == :update_sales_related_products_infos }) do
+      called = false
+      Purchase.stub(:find, ->(_id) { called = true; nil }) do
+        UpdateSalesRelatedProductsInfosJob.new.perform(123)
+      end
+      refute called, "Purchase.find should not be called when feature is inactive"
+    end
+  end
+
+  test "returns early when no related products are found for purchase email" do
+    Feature.stub(:inactive?, ->(_n) { false }) do
+      purchase = Purchase.new(email: "lonely-buyer-#{SecureRandom.hex(4)}@example.com",
+                              link_id: 42)
+      def purchase.id; 999; end
+      Purchase.stub(:find, ->(_id) { purchase }) do
+        called = false
+        SalesRelatedProductsInfo.stub(:update_sales_counts, ->(**_kw) { called = true }) do
+          UpdateSalesRelatedProductsInfosJob.new.perform(999)
+        end
+        refute called
+      end
+    end
   end
 end

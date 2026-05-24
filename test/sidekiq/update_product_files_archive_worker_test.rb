@@ -2,11 +2,22 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during the bulk fixtures-only migration
-# because of factory/Stripe/HTTP/ES dependencies (19 FactoryBot refs).
-# Original: spec/sidekiq/update_product_files_archive_worker_spec.rb (deleted in this commit; see git history).
 class UpdateProductFilesArchiveWorkerTest < ActiveSupport::TestCase
-  test "TODO: migrate spec/sidekiq/update_product_files_archive_worker_spec.rb" do
-    skip "TODO: migrate spec/sidekiq/update_product_files_archive_worker_spec.rb (19 FactoryBot refs) — see comment above"
+  # Real perform() returns immediately in Rails.env.test? (line 1 of perform).
+  # We exercise that fast-path here; the heavy archive-build path requires
+  # an S3/MinIO-backed ProductFilesArchive and is out of scope.
+
+  test "returns early in test environment without raising" do
+    assert_predicate Rails.env, :test?
+    assert_nothing_raised do
+      UpdateProductFilesArchiveWorker.new.perform(0)
+    end
+  end
+
+  test "even with a bogus archive id, the test-env guard prevents the lookup" do
+    # If the guard ever regresses, this id would trigger ActiveRecord::RecordNotFound.
+    assert_nothing_raised do
+      UpdateProductFilesArchiveWorker.new.perform(-1)
+    end
   end
 end
