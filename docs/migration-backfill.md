@@ -572,7 +572,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/wishlist_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/utm_links_stats_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/utm_link_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/user_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/user_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/url_redirect_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/tax_center_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/settings_presenter_test.rb` | 1 |
@@ -601,7 +601,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/library_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/invoice_presenter/supplier_info_test.rb` | 1 |
 | ⬜ | `test/presenters/invoice_presenter/order_info_test.rb` | 1 |
-| ⬜ | `test/presenters/invoice_presenter/form_info_test.rb` | 1 |
+| ✅ | `test/presenters/invoice_presenter/form_info_test.rb` | 1 |
 | ⬜ | `test/presenters/installment_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/dispute_evidence_page_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/discover/taxonomy_presenter_test.rb` | 1 |
@@ -622,12 +622,12 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/presenters/bundle_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/affiliates_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/affiliated_products_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/admin/user_presenter/card_test.rb` | 1 |
+| ✅ | `test/presenters/admin/user_presenter/card_test.rb` | 1 |
 | ⬜ | `test/presenters/admin/unreviewed_user_presenter_test.rb` | 1 |
 | ⬜ | `test/presenters/admin/purchase_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/admin/product_presenter/card_test.rb` | 1 |
-| ⬜ | `test/presenters/admin/payment_presenter_test.rb` | 1 |
-| ⬜ | `test/presenters/admin/merchant_account_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/admin/product_presenter/card_test.rb` | 1 |
+| ✅ | `test/presenters/admin/payment_presenter_test.rb` | 1 |
+| ✅ | `test/presenters/admin/merchant_account_presenter_test.rb` | 1 |
 
 ## `test/modules/` (32 files, 32 skips)
 

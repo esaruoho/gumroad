@@ -1,0 +1,4 @@
+# InvoicePresenter::FormInfo + ::OrderInfo + ::SupplierInfo fixtures.
+invoice_seller_purchase_sales_tax_info:
+  purchase_id: <%= ActiveRecord::FixtureSet.identify(:invoice_seller_purchase) %>
+  country_code: US
