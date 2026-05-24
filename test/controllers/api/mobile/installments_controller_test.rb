@@ -2,15 +2,30 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/mobile/installments_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 3). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::Mobile::InstallmentsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/mobile/installments_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @mobile_token = Api::Mobile::BaseController::MOBILE_TOKEN
+  end
+
+  test "GET show returns 401 with invalid mobile token" do
+    get :show, params: { id: "xxx", mobile_token: "bad" }
+    assert_response :unauthorized
+  end
+
+  test "GET show returns 404 when installment is not found" do
+    get :show, params: { id: "nope-#{SecureRandom.hex(4)}", mobile_token: @mobile_token }
+    assert_response :not_found
+    body = response.parsed_body
+    assert_equal false, body["success"]
+    assert_equal "Could not find installment", body["message"]
+  end
+
+  test "GET show returns 404 when no related object is provided" do
+    inst = installments(:published_post)
+    get :show, params: { id: inst.external_id, mobile_token: @mobile_token }
+    assert_response :not_found
+    assert_equal "Could not find related object to the installment.", response.parsed_body["message"]
   end
 end

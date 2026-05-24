@@ -2,15 +2,46 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/v2/direct_uploads_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 3). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::V2::DirectUploadsControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/v2/direct_uploads_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+
+  setup do
+    @user = users(:basic_user)
+    @user.save! if @user.external_id.blank?
+    @app_owner = users(:purchaser)
+    @app_owner.save! if @app_owner.external_id.blank?
+    @oauth_app = OauthApplication.create!(
+      name: "Test App", redirect_uri: "https://example.com",
+      owner: @app_owner, scopes: "edit_products"
+    )
+    @token = Doorkeeper::AccessToken.create!(application: @oauth_app, resource_owner_id: @user.id, scopes: "edit_products")
+  end
+
+  test "POST create returns 401 without token" do
+    post :create
+    assert_response :unauthorized
+  end
+
+  test "POST create returns 400 with missing filename" do
+    post :create, params: { access_token: @token.token, blob: { byte_size: 100, checksum: "abc", content_type: "image/png" } }
+    assert_response :bad_request
+  end
+
+  test "POST create returns 400 with zero byte_size" do
+    post :create, params: { access_token: @token.token, blob: { filename: "a.png", byte_size: 0, checksum: "abc", content_type: "image/png" } }
+    assert_response :bad_request
+    assert_includes response.parsed_body["error"].to_s, "byte_size"
+  end
+
+  test "POST create returns 400 for disallowed content type" do
+    post :create, params: { access_token: @token.token, blob: { filename: "a.pdf", byte_size: 100, checksum: "abc", content_type: "application/pdf" } }
+    assert_response :bad_request
+    assert_includes response.parsed_body["error"].to_s, "content_type"
+  end
+
+  test "POST create returns 400 when byte_size exceeds max" do
+    post :create, params: { access_token: @token.token, blob: { filename: "a.png", byte_size: 100.gigabytes, checksum: "abc", content_type: "image/png" } }
+    assert_response :bad_request
+    assert_includes response.parsed_body["error"].to_s, "maximum"
   end
 end

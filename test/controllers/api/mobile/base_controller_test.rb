@@ -2,15 +2,16 @@
 
 require "test_helper"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/api/mobile/base_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 5). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class Api::Mobile::BaseControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/api/mobile/base_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  test "MOBILE_TOKEN constant is defined" do
+    assert_not_nil Api::Mobile::BaseController::MOBILE_TOKEN
+  end
+
+  test "inherits from ApplicationController" do
+    assert_equal ApplicationController, Api::Mobile::BaseController.superclass
+  end
+
+  test "includes Pagy::Backend" do
+    assert_includes Api::Mobile::BaseController.ancestors, Pagy::Backend
   end
 end
