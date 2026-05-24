@@ -1,16 +1,40 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/controller_seller_auth_helpers"
 
-# TODO: Migrate from RSpec. Skip-batched during fixtures-only controller migration.
-# Original spec: spec/controllers/affiliates_controller_spec.rb (deleted in this commit; see git history)
-# Reason: controller request-style spec with heavy auth/session/shared_context setup
-# (FB/create/let/shared_context refs: 31). Requires fixture-based equivalents
-# for "user signed in as admin for seller" + Pundit authorization shared examples
-# + downstream factories (users, products, purchases, etc.). Out of scope for
-# mechanical migration; revisit post-deadline with manual rewrite using fixtures.
 class AffiliatesControllerTest < ActionController::TestCase
-  test "TODO: migrate from RSpec — fixture-hostile, requires manual rewrite" do
-    skip "TODO: migrate spec/controllers/affiliates_controller_spec.rb — controller spec with shared auth/Pundit contexts"
+  include Devise::Test::ControllerHelpers
+  include ControllerSellerAuthHelpers
+
+  setup do
+    @seller = users(:named_seller)
+    @admin = users(:admin_for_named_seller)
+    sign_in_as_seller(@admin, @seller)
+    @request.headers["X-Inertia"] = "true"
+  end
+
+  teardown { restore_protect_against_forgery! }
+
+  test "GET index renders the affiliates inertia component" do
+    get :index
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Affiliates/Index", page["component"]
+    assert page["props"]["affiliates"].present?
+  end
+
+  test "GET new renders the new inertia component" do
+    get :new
+    assert_response :success
+    page = JSON.parse(@response.body)
+    assert_equal "Affiliates/New", page["component"]
+    assert_kind_of Array, page["props"]["products"]
+  end
+
+  test "GET edit returns 404 for non-existent affiliate" do
+    assert_raises(ActionController::RoutingError) do
+      get :edit, params: { id: "nonexistent" }
+    end
   end
 end
