@@ -18,6 +18,16 @@
 # model's before_create callback that normally flips this bit is bypassed by
 # fixture loading.
 
+# Used by BaseVariantIntegrationTest — isolated seller with no fixture products.
+bvi_test_seller:
+  email: bvi-test-seller@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 basic_user:
   email: basic@example.com
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>

@@ -7,3 +7,18 @@ basic_user_invite:
   invite_state: signed_up
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by InviteTest.
+invite_test_sent:
+  sender_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  receiver_email: invite-test-sent@example.com
+  invite_state: invitation_sent
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+invite_test_signed_up:
+  sender_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  receiver_email: invite-test-signed-up@example.com
+  invite_state: signed_up
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
