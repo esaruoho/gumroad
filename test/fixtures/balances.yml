@@ -49,3 +49,16 @@ payout_annual_outside_balance:
   merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_gumroad_stripe_account) %>
   created_at: 2018-12-29 00:00:00
   updated_at: 2018-12-29 00:00:00
+
+# Used by User::MoneyBalanceTest#balance_formatted.
+money_balance_user_balance:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:money_balance_user) %>
+  merchant_account_id: <%= ActiveRecord::FixtureSet.identify(:forfeit_gumroad_stripe_account) %>
+  date: <%= Date.current %>
+  amount_cents: 100
+  holding_amount_cents: 100
+  currency: usd
+  holding_currency: usd
+  state: unpaid
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>

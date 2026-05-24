@@ -64,3 +64,14 @@ radar_stripe_connect_account:
   json_data: '{"meta":{"stripe_connect":"true"}}'
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# User-owned stripe merchant account for User::MoneyBalanceTest.
+money_balance_stripe_account:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:money_balance_stripe_user) %>
+  charge_processor_id: stripe
+  charge_processor_merchant_id: acct_mb_stripe
+  country: US
+  currency: usd
+  charge_processor_alive_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
