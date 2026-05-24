@@ -59,3 +59,9 @@ Rails.application.config.action_view.sanitizer_vendor = Rails::HTML4::Sanitizer
 # the app (gems included) that takes >1s now raises `Regexp::TimeoutError`.
 # Audit and tune regex hotspots first, then remove this pin in a follow-up.
 Regexp.timeout = nil
+
+# Rails 7.2 enables `validate_migration_timestamps = true`, which rejects
+# migrations whose timestamp is more than 1 day in the future. This repo
+# uses intentionally future-dated migration timestamps (a convention to
+# avoid timestamp collisions across concurrent PRs), so disable the check.
+Rails.application.config.active_record.validate_migration_timestamps = false
