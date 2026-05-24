@@ -598,3 +598,19 @@ missing_events_yesterday_purchase:
   succeeded_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
   created_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
   updated_at: <%= Date.yesterday.beginning_of_day + 12.hours %>
+
+# Used by MillionDollarMilestoneCheckWorkerTest. created_at 15 days ago places
+# it inside the worker's purchase-time range (3.weeks.ago.days_ago(2) .. 2.weeks.ago).
+million_dollar_recent_purchase:
+  seller_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  link_id: <%= ActiveRecord::FixtureSet.identify(:named_seller_product) %>
+  email: million-dollar@example.com
+  price_cents: 100
+  total_transaction_cents: 100
+  displayed_price_cents: 100
+  displayed_price_currency_type: usd
+  purchase_state: successful
+  flags: 0
+  succeeded_at: <%= 15.days.ago %>
+  created_at: <%= 15.days.ago %>
+  updated_at: <%= 15.days.ago %>
