@@ -6,3 +6,44 @@ unconfirmed_follower_of_named_seller:
   email: unconfirmed-follower@example.com
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+
+# Used by User::FollowersTest#following
+followers_test_rel_one:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_creator_one) %>
+  email: follower@example.com
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+followers_test_rel_two:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_creator_one) %>
+  email: different@example.com
+  follower_user_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_following_user) %>
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# rel_three: a deleted follower for "follower@example.com" — verifies that
+# deleted follows are excluded from User#following. Uses not_following_user as the followed
+# (different from creator_one/creator_two so the active rows don't conflict).
+followers_test_rel_three:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_not_following_user) %>
+  email: follower@example.com
+  confirmed_at: <%= Time.current %>
+  deleted_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+followers_test_rel_four:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_creator_two) %>
+  email: follower@example.com
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+followers_test_rel_five:
+  followed_id: <%= ActiveRecord::FixtureSet.identify(:followers_test_following_user) %>
+  email: follower@example.com
+  confirmed_at: <%= Time.current %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
