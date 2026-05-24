@@ -300,6 +300,51 @@ suspended_fraud_user_for_risk:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by CheckPaymentAddressWorkerTest. Suspended seller with a known
+# payment_address that newly-signed-up users may collide with.
+suspended_fraud_user_with_payment_address:
+  email: suspended-fraud-payaddr@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: suspended_for_fraud
+  payment_address: tuhins@gmail.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CheckPaymentAddressWorkerTest. Clean user with no collisions.
+check_payment_address_clean_user:
+  email: clean-payaddr@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  payment_address: cleanuser@gmail.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CheckPaymentAddressWorkerTest. User whose payment_address matches
+# the suspended_fraud_user_with_payment_address fixture.
+check_payment_address_colliding_user:
+  email: colliding-payaddr@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  payment_address: tuhins@gmail.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+# Used by CheckPaymentAddressWorkerTest. User whose payment_address matches
+# an active PlatformBlock email row.
+check_payment_address_blocked_user:
+  email: blocked-payaddr@example.com
+  encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  payment_address: fraudulent_email@zombo.com
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 flagged_fraud_user_for_risk:
   email: flagged-fraud-risk@example.com
   encrypted_password: <%= User.new.send(:password_digest, "test-password-123!") %>

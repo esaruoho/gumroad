@@ -16,7 +16,7 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/controllers/` | 222 | 222 |
 | `test/models/` | 104 | 104 |
 | `test/services/` | 99 | 99 |
-| `test/sidekiq/` | 77 | 77 |
+| `test/sidekiq/` | 61 | 61 |
 | `test/presenters/` | 62 | 67 |
 | `test/modules/` | 28 | 28 |
 | `test/business/` | 25 | 25 |
@@ -27,7 +27,7 @@ Tracks the ~649 silenced test methods across ~643 files left after the bulk RSpe
 | `test/policies/` | 1 | 1 |
 | `test/jobs/` | 1 | 1 |
 | `test/root/` | 1 | 1 |
-| **Total** | **635** | **641** |
+| **Total** | **570** | **574** |
 
 ## Suggested batch order
 Models first (core behavior), then services/sidekiq (business logic), then controllers/presenters (thinner orchestration), then leaves (mailers/helpers/policies).
@@ -480,7 +480,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ⬜ | `test/services/admin/related_users_service_benchmark_test.rb` | 1 |
 | ⬜ | `test/services/abn_validation_service_test.rb` | 1 |
 
-## `test/sidekiq/` (77 files, 77 skips)
+## `test/sidekiq/` (61 files, 61 skips)
 
 | Status | File | Skips |
 |---|---|---:|
@@ -554,7 +554,7 @@ Models first (core behavior), then services/sidekiq (business logic), then contr
 | ✅ | `test/sidekiq/create_canada_monthly_sales_report_job_test.rb` | 1 |
 | ✅ | `test/sidekiq/compile_gumroad_daily_analytics_job_test.rb` | 1 |
 | ⬜ | `test/sidekiq/collect_unclaimed_balances_of_inactive_stripe_accounts_job_test.rb` | 1 |
-| ⬜ | `test/sidekiq/check_payment_address_worker_test.rb` | 1 |
+| ✅ | `test/sidekiq/check_payment_address_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/charge_preorder_worker_test.rb` | 1 |
 | ✅ | `test/sidekiq/charge_declined_reminder_worker_test.rb` | 1 |
 | ⬜ | `test/sidekiq/calculate_payout_numbers_worker_test.rb` | 1 |
