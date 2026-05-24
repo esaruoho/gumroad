@@ -2,6 +2,18 @@
 #
 # Payment fixtures for PaypalBalanceCheckService tests.
 
+# Used by Payment::FailureReasonTest. Starts in `processing` so mark_failed!
+# transitions to `failed` and fires the after_transition callback.
+failure_reason_payment:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
+  state: processing
+  processor: "PAYPAL"
+  correlation_id: failure-reason-test
+  amount_cents: 100
+  payout_period_end_date: <%= Date.yesterday %>
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
 paypal_payment_recent:
   user_id: <%= ActiveRecord::FixtureSet.identify(:paypal_seller) %>
   state: processing
