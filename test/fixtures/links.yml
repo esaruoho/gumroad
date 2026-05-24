@@ -19,6 +19,20 @@ named_seller_product:
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
 
+# Used by ChargeSuccessfulPreordersWorkerTest. bit 4 => is_in_preorder_state (2^3 = 8).
+preorder_test_product:
+  user_id: <%= ActiveRecord::FixtureSet.identify(:named_seller) %>
+  name: Preorder test product
+  unique_permalink: prtsp
+  price_cents: 600
+  purchase_type: 0
+  native_type: digital
+  filetype: link
+  filegroup: url
+  flags: 8
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
 basic_user_product:
   user_id: <%= ActiveRecord::FixtureSet.identify(:basic_user) %>
   name: Basic user's product
