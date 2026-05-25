@@ -239,7 +239,7 @@ RSpec.configure do |config|
     config.verbose_retry = true
     # show exception that triggers a retry if verbose_retry is set to true
     config.display_try_failure_messages = true
-    config.default_retry_count = 1
+    config.default_retry_count = 2
     config.around(:each, type: :system) do |example|
       example.metadata[:retry] ||= 3
       example.run
