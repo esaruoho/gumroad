@@ -34,6 +34,7 @@ Capybara.register_driver :tablet_chrome do |app|
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=800,1024")
   end
 
   Capybara::Selenium::Driver.new(app,
@@ -111,6 +112,26 @@ Capybara.register_driver :selenium_chrome_headless_billy_custom do |app|
                                  options:)
 end
 
+Capybara.register_driver :selenium_chrome_billy_headless do |app|
+  Capybara::Selenium::Driver.load_selenium
+  options = ::Selenium::WebDriver::Chrome::Options.new
+  options.add_argument("--headless=new")
+  options.add_argument("--no-sandbox")
+  options.add_argument("--disable-dev-shm-usage")
+  options.add_argument("--disable-gpu")
+  options.add_argument("--enable-features=NetworkService,NetworkServiceInProcess")
+  options.add_argument("--ignore-certificate-errors")
+  options.add_argument("--proxy-server=#{Billy.proxy.host}:#{Billy.proxy.port}")
+  options.add_argument("--window-size=1440,900")
+  options.add_preference("intl.accept_languages", "en-US")
+  options.logging_prefs = { driver: "DEBUG" }
+
+  Capybara::Selenium::Driver.new(app,
+                                 browser: :chrome,
+                                 http_client: webdriver_client,
+                                 options:)
+end
+
 Capybara.register_driver :docker_headless_tablet_chrome do |app|
   Capybara::Selenium::Driver.load_selenium
   options = ::Selenium::WebDriver::Chrome::Options.new.tap do |opts|
@@ -154,7 +175,14 @@ RSpec.configure do |config|
   end
 
   config.before(:each, billy: true) do |example|
-    driven_by ENV["IN_DOCKER"] == "true" ? :selenium_chrome_headless_billy_custom : :selenium_chrome_billy
+    billy_driver = if ENV["IN_DOCKER"] == "true"
+      :selenium_chrome_headless_billy_custom
+    elsif ENV["CI"] == "true"
+      :selenium_chrome_billy_headless
+    else
+      :selenium_chrome_billy
+    end
+    driven_by billy_driver
   end
 
   config.before(:each, :tablet_view) do |example|

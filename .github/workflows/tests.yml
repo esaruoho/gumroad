@@ -52,10 +52,20 @@ jobs:
         image: redis:7
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
       mongo:
         image: mongo:4.4
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd="mongo --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
       elasticsearch:
         image: elasticsearch:7.17.10
         env:
@@ -74,7 +84,7 @@ jobs:
         ports:
           - 11211:11211
       stripe_mock:
-        image: stripemock/stripe-mock:latest
+        image: stripemock/stripe-mock:v0.193.1
         ports:
           - 12111:12111
           - 12112:12112
@@ -122,12 +132,18 @@ jobs:
             minio/minio:RELEASE.2023-09-04T19-57-37Z server /data --console-address ":9001"
 
           # Wait for MinIO health
+          HEALTHY=false
           for i in $(seq 1 30); do
             if curl -sf http://localhost:9000/minio/health/live >/dev/null; then
-              echo "MinIO is healthy"; break
+              echo "MinIO is healthy"; HEALTHY=true; break
             fi
             sleep 2
           done
+          if [ "$HEALTHY" != "true" ]; then
+            echo "ERROR: MinIO failed to become healthy after 60s"
+            docker logs minio || true
+            exit 1
+          fi
 
           # Create required buckets using mc client (installed in a one-shot container)
           docker run --rm --network host --entrypoint sh minio/mc:latest -c '
@@ -143,6 +159,11 @@ jobs:
 
       - name: Prepare test database
         run: bundle exec rake db:prepare
+
+      - name: Generate JS exports
+        run: bundle exec rails js:export
+        env:
+          RAILS_ENV: test
 
       - name: Precompile assets
         run: bundle exec rake assets:precompile
@@ -180,7 +201,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flaky-specs-fast-${{ matrix.ci_node_index }}-attempt-${{ github.run_attempt }}
-          path: ./test-logs/flaky_specs.log
+          path: ./log/flaky_specs.log
           retention-days: 14
           if-no-files-found: ignore
 
@@ -213,10 +234,20 @@ jobs:
         image: redis:7
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
       mongo:
         image: mongo:4.4
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd="mongo --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
       elasticsearch:
         image: elasticsearch:7.17.10
         env:
@@ -235,7 +266,7 @@ jobs:
         ports:
           - 11211:11211
       stripe_mock:
-        image: stripemock/stripe-mock:latest
+        image: stripemock/stripe-mock:v0.193.1
         ports:
           - 12111:12111
           - 12112:12112
@@ -283,12 +314,18 @@ jobs:
             minio/minio:RELEASE.2023-09-04T19-57-37Z server /data --console-address ":9001"
 
           # Wait for MinIO health
+          HEALTHY=false
           for i in $(seq 1 30); do
             if curl -sf http://localhost:9000/minio/health/live >/dev/null; then
-              echo "MinIO is healthy"; break
+              echo "MinIO is healthy"; HEALTHY=true; break
             fi
             sleep 2
           done
+          if [ "$HEALTHY" != "true" ]; then
+            echo "ERROR: MinIO failed to become healthy after 60s"
+            docker logs minio || true
+            exit 1
+          fi
 
           # Create required buckets using mc client (installed in a one-shot container)
           docker run --rm --network host --entrypoint sh minio/mc:latest -c '
@@ -305,6 +342,11 @@ jobs:
       - name: Prepare test database
         run: bundle exec rake db:prepare
 
+      - name: Generate JS exports
+        run: bundle exec rails js:export
+        env:
+          RAILS_ENV: test
+
       - name: Precompile assets
         run: bundle exec rake assets:precompile
 
@@ -314,7 +356,7 @@ jobs:
           mkdir -p ./test-logs
           bundle exec rake "knapsack_pro:queue:rspec[--format RSpec::Github::Formatter --tag ~skip --format progress]"
         env:
-          KNAPSACK_PRO_TEST_SUITE_TOKEN_RSPEC: ${{ secrets.KNAPSACK_PRO_TEST_SUITE_TOKEN_RSPEC_FAST }}
+          KNAPSACK_PRO_TEST_SUITE_TOKEN_RSPEC: ${{ secrets.KNAPSACK_PRO_TEST_SUITE_TOKEN_RSPEC_SLOW }}
           KNAPSACK_PRO_CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
           KNAPSACK_PRO_CI_NODE_INDEX: ${{ matrix.ci_node_index }}
           KNAPSACK_PRO_LOG_LEVEL: info
@@ -341,7 +383,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flaky-specs-slow-${{ matrix.ci_node_index }}-attempt-${{ github.run_attempt }}
-          path: ./test-logs/flaky_specs.log
+          path: ./log/flaky_specs.log
           retention-days: 14
           if-no-files-found: ignore
 
