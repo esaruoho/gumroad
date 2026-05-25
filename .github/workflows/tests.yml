@@ -130,8 +130,8 @@ jobs:
           done
 
           # Create required buckets using mc client (installed in a one-shot container)
-          docker run --rm --network host minio/mc:latest sh -c '
-            until /usr/bin/mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
+          docker run --rm --network host --entrypoint sh minio/mc:latest -c '
+            until mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
             /usr/bin/mc mb -p local/gumroad-specs || true
             /usr/bin/mc mb -p local/gumroad-invoices || true
             /usr/bin/mc anonymous set public local/gumroad-specs
@@ -291,8 +291,8 @@ jobs:
           done
 
           # Create required buckets using mc client (installed in a one-shot container)
-          docker run --rm --network host minio/mc:latest sh -c '
-            until /usr/bin/mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
+          docker run --rm --network host --entrypoint sh minio/mc:latest -c '
+            until mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
             /usr/bin/mc mb -p local/gumroad-specs || true
             /usr/bin/mc mb -p local/gumroad-invoices || true
             /usr/bin/mc anonymous set public local/gumroad-specs
