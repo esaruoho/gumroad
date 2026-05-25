@@ -210,8 +210,48 @@ jobs:
         env:
           RAILS_ENV: test
 
-      - name: Precompile assets
-        run: bundle exec rake assets:precompile
+      - name: Start Vite dev server
+        # Persistent vite dev daemon — avoids vite_ruby autoBuild's per-request
+        # subprocesses (which die under CI pipe semantics with "stream closed
+        # in another thread"). bin/vite execs node_modules/.bin/vite directly
+        # for dev mode so stderr lands in the log and Vite owns the pid.
+        # VITE_RUBY_TEST_DEV_SERVER=true forces run_proxy? true in test mode
+        # so Rails routes asset URLs through the dev server instead of falling
+        # back to autoBuild.
+        run: |
+          mkdir -p log tmp
+          nohup stdbuf -oL -eL bin/vite dev --mode test --host 127.0.0.1 --clearScreen false \
+            > log/vite-dev.log 2>&1 &
+          echo $! > tmp/vite-dev.pid
+          for i in $(seq 1 180); do
+            if curl -sf http://127.0.0.1:3037/vite-test/@vite/client > /dev/null; then
+              echo "vite dev ready after ${i}s"
+              echo "=== vite-dev.log ==="
+              cat log/vite-dev.log
+              break
+            fi
+            if ! kill -0 "$(cat tmp/vite-dev.pid)" 2>/dev/null; then
+              echo "vite dev exited before becoming ready after ${i}s"
+              echo "=== vite-dev.log ==="
+              cat log/vite-dev.log
+              exit 1
+            fi
+            if [ $((i % 30)) -eq 0 ]; then
+              echo "--- waited ${i}s, vite-dev.log so far ---"
+              cat log/vite-dev.log
+              echo "--- end log snapshot ---"
+            fi
+            sleep 1
+            if [ $i -eq 180 ]; then
+              echo "vite dev failed to start in 180s"
+              cat log/vite-dev.log
+              exit 1
+            fi
+          done
+        env:
+          RAILS_ENV: test
+          VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_TEST_DEV_SERVER: "true"
 
       - name: Run tests
         timeout-minutes: 20
@@ -238,6 +278,8 @@ jobs:
           KNAPSACK_PRO_BRANCH: ${{ github.event_name == 'pull_request_target' && github.head_ref || github.ref_name }}
           KNAPSACK_PRO_CI_NODE_BUILD_ID: ${{ github.run_id }}
           KNAPSACK_PRO_CI_NODE_RETRY_COUNT: ${{ github.run_attempt }}
+          VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_TEST_DEV_SERVER: "true"
           KNAPSACK_PRO_PROJECT_DIR: ${{ github.workspace }}
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
 
@@ -437,8 +479,48 @@ jobs:
         env:
           RAILS_ENV: test
 
-      - name: Precompile assets
-        run: bundle exec rake assets:precompile
+      - name: Start Vite dev server
+        # Persistent vite dev daemon — avoids vite_ruby autoBuild's per-request
+        # subprocesses (which die under CI pipe semantics with "stream closed
+        # in another thread"). bin/vite execs node_modules/.bin/vite directly
+        # for dev mode so stderr lands in the log and Vite owns the pid.
+        # VITE_RUBY_TEST_DEV_SERVER=true forces run_proxy? true in test mode
+        # so Rails routes asset URLs through the dev server instead of falling
+        # back to autoBuild.
+        run: |
+          mkdir -p log tmp
+          nohup stdbuf -oL -eL bin/vite dev --mode test --host 127.0.0.1 --clearScreen false \
+            > log/vite-dev.log 2>&1 &
+          echo $! > tmp/vite-dev.pid
+          for i in $(seq 1 180); do
+            if curl -sf http://127.0.0.1:3037/vite-test/@vite/client > /dev/null; then
+              echo "vite dev ready after ${i}s"
+              echo "=== vite-dev.log ==="
+              cat log/vite-dev.log
+              break
+            fi
+            if ! kill -0 "$(cat tmp/vite-dev.pid)" 2>/dev/null; then
+              echo "vite dev exited before becoming ready after ${i}s"
+              echo "=== vite-dev.log ==="
+              cat log/vite-dev.log
+              exit 1
+            fi
+            if [ $((i % 30)) -eq 0 ]; then
+              echo "--- waited ${i}s, vite-dev.log so far ---"
+              cat log/vite-dev.log
+              echo "--- end log snapshot ---"
+            fi
+            sleep 1
+            if [ $i -eq 180 ]; then
+              echo "vite dev failed to start in 180s"
+              cat log/vite-dev.log
+              exit 1
+            fi
+          done
+        env:
+          RAILS_ENV: test
+          VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_TEST_DEV_SERVER: "true"
 
       - name: Run tests
         timeout-minutes: 30
@@ -456,6 +538,8 @@ jobs:
           KNAPSACK_PRO_BRANCH: ${{ github.event_name == 'pull_request_target' && github.head_ref || github.ref_name }}
           KNAPSACK_PRO_CI_NODE_BUILD_ID: ${{ github.run_id }}
           KNAPSACK_PRO_CI_NODE_RETRY_COUNT: ${{ github.run_attempt }}
+          VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_TEST_DEV_SERVER: "true"
           KNAPSACK_PRO_PROJECT_DIR: ${{ github.workspace }}
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
 

@@ -77,6 +77,18 @@ module Gumroad
       config.middleware.insert_after Rack::Attack, ::CatchBadRequestErrors
     end
 
+    initializer "gumroad.vite_test_dev_server_proxy", before: "vite_rails.proxy" do
+      if Rails.env.test? && ENV["VITE_RUBY_TEST_DEV_SERVER"] == "true"
+        ViteRuby.prepend(Module.new do
+          def run_proxy?
+            return true if config.mode == "test"
+
+            super
+          end
+        end)
+      end
+    end
+
     config.generators do |g|
       g.helper_specs false
       g.stylesheets false

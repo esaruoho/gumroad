@@ -13,4 +13,9 @@ ENV["SHORT_DOMAIN"] = SHORT_DOMAIN
 ENV["DOMAIN"] = DOMAIN
 ENV["PROTOCOL"] = PROTOCOL
 
-ViteRuby.run(ARGV)
+if ARGV.first == "dev"
+  ENV["VITE_RUBY_VITE_BIN_PATH"] ||= File.expand_path("../node_modules/.bin/vite", __dir__)
+  ViteRuby.env["VITE_RUBY_VITE_BIN_PATH"] = ENV["VITE_RUBY_VITE_BIN_PATH"]
+end
+
+ViteRuby.run(ARGV, exec: ARGV.first == "dev")
