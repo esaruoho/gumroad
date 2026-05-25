@@ -21,11 +21,16 @@ describe "internal admin API routing" do
     expect(route_for("/internal/admin/users/radar_stats", :get)).to include(controller: "api/internal/admin/users", action: "radar_stats")
     expect(route_for("/internal/admin/users/related", :get)).to include(controller: "api/internal/admin/users", action: "related")
     expect(route_for("/internal/admin/users/suspension", :get)).to include(controller: "api/internal/admin/users", action: "suspension")
+    expect(route_for("/internal/admin/users/unpaid_balance", :get)).to include(controller: "api/internal/admin/users", action: "unpaid_balance")
     expect(route_for("/internal/admin/payouts", :get)).to include(controller: "api/internal/admin/payouts", action: "index")
   end
 
   it "routes the precise refund endpoint" do
     expect(route_for("/internal/admin/purchases/123/refund", :post)).to include(controller: "api/internal/admin/purchases", action: "refund", id: "123")
+  end
+
+  it "routes the user refund balance write endpoint" do
+    expect(route_for("/internal/admin/users/refund_balance", :post)).to include(controller: "api/internal/admin/users", action: "refund_balance")
   end
 
   it "routes the user watchlist write endpoints" do
@@ -49,6 +54,23 @@ describe "internal admin API routing" do
     expect(route_for("/internal/admin/users/flag_for_tos_violation", :post)).to include(
       controller: "api/internal/admin/users",
       action: "flag_for_tos_violation"
+    )
+  end
+
+  it "routes the scheduled payout write endpoints" do
+    expect(route_for("/internal/admin/scheduled_payouts", :post)).to include(
+      controller: "api/internal/admin/scheduled_payouts",
+      action: "create"
+    )
+    expect(route_for("/internal/admin/scheduled_payouts/abc123/execute", :post)).to include(
+      controller: "api/internal/admin/scheduled_payouts",
+      action: "execute",
+      id: "abc123"
+    )
+    expect(route_for("/internal/admin/scheduled_payouts/abc123/cancel", :post)).to include(
+      controller: "api/internal/admin/scheduled_payouts",
+      action: "cancel",
+      id: "abc123"
     )
   end
 
