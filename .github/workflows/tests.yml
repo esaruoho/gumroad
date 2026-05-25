@@ -251,6 +251,7 @@ jobs:
         env:
           RAILS_ENV: test
           VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_MODE: test
           VITE_RUBY_TEST_DEV_SERVER: "true"
 
       - name: Run tests
@@ -279,6 +280,7 @@ jobs:
           KNAPSACK_PRO_CI_NODE_BUILD_ID: ${{ github.run_id }}
           KNAPSACK_PRO_CI_NODE_RETRY_COUNT: ${{ github.run_attempt }}
           VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_MODE: test
           VITE_RUBY_TEST_DEV_SERVER: "true"
           KNAPSACK_PRO_PROJECT_DIR: ${{ github.workspace }}
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
@@ -520,6 +522,7 @@ jobs:
         env:
           RAILS_ENV: test
           VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_MODE: test
           VITE_RUBY_TEST_DEV_SERVER: "true"
 
       - name: Run tests
@@ -539,6 +542,7 @@ jobs:
           KNAPSACK_PRO_CI_NODE_BUILD_ID: ${{ github.run_id }}
           KNAPSACK_PRO_CI_NODE_RETRY_COUNT: ${{ github.run_attempt }}
           VITE_RUBY_HOST: 127.0.0.1
+          VITE_RUBY_MODE: test
           VITE_RUBY_TEST_DEV_SERVER: "true"
           KNAPSACK_PRO_PROJECT_DIR: ${{ github.workspace }}
           KNAPSACK_PRO_FIXED_QUEUE_SPLIT: true
