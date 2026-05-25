@@ -43,9 +43,13 @@ Rails.application.configure do
   # When running with the persistent Vite dev daemon (CI), point Action Mailer
   # at the dev server so vite_entrypoint_stylesheet_tag emits absolute URLs and
   # Premailer's network loader can fetch the compiled CSS for inlining.
+  # Premailer-rails NetworkLoader reads action_controller.asset_host (not
+  # action_mailer.asset_host) — set both so URL helpers and Premailer agree.
   if ENV["VITE_RUBY_TEST_DEV_SERVER"] == "true"
     vite_host = ENV.fetch("VITE_RUBY_HOST", "127.0.0.1")
-    config.action_mailer.asset_host = "http://#{vite_host}:3037"
+    vite_asset_host = "http://#{vite_host}:3037"
+    config.action_mailer.asset_host = vite_asset_host
+    config.action_controller.asset_host = vite_asset_host
   end
 
   config.active_storage.service = :test
