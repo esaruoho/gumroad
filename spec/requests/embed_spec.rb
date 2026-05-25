@@ -169,11 +169,12 @@ describe "Embed scenario", type: :system, js: true, mock_easypost: true, retry: 
     ]
     physical_skus_product.save!
 
-    embed_page_url = create_embed_page(physical_skus_product, template_name: "embed_page.html.erb", outbound: false, gumroad_params: "quantity=2&price=3&Age=21&Gender=Male&option=#{physical_skus_product.skus.find_by(name: "Blue - Extra Large - Polo").external_id}")
+    selected_sku = physical_skus_product.skus.find_by!(name: "Blue - Extra Large - Polo")
+    embed_page_url = create_embed_page(physical_skus_product, template_name: "embed_page.html.erb", outbound: false, gumroad_params: "quantity=2&price=3&Age=21&Gender=Male&option=#{selected_sku.external_id}")
     visit(embed_page_url)
 
     within_embed_frame do
-      expect(page).to have_radio_button("Blue - Extra Large - Polo", checked: true)
+      expect(page).to have_field(type: "radio", with: selected_sku.external_id, checked: true, visible: :all)
       expect(page).to have_field("Quantity", with: 2)
       expect(page).to have_field("Name a fair price", with: 3)
       click_on "Add to cart"

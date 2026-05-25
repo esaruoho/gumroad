@@ -85,7 +85,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
     it "keeps the PayPal Connect button enabled when user has debit card connected" do
       creator = create(:user, payment_address: nil)
       create(:user_compliance_info, user: creator)
-      create(:card_bank_account, user: creator)
+      BankAccountTestHelpers.create_bank_account(CardBankAccount, user: creator)
 
       login_as creator
       visit settings_payments_path
@@ -241,7 +241,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
     it "allows the creator to update other info when they have a debit card connected" do
       creator = create(:user, payment_address: nil)
       create(:user_compliance_info, user: creator, phone: "+15022541982")
-      create(:card_bank_account, user: creator)
+      BankAccountTestHelpers.create_bank_account(CardBankAccount, user: creator)
       expect(creator.payout_frequency).to eq(User::PayoutSchedule::WEEKLY)
 
       login_as creator
@@ -1921,7 +1921,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
       it "allows the creator to enter their business vat number and updates it on stripe connect account" do
         user = create(:user, username: nil, payment_address: nil)
         create(:user_compliance_info_uae_business, user:, birthday: Date.new(1901, 1, 2))
-        create(:uae_bank_account, user:)
+        BankAccountTestHelpers.create_bank_account(UaeBankAccount, user:)
         create(:tos_agreement, user:)
 
         StripeMerchantAccountManager.create_account(user, passphrase: "1234")
@@ -1939,7 +1939,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
       it "allows the creator to use paypal payouts as an individual" do
         user = create(:user, username: nil, payment_address: nil)
         create(:user_compliance_info_uae_business, user:, birthday: Date.new(1901, 1, 2))
-        create(:uae_bank_account, user:)
+        BankAccountTestHelpers.create_bank_account(UaeBankAccount, user:)
         create(:tos_agreement, user:)
         create(:merchant_account, user:)
 
@@ -6661,7 +6661,7 @@ describe("Payments Settings Scenario", type: :system, js: true) do
 
         before do
           user.active_bank_account.mark_deleted!
-          create(:korea_bank_account, user:)
+          BankAccountTestHelpers.create_bank_account(KoreaBankAccount, user:)
         end
 
         it "shows the minimum payout threshold for the country" do

@@ -143,7 +143,7 @@ describe "Balance Pages Scenario", js: true, type: :system do
 
       it "shows processing payments for all bank account types" do
         UpdatePayoutMethod.bank_account_types.each do |bank_account_type, params|
-          bank_account = create(bank_account_type.underscore, user: seller)
+          bank_account = BankAccountTestHelpers.create_bank_account(bank_account_type, user: seller)
 
           data = {
             should_be_shown_currencies_always: true,
@@ -608,7 +608,7 @@ describe "Balance Pages Scenario", js: true, type: :system do
           context "when the payout was skipped because payout amount was less than the local currency threshold" do
             before do
               create(:user_compliance_info, user: seller, country: "South Korea")
-              create(:korea_bank_account, user: seller, stripe_connect_account_id: "sc_id", stripe_bank_account_id: "ba_id")
+              BankAccountTestHelpers.create_bank_account(KoreaBankAccount, user: seller, stripe_connect_account_id: "sc_id", stripe_bank_account_id: "ba_id")
               create(:merchant_account, user: seller)
               allow_any_instance_of(User).to receive(:unpaid_balance_cents_up_to_date).and_return(50_00)
               Payouts.is_user_payable(seller, Date.yesterday, add_comment: true, from_admin: false)

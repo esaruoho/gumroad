@@ -7,7 +7,75 @@ describe "Tiered Membership Spec", type: :system, js: true do
   include ProductWantThisHelpers
   include CurrencyHelper
 
+  def stub_stripe_card_charge_apis
+    allow(Stripe::PaymentMethod).to receive(:create) do |params = {}, *_args|
+      stripe_payment_method_object(params[:payment_method] || "pm_#{SecureRandom.hex(8)}")
+    end
+    allow(Stripe::PaymentMethod).to receive(:retrieve) do |payment_method_id, *_args|
+      stripe_payment_method_object(payment_method_id)
+    end
+    allow(Stripe::Customer).to receive(:create) do
+      Stripe::Customer.construct_from(id: "cus_#{SecureRandom.hex(8)}", object: "customer")
+    end
+    allow(ChargeProcessor).to receive(:create_payment_intent_or_charge!) do |_merchant_account, _chargeable, amount_cents, *_args, **_kwargs|
+      successful_charge_intent(amount_cents)
+    end
+    allow(ChargeProcessor).to receive(:setup_future_charges!) do
+      successful_setup_intent
+    end
+  end
+
+  def stripe_payment_method_object(payment_method_id)
+    Stripe::PaymentMethod.construct_from(
+      id: payment_method_id,
+      object: "payment_method",
+      customer: nil,
+      type: "card",
+      billing_details: { address: { postal_code: "12345" } },
+      card: {
+        brand: "visa",
+        checks: { address_postal_code_check: "pass" },
+        country: "US",
+        exp_month: 12,
+        exp_year: Time.current.year + 1,
+        fingerprint: "fp_#{payment_method_id}",
+        funding: ChargeableFundingType::CREDIT,
+        last4: "4242"
+      }
+    )
+  end
+
+  def successful_charge_intent(amount_cents)
+    charge = BaseProcessorCharge.new
+    charge.charge_processor_id = StripeChargeProcessor.charge_processor_id
+    charge.id = "ch_#{SecureRandom.hex(8)}"
+    charge.status = "succeeded"
+    charge.refunded = false
+    charge.fee = 0
+    charge.fee_currency = Currency::USD
+    charge.card_fingerprint = "fp_charge_#{charge.id}"
+    charge.card_instance_id = "pm_card_visa"
+    charge.card_expiry_month = 12
+    charge.card_expiry_year = Time.current.year + 1
+    charge.zip_check_result = true
+    charge.flow_of_funds = FlowOfFunds.build_simple_flow_of_funds(Currency::USD, amount_cents)
+
+    ChargeIntent.new.tap do |intent|
+      intent.id = "pi_#{SecureRandom.hex(8)}"
+      intent.client_secret = "pi_secret"
+      intent.charge = charge
+    end
+  end
+
+  def successful_setup_intent
+    SetupIntent.new.tap do |intent|
+      intent.id = "seti_#{SecureRandom.hex(8)}"
+      intent.client_secret = "seti_secret"
+    end
+  end
+
   before :each do
+    stub_stripe_card_charge_apis
     setup_subscription
     travel_to(@originally_subscribed_at + 1.month)
     setup_subscription_token
