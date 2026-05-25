@@ -40,16 +40,24 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "#{PROTOCOL}://#{ASSET_DOMAIN}"
 
-  # When running with the persistent Vite dev daemon (CI), point Action Mailer
-  # at the dev server so vite_entrypoint_stylesheet_tag emits absolute URLs and
-  # Premailer's network loader can fetch the compiled CSS for inlining.
-  # Premailer-rails NetworkLoader reads action_controller.asset_host (not
-  # action_mailer.asset_host) — set both so URL helpers and Premailer agree.
+  # When running with the persistent Vite dev daemon (CI), Premailer must be
+  # able to inline the compiled email CSS. We do NOT set
+  # action_controller.asset_host globally — that would poison every URL helper
+  # used by system specs and force the browser to fetch assets from the Vite
+  # dev server on a different port, breaking Capybara tests.
+  #
+  # Instead we override premailer-rails' NetworkLoader so it points at the
+  # Vite dev server only when asked to resolve a relative CSS URL. This
+  # affects Premailer (mailer rendering) alone.
   if ENV["VITE_RUBY_TEST_DEV_SERVER"] == "true"
     vite_host = ENV.fetch("VITE_RUBY_HOST", "127.0.0.1")
-    vite_asset_host = "http://#{vite_host}:3037"
-    config.action_mailer.asset_host = vite_asset_host
-    config.action_controller.asset_host = vite_asset_host
+    config.action_mailer.asset_host = "http://#{vite_host}:3037"
+
+    Rails.application.config.after_initialize do
+      vite_url = "http://#{vite_host}:3037"
+      Premailer::Rails::CSSLoaders::NetworkLoader.define_singleton_method(:asset_host_present?) { true }
+      Premailer::Rails::CSSLoaders::NetworkLoader.define_singleton_method(:asset_host) { |_url| vite_url }
+    end
   end
 
   config.active_storage.service = :test
