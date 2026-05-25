@@ -8,6 +8,15 @@ Capybara.register_driver :chrome do |app|
   options.add_preference("intl.accept_languages", "en-US")
   options.logging_prefs = { driver: "DEBUG" }
 
+  # Headless when running in CI (non-Docker runner with no display).
+  if ENV["CI"] == "true"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1440,900")
+  end
+
   Capybara::Selenium::Driver.new(app,
                                  browser: :chrome,
                                  http_client: webdriver_client,
@@ -20,6 +29,13 @@ Capybara.register_driver :tablet_chrome do |app|
   options.add_preference("intl.accept_languages", "en-US")
   options.logging_prefs = { driver: "DEBUG" }
 
+  if ENV["CI"] == "true"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+  end
+
   Capybara::Selenium::Driver.new(app,
                                  browser: :chrome,
                                  http_client: webdriver_client,
@@ -31,6 +47,13 @@ Capybara.register_driver :mobile_chrome do |app|
   options.add_emulation(device_name: "iPhone 8")
   options.add_preference("intl.accept_languages", "en-US")
   options.logging_prefs = { driver: "DEBUG" }
+
+  if ENV["CI"] == "true"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+  end
 
   Capybara::Selenium::Driver.new(app,
                                  browser: :chrome,
