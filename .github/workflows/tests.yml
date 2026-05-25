@@ -78,18 +78,6 @@ jobs:
         ports:
           - 12111:12111
           - 12112:12112
-      minio:
-        image: minio/minio:RELEASE.2023-09-04T19-57-37Z
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -sf http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=15
 
     env:
       RAILS_ENV: test
@@ -121,6 +109,34 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg imagemagick
+
+      - name: Start MinIO and create buckets
+        run: |
+          set -e
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            --health-cmd="curl -sf http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval=5s --health-timeout=5s --health-retries=20 \
+            minio/minio:RELEASE.2023-09-04T19-57-37Z server /data --console-address ":9001"
+
+          # Wait for MinIO health
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then
+              echo "MinIO is healthy"; break
+            fi
+            sleep 2
+          done
+
+          # Create required buckets using mc client (installed in a one-shot container)
+          docker run --rm --network host minio/mc:latest sh -c '
+            until /usr/bin/mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
+            /usr/bin/mc mb -p local/gumroad-specs || true
+            /usr/bin/mc mb -p local/gumroad-invoices || true
+            /usr/bin/mc anonymous set public local/gumroad-specs
+            /usr/bin/mc anonymous set public local/gumroad-invoices
+          '
 
       - name: npm ci
         run: npm ci
@@ -223,18 +239,6 @@ jobs:
         ports:
           - 12111:12111
           - 12112:12112
-      minio:
-        image: minio/minio:RELEASE.2023-09-04T19-57-37Z
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -sf http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=15
 
     env:
       RAILS_ENV: test
@@ -266,6 +270,34 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg imagemagick
+
+      - name: Start MinIO and create buckets
+        run: |
+          set -e
+          docker run -d --name minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            --health-cmd="curl -sf http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval=5s --health-timeout=5s --health-retries=20 \
+            minio/minio:RELEASE.2023-09-04T19-57-37Z server /data --console-address ":9001"
+
+          # Wait for MinIO health
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live >/dev/null; then
+              echo "MinIO is healthy"; break
+            fi
+            sleep 2
+          done
+
+          # Create required buckets using mc client (installed in a one-shot container)
+          docker run --rm --network host minio/mc:latest sh -c '
+            until /usr/bin/mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
+            /usr/bin/mc mb -p local/gumroad-specs || true
+            /usr/bin/mc mb -p local/gumroad-invoices || true
+            /usr/bin/mc anonymous set public local/gumroad-specs
+            /usr/bin/mc anonymous set public local/gumroad-invoices
+          '
 
       - name: npm ci
         run: npm ci
