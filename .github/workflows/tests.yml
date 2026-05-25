@@ -47,6 +47,15 @@ jobs:
         image: redis:7
         ports:
           - 6379:6379
+      stripe_mock:
+        image: stripemock/stripe-mock:latest
+        ports:
+          - 12111:12111
+          - 12112:12112
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
 
     env:
       RAILS_ENV: test
