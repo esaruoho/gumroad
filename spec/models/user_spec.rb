@@ -2870,13 +2870,17 @@ describe User, :vcr do
       expect(GenerateSubscribePreviewJob).to have_enqueued_sidekiq_job(@user.id)
     end
 
-    it "schedules GenerateSubscribePreviewJob when avatar changes", skip: "Rails 7.2 timing regression with ActiveStorage attach + after_commit: passes in isolation, fails on certain CI shard orderings. Investigated and tracked in #5256 follow-up; the production code path works correctly via explicit save (see settings/profile_controller#update)." do
+    it "schedules GenerateSubscribePreviewJob when avatar changes" do
       # Avatar updates regenerate the preview.
       @user.avatar.attach(
         io: fixture_file_upload("smilie.png"),
         filename: "smilie.png",
       )
-      @user.save! # Rails 7.2: .attach no longer always implicitly saves the parent
+      # `.attach` only auto-saves when the parent record is persisted AND
+      # unchanged. In some shard orders @user is dirty after the `before`
+      # block (seller_profile association touched it), so the staged
+      # attachment_changes never persist without an explicit save.
+      @user.save! if @user.changed? || @user.attachment_changes["avatar"].present?
       expect(GenerateSubscribePreviewJob.jobs.size).to eq(1)
       expect(GenerateSubscribePreviewJob).to have_enqueued_sidekiq_job(@user.id)
 

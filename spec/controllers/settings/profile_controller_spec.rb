@@ -142,7 +142,7 @@ describe Settings::ProfileController, :vcr, type: :controller, inertia: true do
       expect(flash[:notice]).to eq("Changes saved!")
     end
 
-    it "regenerates the subscribe preview when the avatar changes", skip: "Rails 7.2 timing regression with ActiveStorage attach + after_commit: passes in isolation, fails on certain CI shard orderings. Same root cause as user_spec.rb counterpart. Will land along with the broader 7.2 attachment_changes follow-up." do
+    it "regenerates the subscribe preview when the avatar changes" do
       allow_any_instance_of(User).to receive(:generate_subscribe_preview).and_call_original
 
       blob = ActiveStorage::Blob.create_and_upload!(

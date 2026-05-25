@@ -14,15 +14,11 @@ class Settings::ProfileController < Settings::BaseController
   def update
     return respond_error("You have to confirm your email address before you can do that.") unless current_seller.confirmed?
 
-    if permitted_params[:profile_picture_blob_id].present?
-      return respond_error("The logo is already removed. Please refresh the page and try again.") if ActiveStorage::Blob.find_signed(permitted_params[:profile_picture_blob_id]) .nil?
-      begin
-        current_seller.avatar.attach permitted_params[:profile_picture_blob_id]
-      rescue ActiveRecord::RecordNotUnique
-        current_seller.avatar.reload
-      end
-    elsif permitted_params.has_key?(:profile_picture_blob_id) && current_seller.avatar.attached?
-      current_seller.avatar.purge
+    blob_id_param_present = permitted_params.has_key?(:profile_picture_blob_id)
+    profile_picture_blob_id = permitted_params[:profile_picture_blob_id]
+
+    if profile_picture_blob_id.present?
+      return respond_error("The logo is already removed. Please refresh the page and try again.") if ActiveStorage::Blob.find_signed(profile_picture_blob_id).nil?
     end
 
     begin
@@ -39,8 +35,37 @@ class Settings::ProfileController < Settings::BaseController
         end
         seller_profile.assign_attributes(permitted_params[:seller_profile]) if permitted_params[:seller_profile].present?
         seller_profile.save!
-        current_seller.update!(permitted_params[:user]) if permitted_params[:user]
-        current_seller.clear_products_cache if permitted_params[:profile_picture_blob_id].present?
+
+        # Avatar handling: stage the attachment change on `current_seller` and
+        # explicitly save inside the transaction. ActiveStorage's `.attach` only
+        # auto-saves when `record.persisted? && !record.changed?`, so if the
+        # record is dirty (or if no `:user` params are present to trigger
+        # `current_seller.update!`), the staged attachment_changes never get
+        # persisted — and `set_avatar_changed` → `generate_subscribe_preview`
+        # never fires. Driving the save explicitly here makes the callback
+        # chain deterministic.
+        avatar_change_pending = false
+        if profile_picture_blob_id.present?
+          begin
+            current_seller.avatar.attach profile_picture_blob_id
+            avatar_change_pending = true
+          rescue ActiveRecord::RecordNotUnique
+            current_seller.avatar.reload
+          end
+        elsif blob_id_param_present && current_seller.avatar.attached?
+          current_seller.avatar.purge
+          avatar_change_pending = true
+        end
+
+        if permitted_params[:user]
+          current_seller.assign_attributes(permitted_params[:user])
+        end
+
+        if avatar_change_pending || permitted_params[:user] || current_seller.changed?
+          current_seller.save!
+        end
+
+        current_seller.clear_products_cache if profile_picture_blob_id.present?
       end
       respond_success
     rescue ActiveRecord::RecordInvalid => e
