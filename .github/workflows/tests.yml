@@ -146,12 +146,37 @@ jobs:
           fi
 
           # Create required buckets using mc client (installed in a one-shot container)
-          docker run --rm --network host --entrypoint sh minio/mc:latest -c '
+          docker run --rm --network host \
+            -v "$(pwd)/spec/support/fixtures:/fixtures:ro" \
+            -v "$(pwd)/docker/fixture-files-private.txt:/fixture-files-private.txt:ro" \
+            -v "$(pwd)/docker/fixture-files-public.txt:/fixture-files-public.txt:ro" \
+            --entrypoint sh minio/mc:latest -c '
             until mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
-            /usr/bin/mc mb -p local/gumroad-specs || true
-            /usr/bin/mc mb -p local/gumroad-invoices || true
-            /usr/bin/mc anonymous set public local/gumroad-specs
-            /usr/bin/mc anonymous set public local/gumroad-invoices
+            mc mb -p local/gumroad-specs || true
+            mc mb -p local/gumroad-invoices || true
+            mc anonymous set public local/gumroad-specs
+            mc anonymous set public local/gumroad-invoices
+
+            echo "Seeding private fixtures into gumroad-specs/specs/"
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              if [ -f "/fixtures/$file" ]; then
+                mc cp "/fixtures/$file" "local/gumroad-specs/specs/$file"
+              else
+                echo "ERROR: fixture not found: $file"; exit 1
+              fi
+            done < /fixture-files-private.txt
+
+            echo "Seeding public fixtures into gumroad-specs/specs/"
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              if [ -f "/fixtures/$file" ]; then
+                mc cp "/fixtures/$file" "local/gumroad-specs/specs/$file"
+                mc anonymous set download "local/gumroad-specs/specs/$file"
+              else
+                echo "ERROR: fixture not found: $file"; exit 1
+              fi
+            done < /fixture-files-public.txt
           '
 
       - name: npm ci
@@ -325,12 +350,37 @@ jobs:
           fi
 
           # Create required buckets using mc client (installed in a one-shot container)
-          docker run --rm --network host --entrypoint sh minio/mc:latest -c '
+          docker run --rm --network host \
+            -v "$(pwd)/spec/support/fixtures:/fixtures:ro" \
+            -v "$(pwd)/docker/fixture-files-private.txt:/fixture-files-private.txt:ro" \
+            -v "$(pwd)/docker/fixture-files-public.txt:/fixture-files-public.txt:ro" \
+            --entrypoint sh minio/mc:latest -c '
             until mc alias set local http://localhost:9000 minioadmin minioadmin; do sleep 2; done
-            /usr/bin/mc mb -p local/gumroad-specs || true
-            /usr/bin/mc mb -p local/gumroad-invoices || true
-            /usr/bin/mc anonymous set public local/gumroad-specs
-            /usr/bin/mc anonymous set public local/gumroad-invoices
+            mc mb -p local/gumroad-specs || true
+            mc mb -p local/gumroad-invoices || true
+            mc anonymous set public local/gumroad-specs
+            mc anonymous set public local/gumroad-invoices
+
+            echo "Seeding private fixtures into gumroad-specs/specs/"
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              if [ -f "/fixtures/$file" ]; then
+                mc cp "/fixtures/$file" "local/gumroad-specs/specs/$file"
+              else
+                echo "ERROR: fixture not found: $file"; exit 1
+              fi
+            done < /fixture-files-private.txt
+
+            echo "Seeding public fixtures into gumroad-specs/specs/"
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              if [ -f "/fixtures/$file" ]; then
+                mc cp "/fixtures/$file" "local/gumroad-specs/specs/$file"
+                mc anonymous set download "local/gumroad-specs/specs/$file"
+              else
+                echo "ERROR: fixture not found: $file"; exit 1
+              fi
+            done < /fixture-files-public.txt
           '
 
       - name: npm ci
