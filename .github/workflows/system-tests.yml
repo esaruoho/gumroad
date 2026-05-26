@@ -166,8 +166,20 @@ jobs:
           VITE_RUBY_HOST: 127.0.0.1
           VITE_RUBY_TEST_DEV_SERVER: "true"
 
+      - name: Prepare Elasticsearch indices
+        # Create the per-test ES indices (purchases-test, links-test, balances-test, etc.)
+        # the model code expects. Mirrors what spec/support/elasticsearch.rb does for
+        # RSpec — but System Tests (Minitest) don't auto-load that file, so we wire it
+        # in explicitly. Without this, any test that hits a search endpoint dies with
+        # `index_not_found_exception [purchases]`.
+        run: |
+          bundle exec rails runner -e test '
+            require Rails.root.join("spec/support/elasticsearch.rb")
+            ElasticsearchSetup.prepare_test_environment
+          '
+
       - name: Run system tests
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: bin/test-system
         env:
           VITE_RUBY_HOST: 127.0.0.1

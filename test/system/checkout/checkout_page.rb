@@ -23,9 +23,10 @@ class CheckoutPage
   end
 
   # ---------- Navigation ----------
-  def goto_product(product, params: {})
+  def goto_product(product, params: {}, base_url: nil)
     qs = params.empty? ? "" : "?" + params.to_query
-    @page.goto("/l/#{product.unique_permalink}#{qs}")
+    path = "/l/#{product.unique_permalink}#{qs}"
+    @page.goto(base_url ? "#{base_url}#{path}" : path)
     @page.wait_for_load_state(state: "networkidle")
     self
   end
@@ -52,12 +53,23 @@ class CheckoutPage
   end
 
   def fill_billing_country(country_code)
-    @page.select_option('select[name="country"]', country_code)
+    @page.get_by_label("Country").select_option(country_code)
     self
   end
 
   def fill_zip(zip)
-    @page.fill('input[name="zip_code"]', zip)
+    set_zip(zip)
+  end
+
+  def set_zip(zip)
+    zip_input.fill(zip)
+    @page.keyboard.press("Tab")
+    self
+  end
+
+  def fill_vatin(vatin)
+    @page.locator("xpath=//label[starts-with(normalize-space(.), 'Business ')]/ancestor::fieldset//input").fill(vatin)
+    @page.keyboard.press("Tab")
     self
   end
 
@@ -100,8 +112,20 @@ class CheckoutPage
     @page.locator('iframe[name^="__privateStripeFrame"][src*="acs"]').count > 0
   end
 
+  def has_tax_line?(text)
+    @page.locator("body").text_content.gsub(/\s+/, " ").include?(text)
+  end
+
   # ---------- Currency display ----------
   def displayed_total_text
-    @page.locator('[data-helper="cart-total"]').text_content
+    @page.locator("xpath=//h4[normalize-space(.)='Total']/following-sibling::div[1]").text_content
   end
+
+  private
+    def zip_input
+      locator = @page.get_by_label("ZIP code")
+      return locator if locator.count > 0
+
+      @page.get_by_label("Postal code")
+    end
 end

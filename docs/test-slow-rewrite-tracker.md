@@ -22,7 +22,7 @@ Live checklist for [PR #5240](https://github.com/antiwork/gumroad/pull/5240). Ev
 | Cluster | Files | Tests | Filled | % |
 |---|--:|--:|--:|--:|
 | Auth (login/signup/password/2FA/smoke) | 5 | 16 | 16 / 16 | 100% |
-| Checkout main flows | 6 | 42 | 0 / 42 | 0% |
+| Checkout main flows | 7 | 90 | 48 / 90 | 53% |
 | Edge cases (checkout + refund/chargeback/fraud) | 13 | 100 | 0 / 100 | 0% |
 | Product types | 6 | 34 | 0 / 34 | 0% |
 | Affiliate & collaborator | 2 | 10 | 0 / 10 | 0% |
@@ -70,7 +70,7 @@ Live checklist for [PR #5240](https://github.com/antiwork/gumroad/pull/5240). Ev
 - [x] `test_resend_token_button_stays_on_two_factor`
 
 
-## Checkout main flows  (0 / 42)
+## Checkout main flows  (48 / 90)
 
 ### `test/system/checkout/apple_google_pay_test.rb` (0 / 6)
 
@@ -131,6 +131,34 @@ Live checklist for [PR #5240](https://github.com/antiwork/gumroad/pull/5240). Ev
 - [ ] `test_upsell_with_offer_code_applies_discount` — _Offer code ignored on upsell; buyer paid full price_
 - [ ] `test_upsell_after_subscription_purchase_works` — _Upsell crashes when main was subscription_
 - [ ] `test_upsell_cross_seller_blocked` — _Cross-seller upsell crosses Universal Cart boundaries unsafely_
+
+
+## Tax display rewrite
+
+`test/system/checkout/tax_display_test.rb` replaces the monolithic `spec/requests/purchases/product/taxes_spec.rb` coverage for buyer-facing checkout tax display. It keeps the old spec in place for this PR, but rewrites the Test Slow surface as one Playwright file focused on the checkout tax line, total, VAT/GST copy, VATIN reverse charge, country changes, variant/tier recomputation, and persisted purchase tax fields.
+
+### `test/system/checkout/tax_display_test.rb` (48 / 48)
+
+- [x] `test_us_sales_tax_az_zip_physical_product`
+- [x] `test_us_sales_tax_ny_zip_physical_product`
+- [x] `test_us_no_nexus_state_mt_shows_no_tax_line`
+- [x] `test_eu_buyer_de_digital_product_vat`
+- [x] `test_eu_buyer_de_with_valid_vatin_reverse_charges_vat`
+- [x] `test_uk_buyer_post_brexit_digital_product_vat`
+- [x] `test_india_buyer_digital_product_igst`
+- [x] `test_australia_gst`
+- [x] `test_singapore_gst`
+- [x] `test_norway_tax`
+- [x] `test_japan_jct`
+- [x] `test_new_zealand_gst`
+- [x] `test_canada_on_gst_hst`
+- [x] Country tax matrix — 29 generated country-specific tests from `COUNTRY_TAX_CASES`
+- [x] `test_country_change_recomputes_tax`
+- [x] `test_variant_price_difference_recomputes_tax`
+- [x] `test_tiered_membership_tax`
+- [x] `test_tax_inclusive_and_exclusive_checkout_copy`
+- [x] `test_collect_eu_vat_seller_flag_keeps_marketplace_vat_displayed`
+- [x] `test_vatin_field_appears_only_for_taxable_countries_that_accept_business_ids`
 
 
 ## Edge cases (checkout + refund/chargeback/fraud)  (0 / 100)
@@ -539,4 +567,3 @@ Live checklist for [PR #5240](https://github.com/antiwork/gumroad/pull/5240). Ev
 - [ ] `test_cors_headers_absent_on_authenticated_routes` — _CORS too permissive; CSRF risk_
 - [ ] `test_dangerous_inputs_caught_and_sanitized` — _XSS in product description executes for buyers_
 - [ ] `test_session_fixation_prevented_on_login` — _Session fixation; account hijack_
-
