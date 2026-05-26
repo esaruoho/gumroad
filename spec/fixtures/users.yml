@@ -1,31 +1,31 @@
 buyer_currency_seller:
   id: 9001
-  email: seller@example.com
+  email: buyer-currency-seller-fixture@example.com
   encrypted_password: fixture-password
   confirmed_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
-  name: Seller Fixture
-  username: sellerfixture
-  payment_address: seller-payout@example.com
+  name: Buyer Currency Seller Fixture
+  username: buyercurrencysellerfix
+  payment_address: buyer-currency-seller-payout-fixture@example.com
   user_risk_state: not_reviewed
-  external_id: seller_fixture_external_id
+  external_id: buyer_currency_seller_fixture_external_id
   recommendation_type: own_products
   flags: 0
   show_buyer_local_currency: true
 
 buyer_currency_seller_disabled:
   id: 9002
-  email: disabled-seller@example.com
+  email: buyer-currency-seller-disabled-fixture@example.com
   encrypted_password: fixture-password
   confirmed_at: <%= Time.current %>
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
-  name: Disabled Seller Fixture
-  username: disabledsellerfixture
-  payment_address: disabled-seller-payout@example.com
+  name: Buyer Currency Disabled Seller Fixture
+  username: buyercurrencydisabledsf
+  payment_address: buyer-currency-disabled-seller-payout-fixture@example.com
   user_risk_state: not_reviewed
-  external_id: disabled_seller_fixture_external_id
+  external_id: buyer_currency_seller_disabled_fixture_external_id
   recommendation_type: own_products
   flags: 0
   show_buyer_local_currency: false
