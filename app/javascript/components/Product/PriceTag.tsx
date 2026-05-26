@@ -28,6 +28,7 @@ type Props = {
   tooltipPosition?: "top" | "right";
   buyerCurrency?: string | null | undefined;
   buyerLocalPriceCents?: number | null | undefined;
+  buyerLocalOriginalPriceCents?: number | null | undefined;
 };
 
 export const PriceTag = ({
@@ -42,26 +43,36 @@ export const PriceTag = ({
   tooltipPosition = "right",
   buyerCurrency,
   buyerLocalPriceCents,
+  buyerLocalOriginalPriceCents,
 }: Props) => {
-  const formattedAmount = formatPriceCentsWithCurrencySymbol(currencyCode, price, { symbolFormat: "long" });
-  const formattedBuyerAmount =
+  const buyerLocalPrice =
     buyerCurrency && buyerLocalPriceCents != null
-      ? formatMinorUnitPriceWithIntl(buyerCurrency, buyerLocalPriceCents)
+      ? {
+          currency: buyerCurrency,
+          priceCents: buyerLocalPriceCents,
+          originalPriceCents: buyerLocalOriginalPriceCents,
+        }
       : null;
+  const displayedPrice = buyerLocalPrice?.priceCents ?? price;
+  const displayedOldPrice = buyerLocalPrice ? (buyerLocalPrice.originalPriceCents ?? undefined) : oldPrice;
+  const displayedCurrencyCode = buyerLocalPrice?.currency ?? currencyCode;
+  const formatDisplayedPrice = (amountCents: number) =>
+    buyerLocalPrice
+      ? formatMinorUnitPriceWithIntl(buyerLocalPrice.currency, amountCents)
+      : formatPriceCentsWithCurrencySymbol(currencyCode, amountCents, { symbolFormat: "long" });
 
   const recurrenceLabel = recurrence
     ? formatRecurrenceWithDuration(recurrence.id, recurrence.duration_in_months)
     : null;
 
-  // Should match CurrencyHelper#product_card_formatted_price
   const priceTag = (
     <>
-      {oldPrice != null ? (
+      {displayedOldPrice != null ? (
         <>
-          <s>{formatPriceCentsWithCurrencySymbol(currencyCode, oldPrice, { symbolFormat: "long" })}</s>{" "}
+          <s>{formatDisplayedPrice(displayedOldPrice)}</s>{" "}
         </>
       ) : null}
-      {formattedAmount}
+      {formatDisplayedPrice(displayedPrice)}
       {isPayWhatYouWant ? "+" : null}
       {recurrenceLabel ? ` ${recurrenceLabel}` : null}
     </>
@@ -75,7 +86,11 @@ export const PriceTag = ({
           <div
             className="bg-accent px-2 py-1 text-accent-foreground"
             itemProp="price"
-            content={formatPriceCentsWithoutCurrencySymbolAndComma(currencyCode, price)}
+            content={
+              buyerLocalPrice
+                ? formatMinorUnitPriceWithoutCurrencySymbolAndComma(buyerLocalPrice.currency, displayedPrice)
+                : formatPriceCentsWithoutCurrencySymbolAndComma(currencyCode, displayedPrice)
+            }
           >
             {priceTag}
           </div>
@@ -83,15 +98,12 @@ export const PriceTag = ({
           <div className={classNames("absolute top-0 right-px bottom-0 border-accent", borderClasses)} />
         </div>
       </WithTooltip>
-      {formattedBuyerAmount ? (
-        <span className="ml-2 whitespace-nowrap text-sm text-muted">≈ {formattedBuyerAmount}</span>
-      ) : null}
       <link itemProp="url" href={url} />
       <div itemProp="availability" className="hidden">
         {`https://schema.org/${isSalesLimited ? "LimitedAvailability" : "InStock"}`}
       </div>
       <div itemProp="priceCurrency" className="hidden">
-        {currencyCode}
+        {displayedCurrencyCode}
       </div>
       {creatorName ? (
         <div itemProp="seller" itemType="https://schema.org/Person" className="hidden">
@@ -102,4 +114,15 @@ export const PriceTag = ({
       ) : null}
     </div>
   );
+};
+
+const formatMinorUnitPriceWithoutCurrencySymbolAndComma = (currencyCode: string, amountMinorUnits: number): string => {
+  const formatter = new Intl.NumberFormat("en-US", { style: "currency", currency: currencyCode.toUpperCase() });
+  const fractionDigits = formatter.resolvedOptions().maximumFractionDigits;
+  const amount = amountMinorUnits / 10 ** fractionDigits;
+  return amount.toLocaleString("en-US", {
+    minimumFractionDigits: amount % 1 === 0 ? 0 : fractionDigits,
+    maximumFractionDigits: fractionDigits,
+    useGrouping: false,
+  });
 };

@@ -59,6 +59,7 @@ export const Card = ({
           creatorName={product.seller?.name}
           buyerCurrency={product.buyer_currency}
           buyerLocalPriceCents={product.buyer_local_price_cents}
+          buyerLocalOriginalPriceCents={product.buyer_local_original_price_cents}
         />
       </div>
       {footerAction}
@@ -115,6 +116,7 @@ export const HorizontalCard = ({ product, big, eager }: { product: CardProduct; 
             creatorName={product.seller?.name}
             buyerCurrency={product.buyer_currency}
             buyerLocalPriceCents={product.buyer_local_price_cents}
+            buyerLocalOriginalPriceCents={product.buyer_local_original_price_cents}
           />
         </div>
         {product.ratings?.count ? (

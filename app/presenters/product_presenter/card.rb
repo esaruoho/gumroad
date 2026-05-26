@@ -26,6 +26,7 @@ class ProductPresenter::Card
     default_recurrence = product.default_price_recurrence
     base_price_cents = product.display_price_cents(for_default_duration: true)
     price_cents = compute_discounted_price_cents(base_price_cents)
+    original_price_cents = price_cents < base_price_cents ? base_price_cents : nil
 
     props = {
       id: product.external_id,
@@ -42,7 +43,7 @@ class ProductPresenter::Card
       is_sales_limited: compute_inventory ? product.max_purchase_count? : false,
       price_cents:,
       currency_code: product.price_currency_type.downcase,
-      **buyer_local_price_props(price_cents:, request:),
+      **buyer_local_price_props(price_cents:, original_price_cents:, request:),
       is_pay_what_you_want: product.has_customizable_price_option?,
       url: url_for_product_page(product, request:, recommended_by:, recommender_model_name:, layout: target, affiliate_id:, query:, offer_code:),
       duration_in_months: product.duration_in_months,
@@ -50,9 +51,7 @@ class ProductPresenter::Card
     }
 
     # Include base_price_cents when there's a discount to show original price with strikethrough
-    if price_cents < base_price_cents
-      props[:original_price_cents] = base_price_cents
-    end
+    props[:original_price_cents] = original_price_cents if original_price_cents.present?
 
     if compute_description
       props[:description] = product.plaintext_description.truncate(100)
@@ -84,7 +83,7 @@ class ProductPresenter::Card
       [base_price_cents - discount_amount_cents, 0].max
     end
 
-    def buyer_local_price_props(price_cents:, request:)
+    def buyer_local_price_props(price_cents:, original_price_cents: nil, request:)
       return {} unless request.present? && product.user.show_buyer_local_currency?
 
       buyer_currency = buyer_currency_for_ip(request.remote_ip)
@@ -97,9 +96,20 @@ class ProductPresenter::Card
       )
       return {} if local_price_cents.blank?
 
-      {
+      props = {
         buyer_currency:,
         buyer_local_price_cents: local_price_cents,
       }
+
+      if original_price_cents.present?
+        local_original_price_cents = buyer_local_price_cents(
+          price_cents: original_price_cents,
+          from_currency: product.price_currency_type,
+          to_currency: buyer_currency
+        )
+        props[:buyer_local_original_price_cents] = local_original_price_cents if local_original_price_cents.present?
+      end
+
+      props
     end
 end
