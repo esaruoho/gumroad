@@ -2,8 +2,8 @@
 
 require_relative "../test_helper"
 require_relative "../system_test_case"
-require_relative "../checkout_page"
-require_relative "../stripe_test_cards"
+require_relative "checkout_page"
+require_relative "stripe_test_cards"
 
 
 # Bundle products — multiple products sold as one transaction with a single line item. Bundle pricing is its own edge surface.

@@ -2,8 +2,8 @@
 
 require_relative "../test_helper"
 require_relative "../system_test_case"
-require_relative "../checkout_page"
-require_relative "../stripe_test_cards"
+require_relative "checkout_page"
+require_relative "stripe_test_cards"
 
 
 # Discount + offer code application: percent, fixed, currency-locked, usage-limited, expiring, stacking rules.

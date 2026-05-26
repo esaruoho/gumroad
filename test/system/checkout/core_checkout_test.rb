@@ -2,8 +2,8 @@
 
 require_relative "../test_helper"
 require_relative "../system_test_case"
-require_relative "../checkout_page"
-require_relative "../stripe_test_cards"
+require_relative "checkout_page"
+require_relative "stripe_test_cards"
 
 
 # Core checkout happy paths — digital product, single item, US buyer/US seller. The load-bearing flow that 80%+ of GMV runs through.
