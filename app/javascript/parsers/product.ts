@@ -41,6 +41,8 @@ export type CardProduct = {
   price_cents: number;
   original_price_cents?: number;
   currency_code: CurrencyCode;
+  buyer_currency?: string;
+  buyer_local_price_cents?: number;
   thumbnail_url: string | null;
   native_type: ProductNativeType;
   url: string;

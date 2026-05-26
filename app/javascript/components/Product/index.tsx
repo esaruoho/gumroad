@@ -106,6 +106,8 @@ export type Product = {
   duration_in_months: number | null;
   is_sales_limited: boolean;
   price_cents: number;
+  buyer_currency?: string;
+  buyer_local_price_cents?: number;
   pwyw: { suggested_price_cents: number | null } | null;
   installment_plan: InstallmentPlan | null;
   ratings: RatingsWithPercentages | null;
@@ -390,6 +392,8 @@ export const Product = ({
                 isPayWhatYouWant={!!product.pwyw}
                 isSalesLimited={product.is_sales_limited}
                 creatorName={product.seller?.name}
+                buyerCurrency={product.buyer_currency}
+                buyerLocalPriceCents={product.buyer_local_price_cents}
               />
             </div>
           ) : null}

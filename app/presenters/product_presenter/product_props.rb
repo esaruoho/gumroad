@@ -3,6 +3,7 @@
 class ProductPresenter::ProductProps
   include Rails.application.routes.url_helpers
   include ProductsHelper
+  include CurrencyHelper
 
   SALES_COUNT_CACHE_KEY_REFIX = "product-presenter:sales-count-cache"
   SALES_COUNT_CACHE_METRICS_KEY = "#{SALES_COUNT_CACHE_KEY_REFIX}-metrics"
@@ -38,6 +39,7 @@ class ProductPresenter::ProductProps
         description_html: product.html_safe_description,
         currency_code: product.price_currency_type.downcase,
         price_cents: product.price_cents,
+        **buyer_local_price_props(price_cents: product.price_cents, request:),
         rental_price_cents: product.rental_price_cents,
         pwyw: product.customizable_price ? { suggested_price_cents: product.suggested_price_cents } : nil,
         **ProductPresenter::InstallmentPlanProps.new(product:).props,
@@ -142,6 +144,25 @@ class ProductPresenter::ProductProps
         url: url_for_product_page(product, request:, recommended_by:, layout:),
         quantity: bundle_product.quantity,
         variant: bundle_product.variant&.name,
+      }
+    end
+
+    def buyer_local_price_props(price_cents:, request:)
+      return {} unless seller.show_buyer_local_currency?
+
+      buyer_currency = buyer_currency_for_ip(request.remote_ip)
+      return {} if buyer_currency == product.price_currency_type.to_s.downcase
+
+      local_price_cents = buyer_local_price_cents(
+        price_cents:,
+        from_currency: product.price_currency_type,
+        to_currency: buyer_currency
+      )
+      return {} if local_price_cents.blank?
+
+      {
+        buyer_currency:,
+        buyer_local_price_cents: local_price_cents,
       }
     end
 

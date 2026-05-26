@@ -57,6 +57,8 @@ export const Card = ({
             product.recurrence ? { id: product.recurrence, duration_in_months: product.duration_in_months } : undefined
           }
           creatorName={product.seller?.name}
+          buyerCurrency={product.buyer_currency}
+          buyerLocalPriceCents={product.buyer_local_price_cents}
         />
       </div>
       {footerAction}
@@ -111,6 +113,8 @@ export const HorizontalCard = ({ product, big, eager }: { product: CardProduct; 
                 : undefined
             }
             creatorName={product.seller?.name}
+            buyerCurrency={product.buyer_currency}
+            buyerLocalPriceCents={product.buyer_local_price_cents}
           />
         </div>
         {product.ratings?.count ? (

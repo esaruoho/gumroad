@@ -3,6 +3,7 @@ import * as React from "react";
 import { classNames } from "$app/utils/classNames";
 import {
   CurrencyCode,
+  formatMinorUnitPriceWithIntl,
   formatPriceCentsWithCurrencySymbol,
   formatPriceCentsWithoutCurrencySymbolAndComma,
 } from "$app/utils/currency";
@@ -25,6 +26,8 @@ type Props = {
   isSalesLimited: boolean;
   creatorName?: string | undefined;
   tooltipPosition?: "top" | "right";
+  buyerCurrency?: string | null | undefined;
+  buyerLocalPriceCents?: number | null | undefined;
 };
 
 export const PriceTag = ({
@@ -37,8 +40,14 @@ export const PriceTag = ({
   isSalesLimited,
   creatorName,
   tooltipPosition = "right",
+  buyerCurrency,
+  buyerLocalPriceCents,
 }: Props) => {
   const formattedAmount = formatPriceCentsWithCurrencySymbol(currencyCode, price, { symbolFormat: "long" });
+  const formattedBuyerAmount =
+    buyerCurrency && buyerLocalPriceCents != null
+      ? formatMinorUnitPriceWithIntl(buyerCurrency, buyerLocalPriceCents)
+      : null;
 
   const recurrenceLabel = recurrence
     ? formatRecurrenceWithDuration(recurrence.id, recurrence.duration_in_months)
@@ -74,6 +83,9 @@ export const PriceTag = ({
           <div className={classNames("absolute top-0 right-px bottom-0 border-accent", borderClasses)} />
         </div>
       </WithTooltip>
+      {formattedBuyerAmount ? (
+        <span className="ml-2 whitespace-nowrap text-sm text-muted">≈ {formattedBuyerAmount}</span>
+      ) : null}
       <link itemProp="url" href={url} />
       <div itemProp="availability" className="hidden">
         {`https://schema.org/${isSalesLimited ? "LimitedAvailability" : "InStock"}`}
