@@ -5,6 +5,50 @@ module CurrencyHelper
   # Note: To reference a currency in code, use Currency::[3-char-ref].
   # e.g. Currency::USD, Currency::CAD
 
+  COUNTRY_TO_CURRENCY = {
+    "US" => "usd",
+    "CA" => "cad",
+    "GB" => "gbp",
+    "IE" => "eur",
+    "DE" => "eur",
+    "FR" => "eur",
+    "ES" => "eur",
+    "IT" => "eur",
+    "NL" => "eur",
+    "BE" => "eur",
+    "PT" => "eur",
+    "AT" => "eur",
+    "FI" => "eur",
+    "GR" => "eur",
+    "JP" => "jpy",
+    "AU" => "aud",
+    "CH" => "chf",
+    "SE" => "sek",
+    "NO" => "nok",
+    "DK" => "dkk",
+    "BR" => "brl",
+    "MX" => "mxn",
+    "IN" => "inr",
+    "SG" => "sgd",
+    "HK" => "hkd",
+    "KR" => "krw",
+    "NZ" => "nzd",
+    "ZA" => "zar",
+    "PL" => "pln",
+    "CZ" => "czk",
+    "HU" => "huf",
+    "TR" => "try",
+    "IL" => "ils",
+    "AE" => "aed",
+    "SA" => "sar",
+    "TH" => "thb",
+    "ID" => "idr",
+    "PH" => "php",
+    "MY" => "myr",
+    "AR" => "ars",
+  }.freeze
+  BUYER_LOCAL_CURRENCY_RATE_TTL = 24.hours.to_i
+
   def currency_namespace
     Redis::Namespace.new(:currencies, redis: $redis)
   end
@@ -50,6 +94,49 @@ module CurrencyHelper
       currency_namespace.set(formatted_currency.to_s, new_rate)
       new_rate.to_f.to_s
     end
+  end
+
+  def buyer_currency_for_ip(ip)
+    buyer_currency_for_country(GeoIp.lookup(ip)&.country_code)
+  rescue StandardError
+    Currency::USD
+  end
+
+  def buyer_currency_for_country(country_code)
+    COUNTRY_TO_CURRENCY[country_code.to_s.upcase] || Currency::USD
+  end
+
+  def buyer_local_price_cents(price_cents:, from_currency:, to_currency:)
+    return price_cents if from_currency.to_s.casecmp?(to_currency.to_s)
+
+    rate = buyer_local_currency_rate(from_currency:, to_currency:)
+    return if rate.blank?
+
+    from_subunit_to_unit = subunit_to_unit(from_currency)
+    to_subunit_to_unit = subunit_to_unit(to_currency)
+    ((BigDecimal(price_cents.to_s) / from_subunit_to_unit) * rate * to_subunit_to_unit).round
+  rescue StandardError
+    nil
+  end
+
+  def buyer_local_currency_rate(from_currency:, to_currency:)
+    from_currency = from_currency.to_s.downcase
+    to_currency = to_currency.to_s.downcase
+    return BigDecimal("1") if from_currency == to_currency
+
+    cache_key = buyer_local_currency_rate_cache_key(from_currency:, to_currency:, date: Date.current)
+    cached_rate = $redis.get(cache_key)
+    return BigDecimal(cached_rate) if cached_rate.present? && cached_rate.to_d.positive?
+
+    rate = query_buyer_local_currency_rate(from_currency:, to_currency:)
+    if rate.present? && rate.to_d.positive?
+      $redis.set(cache_key, rate.to_s, ex: BUYER_LOCAL_CURRENCY_RATE_TTL)
+      $redis.set(buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:), rate.to_s)
+      rate.to_d
+    end
+  rescue StandardError
+    stale_rate = $redis.get(buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:))
+    BigDecimal(stale_rate) if stale_rate.present? && stale_rate.to_d.positive?
   end
 
   def get_usd_cents(currency_type, quantity, rate: nil)
@@ -146,5 +233,26 @@ module CurrencyHelper
     return base_formatted_label if duration_in_months.blank?
 
     "#{base_formatted_label} x #{(duration_in_months / number_of_months).round}"
+  end
+
+  def query_buyer_local_currency_rate(from_currency:, to_currency:)
+    rates = JSON.parse(URI.open(CURRENCY_SOURCE).read)["rates"]
+    from_rate = from_currency.to_s.casecmp?(Currency::USD) ? BigDecimal("1") : BigDecimal(rates[from_currency.to_s.upcase].to_s)
+    to_rate = to_currency.to_s.casecmp?(Currency::USD) ? BigDecimal("1") : BigDecimal(rates[to_currency.to_s.upcase].to_s)
+    return if from_rate.blank? || !from_rate.positive? || to_rate.blank? || !to_rate.positive?
+
+    to_rate / from_rate
+  end
+
+  def buyer_local_currency_rate_cache_key(from_currency:, to_currency:, date:)
+    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:#{date}"
+  end
+
+  def buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:)
+    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:latest"
+  end
+
+  def subunit_to_unit(currency_type)
+    Money::Currency.new(currency_type.to_s.downcase).subunit_to_unit
   end
 end

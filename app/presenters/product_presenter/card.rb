@@ -3,6 +3,7 @@
 class ProductPresenter::Card
   include Rails.application.routes.url_helpers
   include ProductsHelper
+  include CurrencyHelper
 
   ASSOCIATIONS = [
     :alive_prices, :product_review_stat, :default_offer_code, :skus,
@@ -41,6 +42,7 @@ class ProductPresenter::Card
       is_sales_limited: compute_inventory ? product.max_purchase_count? : false,
       price_cents:,
       currency_code: product.price_currency_type.downcase,
+      **buyer_local_price_props(price_cents:, request:),
       is_pay_what_you_want: product.has_customizable_price_option?,
       url: url_for_product_page(product, request:, recommended_by:, recommender_model_name:, layout: target, affiliate_id:, query:, offer_code:),
       duration_in_months: product.duration_in_months,
@@ -80,5 +82,24 @@ class ProductPresenter::Card
 
       discount_amount_cents = offer_code.amount_off(base_price_cents)
       [base_price_cents - discount_amount_cents, 0].max
+    end
+
+    def buyer_local_price_props(price_cents:, request:)
+      return {} unless request.present? && product.user.show_buyer_local_currency?
+
+      buyer_currency = buyer_currency_for_ip(request.remote_ip)
+      return {} if buyer_currency == product.price_currency_type.to_s.downcase
+
+      local_price_cents = buyer_local_price_cents(
+        price_cents:,
+        from_currency: product.price_currency_type,
+        to_currency: buyer_currency
+      )
+      return {} if local_price_cents.blank?
+
+      {
+        buyer_currency:,
+        buyer_local_price_cents: local_price_cents,
+      }
     end
 end
