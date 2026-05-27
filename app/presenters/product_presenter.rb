@@ -90,7 +90,7 @@ class ProductPresenter
     user.alive_product_files_preferred_for_product(product)
         .limit($redis.get(RedisKey.product_presenter_existing_product_files_limit))
         .order(id: :desc)
-        .includes(:alive_subtitle_files).map { _1.as_json(existing_product_file: true) }
+        .includes(:alive_subtitle_files, thumbnail_attachment: :blob).map { _1.as_json(existing_product_file: true) }
   end
 
   def edit_props
@@ -139,7 +139,7 @@ class ProductPresenter
         is_published: !product.draft && product.alive?,
         require_shipping: product.require_shipping?,
         integrations: Integration::ALL_NAMES.index_with { |name| @product.find_integration_by_name(name).as_json },
-        variants: product.alive_variants.in_order.map do |variant|
+        variants: product.alive_variants.in_order.includes(:variant_category, :alive_rich_contents).map do |variant|
           props = {
             id: variant.external_id,
             name: variant.name || "",
