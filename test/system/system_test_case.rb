@@ -18,9 +18,8 @@ module SystemTests
   class SystemTestCase < ActiveSupport::TestCase
     self.use_transactional_tests = false
 
-    # Use Rails fixtures (DHH-style) instead of FactoryBot. Loaded once per
-    # process; survive DatabaseCleaner truncation because fixture tables are
-    # added to the cleaner's `except` list (see boot_dependencies!).
+    # Use Rails fixtures (DHH-style) instead of FactoryBot. Rails reloads
+    # them before each test; DatabaseCleaner truncates them after each test.
     FIXTURE_PATH = Rails.root.join("test", "fixtures")
     fixtures :all if FIXTURE_PATH.directory? && Dir[FIXTURE_PATH.join("*.yml")].any?
 
@@ -46,12 +45,10 @@ module SystemTests
         Feature.deactivate(:disable_login_recaptcha)
         Feature.deactivate(:disable_signup_recaptcha)
       end
-      # Keep fixture tables out of the truncate list so the rows loaded once
-      # by `fixtures :all` survive between tests. Schema tables are also
-      # preserved (Rails' default).
-      fixture_tables = Dir[FIXTURE_PATH.join("*.yml")].map { |f| File.basename(f, ".yml") }
+      # Schema tables are preserved; every application table, including
+      # fixture-backed tables, is cleaned after each test.
       DatabaseCleaner.strategy = :truncation, {
-        except: %w[ar_internal_metadata schema_migrations] + fixture_tables,
+        except: %w[ar_internal_metadata schema_migrations],
       }
       SystemTestCase.instance_variable_set(:@boot_dependencies_done, true)
     end

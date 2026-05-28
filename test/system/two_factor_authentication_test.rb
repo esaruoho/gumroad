@@ -43,7 +43,7 @@ class TwoFactorAuthenticationTest < SystemTests::SystemTestCase
     # warning flash + ?user_id= query param. Wait for that param to confirm
     # the round-trip happened (the path stays /two-factor either way, so
     # the query param is the observable signal of a completed POST).
-    page.wait_for_url(%r{/two-factor\?user_id=}, timeout: 10_000)
+    page.wait_for_url(%r{/two-factor\?user_id=})
 
     assert_match %r{/two-factor\b}, page.url,
                  "expected wrong token to leave us on /two-factor, got #{page.url}"

@@ -75,6 +75,7 @@ jobs:
     env:
       RAILS_ENV: test
       BUNDLE_GEMS__CONTRIBSYS__COM: ${{ secrets.BUNDLE_GEMS__CONTRIBSYS__COM }}
+      PLAYWRIGHT_CLI: npx playwright@1.60.0
       # .env.test sets DATABASE_*, MONGO_*, REDIS_*, ELASTICSEARCH_*, etc.
       # dotenv-rails loads it when RAILS_ENV=test. We only override the
       # MYSQL password here because .env.test expects "password" matching
