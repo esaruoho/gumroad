@@ -50,40 +50,28 @@ export const PriceTag = ({
   const buyerLocalPriceCentsFor = (amountCents: number, fallbackAmountCents?: number | null) =>
     buyerLocalCurrencyRate != null ? Math.round(amountCents * buyerLocalCurrencyRate) : fallbackAmountCents;
   const currentBuyerLocalPriceCents = buyerLocalPriceCentsFor(price, buyerLocalPriceCents);
-  const buyerLocalPrice =
-    buyerCurrency && currentBuyerLocalPriceCents != null
-      ? {
-          currency: buyerCurrency,
-          priceCents: currentBuyerLocalPriceCents,
-          originalPriceCents: buyerLocalPriceCentsFor(oldPrice ?? price, buyerLocalOriginalPriceCents),
-        }
-      : null;
-  const formatNativePrice = (amountCents: number) =>
-    formatPriceCentsWithCurrencySymbol(currencyCode, amountCents, { symbolFormat: "long" });
-  const formatLocalPrice = (amountCents: number) =>
-    buyerLocalPrice ? formatMinorUnitPriceWithIntl(buyerLocalPrice.currency, amountCents) : null;
+  const buyerLocalOldPriceCents =
+    oldPrice != null ? buyerLocalPriceCentsFor(oldPrice, buyerLocalOriginalPriceCents) : null;
+  const useLocalDisplay = buyerCurrency != null && currentBuyerLocalPriceCents != null;
+  const formatDisplayPrice = (amountCents: number, localCents: number | null | undefined) =>
+    useLocalDisplay && localCents != null
+      ? formatMinorUnitPriceWithIntl(buyerCurrency, localCents)
+      : formatPriceCentsWithCurrencySymbol(currencyCode, amountCents, { symbolFormat: "long" });
 
   const recurrenceLabel = recurrence
     ? formatRecurrenceWithDuration(recurrence.id, recurrence.duration_in_months)
     : null;
 
-  const nativePriceTag = (
+  const priceTag = (
     <>
       {oldPrice != null ? (
         <>
-          <s>{formatNativePrice(oldPrice)}</s>{" "}
+          <s>{formatDisplayPrice(oldPrice, buyerLocalOldPriceCents)}</s>{" "}
         </>
       ) : null}
-      {formatNativePrice(price)}
+      {formatDisplayPrice(price, currentBuyerLocalPriceCents)}
       {isPayWhatYouWant ? "+" : null}
       {recurrenceLabel ? ` ${recurrenceLabel}` : null}
-    </>
-  );
-  const localPriceAnnotation = buyerLocalPrice ? `≈ ${formatLocalPrice(buyerLocalPrice.priceCents) ?? ""}` : null;
-  const priceTag = (
-    <>
-      {nativePriceTag}
-      {localPriceAnnotation ? <span className="ml-1 text-sm text-muted">{localPriceAnnotation}</span> : null}
     </>
   );
   const borderClasses = "border-r-transparent border-[calc(0.5lh+--spacing(1))] border-l-1";
