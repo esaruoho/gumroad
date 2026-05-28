@@ -79,13 +79,11 @@ export const PriceTag = ({
       {recurrenceLabel ? ` ${recurrenceLabel}` : null}
     </>
   );
-  const localPriceAnnotation = buyerLocalPrice
-    ? `≈ ${formatLocalPrice(buyerLocalPrice.priceCents) ?? ""}`
-    : null;
+  const localPriceAnnotation = buyerLocalPrice ? `≈ ${formatLocalPrice(buyerLocalPrice.priceCents) ?? ""}` : null;
   const priceTag = (
     <>
       {nativePriceTag}
-      {localPriceAnnotation ? <span className="text-muted ml-1 text-sm">{localPriceAnnotation}</span> : null}
+      {localPriceAnnotation ? <span className="ml-1 text-sm text-muted">{localPriceAnnotation}</span> : null}
     </>
   );
   const borderClasses = "border-r-transparent border-[calc(0.5lh+--spacing(1))] border-l-1";
