@@ -175,6 +175,23 @@ module ActiveSupport
       )
     end
 
+    def create_subscription_product(user:, **attrs)
+      create_link(user, **{
+        is_recurring_billing: true,
+        subscription_duration: :monthly,
+        is_tiered_membership: false,
+      }.merge(attrs))
+    end
+
+    def create_membership_product(user:, **attrs)
+      create_link(user, **{
+        is_recurring_billing: true,
+        subscription_duration: :monthly,
+        is_tiered_membership: true,
+        native_type: "membership",
+      }.merge(attrs))
+    end
+
     def create_user_compliance_info(user:, country: "United States", **attrs)
       UserComplianceInfo.create!(
         user: user,

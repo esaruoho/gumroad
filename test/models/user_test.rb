@@ -2666,4 +2666,278 @@ class UserTest < ActiveSupport::TestCase
     user.update!(payment_address: "new-paypal-vsn@example.com")
     assert user.versions.count > initial
   end
+
+  # ============================================================
+  # #requires_credit_card?
+  # ============================================================
+
+  test "requires_credit_card? false when no active subscription or preorder" do
+    user = create_user
+    refute user.requires_credit_card?
+  end
+
+  # ============================================================
+  # paypal_disconnect_allowed?
+  # ============================================================
+
+  test "paypal_disconnect_allowed? true with no active subscribers or preorders via paypal" do
+    creator = create_user
+    creator.stub(:active_subscribers?, ->(*) { false }) do
+      creator.stub(:active_preorders?, ->(*) { false }) do
+        assert creator.paypal_disconnect_allowed?
+      end
+    end
+  end
+
+  test "paypal_disconnect_allowed? false with active paypal subscribers" do
+    creator = create_user
+    creator.stub(:active_subscribers?, ->(*) { true }) do
+      creator.stub(:active_preorders?, ->(*) { false }) do
+        refute creator.paypal_disconnect_allowed?
+      end
+    end
+  end
+
+  test "paypal_disconnect_allowed? false with active paypal preorders" do
+    creator = create_user
+    creator.stub(:active_subscribers?, ->(*) { false }) do
+      creator.stub(:active_preorders?, ->(*) { true }) do
+        refute creator.paypal_disconnect_allowed?
+      end
+    end
+  end
+
+  # ============================================================
+  # invalidate_active_sessions! / invalidate_browser_sessions!
+  # ============================================================
+
+  test "invalidate_active_sessions! sets last_active_sessions_invalidated_at" do
+    user = create_user
+    travel_to(Time.current) do
+      assert_nil user.last_active_sessions_invalidated_at
+      user.invalidate_active_sessions!
+      assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+    end
+  end
+
+  test "invalidate_browser_sessions! sets last_active_sessions_invalidated_at" do
+    user = create_user
+    travel_to(Time.current) do
+      user.invalidate_browser_sessions!
+      assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+    end
+  end
+
+  # ============================================================
+  # #compliance_info_resettable? (extra coverage with balance)
+  # ============================================================
+
+  test "compliance_info_resettable? false when user has a balance with active stripe account" do
+    user = create_user
+    create_user_compliance_info(user: user)
+    ma = create_merchant_account(user: user)
+    create_balance(user: user, merchant_account: ma)
+    refute user.compliance_info_resettable?
+  end
+
+  test "compliance_info_resettable? false when user has a purchase with active stripe account" do
+    user = create_user
+    create_user_compliance_info(user: user)
+    ma = create_merchant_account(user: user)
+    product = create_link(user)
+    create_purchase(seller: user, link: product, merchant_account: ma)
+    refute user.compliance_info_resettable?
+  end
+
+  # ============================================================
+  # #alive_product_files_preferred_for_product
+  # ============================================================
+
+  test "alive_product_files_preferred_for_product: returns unique-by-url alive files even when product has none" do
+    user = create_user
+    product = create_link(user)
+    another_product = create_link(user)
+    duplicate_url = "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/pencil.png"
+    other_user_product = create_link(users(:seller_one))
+    primary_file = ProductFile.create!(link: other_user_product, url: duplicate_url)
+    another_product.product_files << primary_file
+    ProductFile.create!(link: create_link(user), url: duplicate_url)
+    assert_equal [primary_file], user.alive_product_files_preferred_for_product(product)
+  end
+
+  test "alive_product_files_preferred_for_product: includes product's own files even when unpublished" do
+    user = create_user
+    product = create_link(user)
+    product_file = ProductFile.create!(link: product, url: "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/pdf-#{SecureRandom.hex(4)}.pdf")
+    product.update!(purchase_disabled_at: Time.current)
+    another_product = create_link(user)
+    another_file = ProductFile.create!(link: create_link(users(:seller_one)), url: "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/pencil.png")
+    another_product.product_files << another_file
+    refute product.alive?
+    assert_equal [product_file, another_file].sort, user.alive_product_files_preferred_for_product(product).sort
+  end
+
+  test "alive_product_files_preferred_for_product: prefers files from the specified product when duplicate urls exist" do
+    user = create_user
+    product = create_link(user)
+    another_product = create_link(user)
+    product_file = ProductFile.create!(link: product, url: "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/pdf-#{SecureRandom.hex(4)}.pdf")
+    dup_url = "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/pencil.png"
+    other_dup_url = "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/logo.png"
+    ProductFile.create!(link: another_product, url: dup_url)
+    duplicate_pf = ProductFile.create!(link: product, url: dup_url)
+    other_pf_2 = ProductFile.create!(link: another_product, url: other_dup_url)
+    ProductFile.create!(link: create_link(user), url: other_dup_url)
+    result = user.alive_product_files_preferred_for_product(product)
+    assert_equal [product_file, duplicate_pf, other_pf_2].sort, result.sort
+  end
+
+  # ============================================================
+  # State machine extras (custom_domain handling on suspend)
+  # ============================================================
+
+  test "state machine: suspending for fraud marks custom domain as deleted" do
+    user = create_user(payment_address: "cd-fraud@example.com", last_sign_in_ip: "10.2.2.10")
+    cd = CustomDomain.create!(user: user, domain: "fraud-#{SecureRandom.hex(4)}.example.com")
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    assert_changes -> { cd.reload.deleted_at }, from: nil do
+      user.suspend_for_fraud!(author_id: admin.id)
+    end
+    refute_nil cd.reload.deleted_at
+  end
+
+  test "state machine: suspending for TOS marks custom domain as deleted" do
+    user = create_user(payment_address: "cd-tos@example.com", last_sign_in_ip: "10.2.2.11")
+    product = create_link(user)
+    cd = CustomDomain.create!(user: user, domain: "tos-#{SecureRandom.hex(4)}.example.com")
+    admin = users(:admin)
+    user.flag_for_tos_violation!(author_id: admin.id, product_id: product.id)
+    assert_changes -> { cd.reload.deleted_at }, from: nil do
+      user.suspend_for_tos_violation!(author_id: admin.id)
+    end
+    refute_nil cd.reload.deleted_at
+  end
+
+  test "state machine: handles suspension when custom domain is already deleted" do
+    user = create_user(payment_address: "cd-already@example.com", last_sign_in_ip: "10.2.2.12")
+    cd = CustomDomain.create!(user: user, domain: "already-#{SecureRandom.hex(4)}.example.com")
+    cd.mark_deleted!
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    assert_nothing_raised { user.suspend_for_fraud!(author_id: admin.id) }
+  end
+
+  test "state machine: handles suspension when user has no custom domain" do
+    user = create_user(payment_address: "cd-none@example.com", last_sign_in_ip: "10.2.2.13")
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    assert_nothing_raised { user.suspend_for_fraud!(author_id: admin.id) }
+  end
+
+  # ============================================================
+  # #deactivate!
+  # ============================================================
+
+  test "deactivate!: nilifies username and marks user/product deleted" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    product = create_link(user)
+    freeze_time do
+      delete_at = Time.current
+      assert user.reload.deactivate!
+      assert_nil user.reload.read_attribute(:username)
+      assert_equal delete_at.to_i, user.deleted_at.to_i
+      assert_equal delete_at.to_i, product.reload.deleted_at.to_i
+      assert_empty user.user_compliance_infos.alive
+    end
+  end
+
+  test "deactivate!: invalidates all active sessions" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    travel_to(Time.current) do
+      assert_nil user.last_active_sessions_invalidated_at
+      user.deactivate!
+      assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+    end
+  end
+
+  test "deactivate!: marks the custom_domain as deleted" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    cd = CustomDomain.create!(user: user, domain: "deact-#{SecureRandom.hex(4)}.example.com")
+    assert_changes -> { cd.reload.deleted_at }, from: nil do
+      user.deactivate!
+    end
+  end
+
+  test "deactivate!: handles already-deleted custom_domain gracefully" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    cd = CustomDomain.create!(user: user, domain: "deact-pre-#{SecureRandom.hex(4)}.example.com")
+    cd.mark_deleted!
+    assert_nothing_raised { user.deactivate! }
+  end
+
+  # ============================================================
+  # has_workflows? (already done) — extra: published_at scope
+  # ============================================================
+
+  # ============================================================
+  # gumroad_day_saved_fee_cents / gumroad_day_saved_fee_amount
+  # ============================================================
+
+  test "gumroad_day_saved_fee_cents returns 0 when no Gumroad Day sales" do
+    seller = create_user
+    assert_equal 0, seller.gumroad_day_saved_fee_cents
+  end
+
+  test "gumroad_day_saved_fee_amount returns nil when fee_cents is 0" do
+    seller = create_user
+    assert_nil seller.gumroad_day_saved_fee_amount
+  end
+
+  test "gumroad_day_saved_fee_amount returns formatted amount when fee_cents > 0" do
+    seller = create_user(gumroad_day_timezone: "Pacific Time (US & Canada)")
+    User.any_instance.stub(:gumroad_day_saved_fee_cents, 4062) do
+      assert_equal "$40.62", seller.gumroad_day_saved_fee_amount
+    end
+  rescue NoMethodError
+    # any_instance stub not supported in vanilla Minitest; fall back to a one-off stub.
+    seller.stub(:gumroad_day_saved_fee_cents, 4062) do
+      assert_equal "$40.62", seller.gumroad_day_saved_fee_amount
+    end
+  end
+
+  # ============================================================
+  # #save_gumroad_day_timezone
+  # ============================================================
+
+  test "save_gumroad_day_timezone: no-op when waive_gumroad_fee_on_new_sales? false" do
+    seller = create_user
+    refute seller.waive_gumroad_fee_on_new_sales?
+    assert_equal "Pacific Time (US & Canada)", seller.timezone
+    assert_nil seller.gumroad_day_timezone
+    seller.save_gumroad_day_timezone
+    assert_nil seller.reload.gumroad_day_timezone
+  end
+
+  test "save_gumroad_day_timezone: saves current timezone when flag enabled" do
+    seller = create_user
+    Feature.activate_user(:waive_gumroad_fee_on_new_sales, seller)
+    assert seller.waive_gumroad_fee_on_new_sales?
+    seller.save_gumroad_day_timezone
+    assert_equal "Pacific Time (US & Canada)", seller.reload.gumroad_day_timezone
+  end
+
+  test "save_gumroad_day_timezone: does not overwrite once set" do
+    seller = create_user
+    Feature.activate_user(:waive_gumroad_fee_on_new_sales, seller)
+    seller.save_gumroad_day_timezone
+    assert_equal "Pacific Time (US & Canada)", seller.reload.gumroad_day_timezone
+    seller.update!(timezone: "Eastern Time (US & Canada)")
+    seller.save_gumroad_day_timezone
+    assert_equal "Pacific Time (US & Canada)", seller.reload.gumroad_day_timezone
+  end
 end
