@@ -1109,5 +1109,71 @@ describe ProductPresenter do
     it "returns existing files" do
       expect(presenter.existing_files).to eq(product_files)
     end
+
+    it "eager-loads variant_category and alive_rich_contents in edit_props variants (no N+1)" do
+      variant_product = create(:product, user: seller)
+      category = create(:variant_category, link: variant_product)
+      3.times { |i| create(:variant, variant_category: category, name: "v#{i}") }
+
+      edit_presenter = described_class.new(product: variant_product)
+      edit_presenter.edit_props
+
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
+        next if payload[:name] == "SCHEMA"
+        next if payload[:cached]
+        sql = payload[:sql]
+        next unless sql.start_with?("SELECT")
+        queries << sql
+      end
+
+      begin
+        described_class.new(product: variant_product.reload).edit_props
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      per_row_patterns = [
+        [/FROM `variant_categories`.*WHERE `variant_categories`\.`id` = \d+/, "variant_category (per row)"],
+        [/FROM `rich_contents`.*WHERE.*`entity_id` = \d+ AND.*`entity_type` = 'Variant'/, "alive_rich_contents per Variant"],
+      ]
+      per_row_patterns.each do |pattern, label|
+        hits = queries.grep(pattern)
+        expect(hits.size).to be <= 1,
+          "Expected at most 1 query matching #{label} (the batched IN preload), got #{hits.size}:\n#{hits.join("\n")}"
+      end
+    end
+
+    it "eager-loads thumbnail attachments and subtitle files (no N+1)" do
+      create(:product_file, link: product, position: 1, url: "#{S3_BASE_URL}attachments/two/one.pdf")
+      create(:product_file, link: product, position: 2, url: "#{S3_BASE_URL}attachments/two/two.pdf")
+
+      presenter.existing_files
+
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
+        next if payload[:name] == "SCHEMA"
+        next if payload[:cached]
+        sql = payload[:sql]
+        next unless sql.start_with?("SELECT")
+        queries << sql
+      end
+
+      begin
+        described_class.new(product: product.reload).existing_files
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      per_row_patterns = [
+        [/FROM `subtitle_files`.*WHERE.*`product_file_id` = \d+/, "subtitle_files (per row)"],
+        [/FROM `active_storage_attachments`.*WHERE.*`record_id` = \d+ AND.*`record_type` = 'ProductFile' AND.*`name` = 'thumbnail'/, "thumbnail attachment (per row)"],
+      ]
+      per_row_patterns.each do |pattern, label|
+        hits = queries.grep(pattern)
+        expect(hits).to be_empty,
+          "Expected no per-row queries matching #{label}, got #{hits.size}:\n#{hits.join("\n")}"
+      end
+    end
   end
 end

@@ -625,7 +625,7 @@ class Link < ApplicationRecord
       end.compact.min
     end
 
-    product_quantity_left = (max_purchase_count - sales_count_for_inventory) unless max_purchase_count.nil?
+    product_quantity_left = (max_purchase_count - sales_count_for_inventory.to_i) unless max_purchase_count.nil?
 
     quantity_left = [product_quantity_left, minimum_bundle_product_quantity_left].compact.min
     return if quantity_left.nil?
@@ -667,7 +667,12 @@ class Link < ApplicationRecord
   end
 
   def rental
-    purchase_type != "buy_only" ? { price_cents: rental_price_cents, rent_only: purchase_type == "rent_only" } : nil
+    return unless rentable?
+
+    price_cents = rental_price_cents
+    return if price_cents.nil?
+
+    { price_cents:, rent_only: rent_only? }
   end
 
   def is_legacy_subscription?
@@ -1050,7 +1055,12 @@ class Link < ApplicationRecord
   end
 
   def has_customizable_price_option?
-    is_tiered_membership? ? tiers.alive.exists?(customizable_price: true) : customizable_price?
+    return customizable_price? unless is_tiered_membership?
+    if association(:tiers).loaded?
+      tiers.any? { |t| t.alive? && t.customizable_price? }
+    else
+      tiers.alive.exists?(customizable_price: true)
+    end
   end
 
   def recurrence_price_enabled?(recurrence)

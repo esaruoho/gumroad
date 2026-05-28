@@ -47,6 +47,16 @@ describe Link, :vcr do
     it "allows it to be set on new records with no purchases" do
       expect(build(:product, max_purchase_count: 100).valid?).to eq(true)
     end
+
+    context "when sales_count_for_inventory returns nil" do
+      it "treats nil as 0 instead of raising ArgumentError on max_purchase_count change" do
+        product = create(:product, max_purchase_count: 100)
+        allow(product).to receive(:sales_count_for_inventory).and_return(nil)
+        product.max_purchase_count = 50
+        expect { product.valid? }.not_to raise_error
+        expect(product).to be_valid
+      end
+    end
   end
 
   it "allows > $1000 links for verified users" do
@@ -626,6 +636,37 @@ describe Link, :vcr do
 
           product.update!(purchase_type: :buy_and_rent)
         end
+      end
+    end
+
+    describe "#rental" do
+      it "returns nil for a buy-only product" do
+        product = create(:product, purchase_type: :buy_only)
+        expect(product.rental).to be_nil
+      end
+
+      it "returns the price and rent_only flag for a rent-only product" do
+        product = create(:product, purchase_type: :rent_only, rental_price_cents: 300)
+        expect(product.rental).to eq(price_cents: 300, rent_only: true)
+      end
+
+      it "returns the price and rent_only flag for a buy-and-rent product" do
+        product = create(:product, purchase_type: :buy_and_rent, rental_price_cents: 200)
+        expect(product.rental).to eq(price_cents: 200, rent_only: false)
+      end
+
+      it "returns nil for a buy-and-rent product with no rental price" do
+        product = create(:product, purchase_type: :buy_and_rent, rental_price_cents: 200)
+        product.prices.alive.is_rental.each(&:mark_deleted!)
+
+        expect(product.reload.rental).to be_nil
+      end
+
+      it "returns nil for a rent-only product with no rental price" do
+        product = create(:product, purchase_type: :rent_only, rental_price_cents: 300)
+        product.prices.alive.is_rental.each(&:mark_deleted!)
+
+        expect(product.reload.rental).to be_nil
       end
     end
 
@@ -2129,6 +2170,15 @@ describe Link, :vcr do
         expect(bundle.remaining_for_sale_count).to eq(2)
         bundle.bundle_products.second.mark_deleted!
         expect(bundle.remaining_for_sale_count).to eq(3)
+      end
+    end
+
+    describe "when sales_count_for_inventory returns nil" do
+      it "treats nil as 0 instead of raising TypeError" do
+        link.update!(max_purchase_count: 100)
+        allow(link).to receive(:sales_count_for_inventory).and_return(nil)
+        expect { link.remaining_for_sale_count }.not_to raise_error
+        expect(link.remaining_for_sale_count).to eq(100)
       end
     end
   end

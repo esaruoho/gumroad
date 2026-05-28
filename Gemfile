@@ -18,7 +18,7 @@ end
 group :development, :test do
   gem "bundler"
   gem "dotenv-rails", "~> 2.8"
-  gem "knapsack_pro", "~> 7.0"
+  gem "knapsack_pro", "~> 10.0"
   gem "pry-byebug", "~> 3.10"
   gem "pry-rails", "~> 0.3", require: "pry-rails/console"
   gem "rubocop", "~> 1.79", require: false
@@ -116,7 +116,9 @@ gem "friendly_id", "~> 5.5"
 gem "googleauth", "~> 1.7"
 gem "google-apis-androidpublisher_v3", "~> 0.64"
 gem "htmlentities", "~> 4.3"
+gem "http", "~> 5.2"
 gem "http_accept_language", "~> 2.1"
+gem "cbor", "~> 0.5" # App Attest blob decoding for Gumroad Walks
 gem "httparty", "~> 0.21"
 gem "ibandit", "~> 1.26"
 gem "image_processing", "~> 1.12"
