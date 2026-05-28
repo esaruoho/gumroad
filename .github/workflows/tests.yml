@@ -100,6 +100,13 @@ jobs:
               libxml2-dev libyaml-dev pdftk percona-toolkit unzip wget \
               zlib1g-dev fonts-dejavu fonts-wqy-zenhei fonts-wqy-microhei \
               netcat-openbsd
+
+            # wkhtmltopdf — used to render HTML to PDF in some specs.
+            wget --quiet https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz -O /tmp/wkhtml.tar.xz
+            tar xf /tmp/wkhtml.tar.xz -C /tmp
+            sudo cp /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
+            sudo chmod +x /usr/local/bin/wkhtmltopdf
+
             fc-cache -f
 
       - uses: ruby/setup-ruby@v1
