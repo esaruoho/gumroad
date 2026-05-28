@@ -6,6 +6,9 @@ require "rails/test_help"
 require "minitest/mock" # Object#stub for instance stubbing
 require "shoulda/matchers"
 require "webmock/minitest"
+require "sidekiq/testing"
+
+Sidekiq::Testing.fake!
 
 WebMock.disable_net_connect!(
   allow_localhost: true,
@@ -47,6 +50,7 @@ module ActiveSupport
       # Mirror spec_helper.rb's before(:each): flush sidekiq+redis, activate baseline feature flags.
       Sidekiq.redis(&:flushdb)
       $redis.flushdb
+      Sidekiq::Worker.clear_all
       %i[
         store_discover_searches
         log_email_events
@@ -94,6 +98,44 @@ module ActiveSupport
 
     def create_user(**attrs)
       new_user(**attrs).tap(&:save!)
+    end
+
+    # Build & save a minimal valid Link (Product). Link requires user, name,
+    # default_price_cents, unique_permalink (auto-generated if not set, but the
+    # validation runs on the model so we set explicitly).
+    def create_link(user, name: "Test Product", **attrs)
+      Link.create!(
+        user: user,
+        name: name,
+        unique_permalink: SecureRandom.alphanumeric(8).gsub(/[^a-zA-Z_]/, "a"),
+        price_cents: 100,
+        **attrs
+      )
+    end
+
+    # Build a Balance. Balance requires currency, holding_currency, merchant_account.
+    def create_balance(user:, merchant_account: nil, **attrs)
+      merchant_account ||= create_merchant_account(user: user)
+      Balance.create!(
+        user: user,
+        merchant_account: merchant_account,
+        currency: "usd",
+        holding_currency: "usd",
+        date: Date.current,
+        **attrs
+      )
+    end
+
+    # MerchantAccount must have charge_processor_alive_at set or it won't be `alive`/
+    # `charge_processor_alive` for any of the user.merchant_account lookups.
+    def create_merchant_account(user:, charge_processor_id: "stripe", **attrs)
+      MerchantAccount.create!(
+        user: user,
+        charge_processor_id: charge_processor_id,
+        charge_processor_alive_at: Time.current,
+        charge_processor_merchant_id: "cprmid_#{SecureRandom.hex(8)}",
+        **attrs
+      )
     end
   end
 end

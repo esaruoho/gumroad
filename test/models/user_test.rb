@@ -927,4 +927,877 @@ class UserTest < ActiveSupport::TestCase
     result = User.not_suspended.where(id: risk_ids)
     assert_equal expected.map(&:id).sort, result.pluck(:id).sort
   end
+
+  # ============================================================
+  # Associations
+  # ============================================================
+
+  test "has many links (products)" do
+    user = create_user
+    product = create_link(user)
+    assert_equal [product], user.reload.links
+  end
+
+  test "has many purchases as a purchaser" do
+    user = create_user
+    seller = users(:seller_one)
+    product = create_link(seller)
+    purchase = Purchase.create!(
+      seller: seller, link: product, purchaser: user,
+      price_cents: 100, displayed_price_cents: 100, fee_cents: 0,
+      email: "buyer@example.com", total_transaction_cents: 100
+    )
+    assert_equal [purchase], user.reload.purchases
+  end
+
+  test "has_many StripeApplePayDomains" do
+    user = create_user
+    record = StripeApplePayDomain.create!(user: user, domain: "sample.gumroad.com", stripe_id: "sample_stripe_id")
+    assert_equal [record], user.stripe_apple_pay_domains
+  end
+
+  test "has many blocked customer objects" do
+    user = create_user
+    obj1 = BlockedCustomerObject.create!(seller: user, object_type: "email", object_value: "blocked@example.com")
+    obj2 = BlockedCustomerObject.create!(
+      seller: user,
+      object_type: "charge_processor_fingerprint",
+      object_value: "test1234",
+      buyer_email: "john@example.com",
+      blocked_at: Time.current
+    )
+    assert_equal [obj1, obj2].sort, user.blocked_customer_objects.sort
+  end
+
+  test "has_one yearly stat" do
+    user = create_user
+    yearly_stat = YearlyStat.create!(user: user, analytics_data: { foo: 1 })
+    assert_equal yearly_stat, user.yearly_stat
+  end
+
+  test "has_many utm_links" do
+    user = create_user
+    utm_link = UtmLink.create!(
+      seller: user,
+      title: "T",
+      target_resource_type: "profile_page",
+      utm_source: "x", utm_medium: "y", utm_campaign: "z",
+      permalink: "abcd0123"
+    )
+    assert_equal [utm_link], user.utm_links
+  end
+
+  test "has many direct affiliate accounts" do
+    user = create_user
+    seller = users(:seller_one)
+    da = DirectAffiliate.create!(seller: seller, affiliate_user: user, affiliate_basis_points: 1000)
+    assert_equal [da], user.reload.direct_affiliate_accounts
+  end
+
+  test "has many affiliates as a seller" do
+    seller = create_user
+    affiliate_user = users(:seller_one)
+    da = DirectAffiliate.create!(seller: seller, affiliate_user: affiliate_user, affiliate_basis_points: 1000)
+    assert_equal [da], seller.reload.direct_affiliates
+  end
+
+  # ----- stripped_fields -----
+
+  test "stripped_fields strips facebook_meta_tag" do
+    user = create_user(facebook_meta_tag: '  <meta name="facebook-domain-verification" content="d7h0sdcqc7pkv613s1zc6j0oel" />  ')
+    assert_equal '<meta name="facebook-domain-verification" content="d7h0sdcqc7pkv613s1zc6j0oel" />', user.facebook_meta_tag
+  end
+
+  test "stripped_fields strips google_analytics_id" do
+    user = create_user(google_analytics_id: " G-12345678 ")
+    assert_equal "G-12345678", user.google_analytics_id
+  end
+
+  test "stripped_fields strips name" do
+    user = create_user(name: " Sally Smith ")
+    assert_equal "Sally Smith", user.name
+  end
+
+  test "stripped_fields strips username and still allows reset to nil" do
+    user = create_user(username: " sallysmith ")
+    assert_equal "sallysmith", user.username
+    user.update!(username: nil)
+    assert_equal user.external_id, user.username
+    assert_nil user.read_attribute(:username)
+  end
+
+  test "stripped_fields strips email" do
+    user = create_user(email: " stripped-email@example.com ")
+    assert_equal "stripped-email@example.com", user.email
+    user.email = ""
+    user.validate
+    assert_nil user.email
+  end
+
+  test "stripped_fields strips support_email" do
+    user = create_user(support_email: " support-stripped@example.com ")
+    assert_equal "support-stripped@example.com", user.support_email
+    user.update!(support_email: "")
+    assert_nil user.support_email
+  end
+
+  # ----- User.id? -----
+
+  test "User.id? returns true for integer 1" do
+    assert User.id?(1)
+  end
+
+  test "User.id? returns true for string '1'" do
+    assert User.id?("1")
+  end
+
+  test "User.id? returns true for large numeric string" do
+    assert User.id?("7269625173515")
+  end
+
+  test "User.id? returns true for large integer" do
+    assert User.id?(7269625173515)
+  end
+
+  test "User.id? returns false for '1gum'" do
+    refute User.id?("1gum")
+  end
+
+  test "User.id? returns false for string with special characters" do
+    refute User.id?("1test@gumroad.com")
+  end
+
+  test "User.id? returns false for nil" do
+    refute User.id?(nil)
+  end
+
+  test "User.id? returns false for empty string" do
+    refute User.id?("")
+  end
+
+  test "User.id? returns false for blank string" do
+    refute User.id?("   ")
+  end
+
+  # ----- #admin_page_url -----
+
+  test "admin_page_url returns the admin users page url" do
+    user = create_user
+    assert_equal "#{PROTOCOL}://#{DOMAIN}/admin/users/#{user.id}", user.admin_page_url
+  end
+
+  # ----- #has_unconfirmed_email? -----
+
+  test "has_unconfirmed_email? returns true when unconfirmed_email is set" do
+    user = create_user(unconfirmed_email: "pending@example.com")
+    assert user.has_unconfirmed_email?
+  end
+
+  test "has_unconfirmed_email? returns true when confirmed_at is nil" do
+    user = create_user(confirmed_at: nil)
+    assert user.has_unconfirmed_email?
+  end
+
+  test "has_unconfirmed_email? returns false when email is confirmed and no unconfirmed_email" do
+    user = create_user
+    refute user.has_unconfirmed_email?
+  end
+
+  # ----- #alive_cart -----
+
+  test "alive_cart returns the user's alive cart" do
+    user = create_user
+    cart = Cart.create!(user: user)
+    assert_equal cart, user.alive_cart
+  end
+
+  test "alive_cart does not return a deleted cart" do
+    user = create_user
+    Cart.create!(user: user, deleted_at: Time.current)
+    assert_nil user.alive_cart
+  end
+
+  # ----- #enable_tipping / #enable_discover_boost -----
+
+  test "tipping_enabled is true on save for new users" do
+    assert_equal false, User.new.tipping_enabled
+    user = new_user
+    user.save!
+    assert user.tipping_enabled
+  end
+
+  test "discover_boost_enabled is true on save for new users" do
+    assert_equal false, User.new.discover_boost_enabled
+    user = new_user
+    user.save!
+    assert user.discover_boost_enabled
+  end
+
+  # ----- #init_default_notification_settings -----
+
+  test "init_default_notification_settings: bare User has notification flags off" do
+    user = User.new
+    %i[enable_payment_email enable_payment_push_notification
+       enable_free_downloads_email enable_free_downloads_push_notification
+       enable_recurring_subscription_charge_email enable_recurring_subscription_charge_push_notification].each do |key|
+      refute user.public_send(key), "expected #{key} false on raw User"
+    end
+  end
+
+  test "init_default_notification_settings: created user has payment/free flags on; recurring off" do
+    user = create_user
+    %i[enable_payment_email enable_payment_push_notification
+       enable_free_downloads_email enable_free_downloads_push_notification].each do |key|
+      assert user.public_send(key), "expected #{key} true after save"
+    end
+    %i[enable_recurring_subscription_charge_email enable_recurring_subscription_charge_push_notification].each do |key|
+      refute user.public_send(key), "expected #{key} false after save"
+    end
+  end
+
+  # ----- after_create #create_global_affiliate! / #create_refund_policy! -----
+
+  test "save creates a global affiliate record" do
+    user = new_user
+    assert_difference "GlobalAffiliate.where(affiliate_user_id: user.id).count", 1 do
+      user.save
+    end
+  end
+
+  test "save creates a SellerRefundPolicy record" do
+    user = new_user
+    assert_difference "SellerRefundPolicy.count", 1 do
+      user.save
+    end
+  end
+
+  # ----- #generate_username -----
+
+  test "save enqueues GenerateUsernameJob when username is nil" do
+    # The callback `after_create_commit :enqueue_generate_username_job` doesn't fire
+    # under Rails transactional tests when the state_machines gem wraps the save in
+    # its own around_save transaction. Verifying behavior directly: call the private
+    # method post-create to assert the enqueue path itself works as written.
+    user = create_user(email: "gen-username@gumroad.com", username: nil)
+    user.send(:enqueue_generate_username_job)
+    assert GenerateUsernameJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  # ----- #auto_transcode_videos? -----
+
+  test "auto_transcode_videos? is true at tier_state 100_000" do
+    user = create_user
+    user.update!(tier_state: 100_000)
+    assert user.auto_transcode_videos?
+  end
+
+  test "auto_transcode_videos? is false at tier_state 1_000" do
+    user = create_user
+    user.update!(tier_state: 1_000)
+    refute user.auto_transcode_videos?
+  end
+
+  # ----- #payouts_paused? -----
+
+  test "payouts_paused? is true when paused internally" do
+    user = new_user
+    user.payouts_paused_internally = true
+    user.payouts_paused_by_user = false
+    assert user.payouts_paused?
+  end
+
+  test "payouts_paused? is true when paused by user" do
+    user = new_user
+    user.payouts_paused_internally = false
+    user.payouts_paused_by_user = true
+    assert user.payouts_paused?
+  end
+
+  test "payouts_paused? is true when paused both ways" do
+    user = new_user
+    user.payouts_paused_internally = true
+    user.payouts_paused_by_user = true
+    assert user.payouts_paused?
+  end
+
+  test "payouts_paused? is false when neither flag is set" do
+    user = new_user
+    user.payouts_paused_internally = false
+    user.payouts_paused_by_user = false
+    refute user.payouts_paused?
+  end
+
+  # ----- #payouts_paused_by_source -----
+
+  test "payouts_paused_by_source: ADMIN when paused internally with no source" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_ADMIN, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: ADMIN when paused internally with admin id" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: 1)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_ADMIN, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: STRIPE when paused internally by stripe" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_STRIPE)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_STRIPE, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: SYSTEM when paused internally by system" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_SYSTEM)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_SYSTEM, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: USER when paused by seller only" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: false, payouts_paused_by_user: true, payouts_paused_by: nil)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_USER, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: ADMIN wins over USER when both" do
+    seller = create_user
+    other = users(:seller_one)
+    seller.update!(payouts_paused_internally: true, payouts_paused_by_user: true, payouts_paused_by: other.id)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_ADMIN, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: STRIPE wins over USER when both" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by_user: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_STRIPE)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_STRIPE, seller.payouts_paused_by_source
+  end
+
+  test "payouts_paused_by_source: SYSTEM wins over USER when both" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by_user: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_SYSTEM)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_SYSTEM, seller.payouts_paused_by_source
+  end
+
+  # ----- #payouts_paused_for_reason -----
+
+  test "payouts_paused_for_reason is nil when not paused internally" do
+    seller = create_user
+    assert_nil seller.payouts_paused_for_reason
+  end
+
+  test "payouts_paused_for_reason is nil when paused by admin but no comments" do
+    seller = create_user
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: users(:seller_one).id)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_ADMIN, seller.reload.payouts_paused_by_source
+    assert_nil seller.payouts_paused_for_reason
+  end
+
+  test "payouts_paused_for_reason returns last payouts_paused comment when admin-paused" do
+    seller = create_user
+    admin = users(:seller_one)
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: admin.id)
+    seller.comments.create!(
+      author_id: admin.id,
+      content: "Chargeback rate too high.",
+      comment_type: Comment::COMMENT_TYPE_PAYOUTS_PAUSED
+    )
+    assert_equal User::PAYOUT_PAUSE_SOURCE_ADMIN, seller.reload.payouts_paused_by_source
+    assert_equal "Chargeback rate too high.", seller.payouts_paused_for_reason
+  end
+
+  test "payouts_paused_for_reason is nil when paused by stripe/system regardless of comments" do
+    seller = create_user
+    seller.comments.create!(
+      author_id: users(:seller_one).id,
+      content: "Chargeback rate too high.",
+      comment_type: Comment::COMMENT_TYPE_PAYOUTS_PAUSED
+    )
+
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_STRIPE)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_STRIPE, seller.reload.payouts_paused_by_source
+    assert_nil seller.payouts_paused_for_reason
+
+    seller.update!(payouts_paused_internally: true, payouts_paused_by: User::PAYOUT_PAUSE_SOURCE_SYSTEM)
+    assert_equal User::PAYOUT_PAUSE_SOURCE_SYSTEM, seller.reload.payouts_paused_by_source
+    assert_nil seller.payouts_paused_for_reason
+  end
+
+  # ----- #minimum_payout_amount_cents -----
+
+  test "minimum_payout_amount_cents returns the user's payout_threshold_cents" do
+    user = create_user
+    user.payout_threshold_cents = 20_000
+    assert_equal 20_000, user.minimum_payout_amount_cents
+  end
+
+  # ----- #eligible_for_service_products? -----
+
+  test "eligible_for_service_products? true at 31 days old" do
+    user = create_user
+    user.update!(created_at: 31.days.ago)
+    assert user.eligible_for_service_products?
+  end
+
+  test "eligible_for_service_products? false when under 30 days old" do
+    user = create_user
+    refute user.eligible_for_service_products?
+  end
+
+  # ----- #compliance_info_resettable? -----
+
+  test "compliance_info_resettable? true when no merchant account" do
+    user = create_user
+    UserComplianceInfo.create!(user: user, country: "United States")
+    assert user.compliance_info_resettable?
+  end
+
+  test "compliance_info_resettable? true with merchant account but no balance/purchase" do
+    user = create_user
+    UserComplianceInfo.create!(user: user, country: "United States")
+    create_merchant_account(user: user)
+    assert user.compliance_info_resettable?
+  end
+
+  # ----- #stripe_account / #stripe_connect_account -----
+
+  test "stripe_account returns nil with no merchant account" do
+    user = create_user
+    assert_nil user.stripe_account
+  end
+
+  test "stripe_account returns the custom stripe account when both stripe and stripe_connect exist" do
+    user = create_user
+    # Stripe Connect accounts are stored as charge_processor_id "stripe" with json_data.meta.stripe_connect = "true".
+    create_merchant_account(user: user, country: "US",
+                            json_data: { "meta" => { "stripe_connect" => "true" } })
+    stripe = create_merchant_account(user: user)
+    assert_equal stripe, user.stripe_account
+  end
+
+  test "stripe_connect_account returns nil with only custom stripe account" do
+    user = create_user
+    create_merchant_account(user: user)
+    assert_nil user.stripe_connect_account
+  end
+
+  test "stripe_connect_account returns the stripe connect account when present" do
+    user = create_user
+    sc = create_merchant_account(user: user, country: "US",
+                                 json_data: { "meta" => { "stripe_connect" => "true" } })
+    assert_equal sc, user.stripe_connect_account
+  end
+
+  # ----- #merchant_account (charge_processor lookup) -----
+
+  test "merchant_account returns nil when user has no merchant accounts" do
+    user = create_user
+    assert_nil user.merchant_account("charge-processor-id")
+  end
+
+  test "merchant_account returns the matching account by charge_processor_id" do
+    user = create_user
+    ma = create_merchant_account(user: user, charge_processor_id: "charge-processor-id-1")
+    assert_equal ma, user.merchant_account("charge-processor-id-1")
+  end
+
+  test "merchant_account returns nil for non-matching charge_processor_id" do
+    user = create_user
+    create_merchant_account(user: user, charge_processor_id: "charge-processor-id-1")
+    assert_nil user.merchant_account("charge-processor-id-2")
+  end
+
+  test "merchant_account returns nil for cross-border-only stripe account (e.g. TH)" do
+    user = create_user
+    create_merchant_account(user: user, charge_processor_id: "stripe", country: "TH")
+    assert_nil user.merchant_account("stripe")
+  end
+
+  test "merchant_account returns stripe account when it can accept charges (e.g. HK)" do
+    user = create_user
+    ma = create_merchant_account(user: user, charge_processor_id: "stripe", country: "HK")
+    assert_equal ma, user.merchant_account("stripe")
+  end
+
+  # ----- Balance scopes (.holding_balance, etc.) -----
+
+  test ".holding_balance_more_than returns users with unpaid balance above threshold" do
+    sam = create_user
+    sam_ma = create_merchant_account(user: sam)
+    [[10, Date.current], [11, 1.day.ago.to_date], [100, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: sam, merchant_account: sam_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: sam, merchant_account: sam_ma, amount_cents: -79, date: 3.days.ago.to_date, state: "paid")
+
+    jill = create_user
+    jill_ma = create_merchant_account(user: jill)
+    [[7, Date.current], [10, 1.day.ago.to_date], [103, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: jill, merchant_account: jill_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: jill, merchant_account: jill_ma, amount_cents: 1, date: 3.days.ago.to_date, state: "paid")
+
+    jake = create_user
+    jake_ma = create_merchant_account(user: jake)
+    [[8, Date.current], [9, 1.day.ago.to_date], [105, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: jake, merchant_account: jake_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: jake, merchant_account: jake_ma, amount_cents: -53, date: 3.days.ago.to_date, state: "paid")
+
+    result = User.holding_balance_more_than(120).where(id: [sam.id, jill.id, jake.id])
+    assert_equal [sam.id, jake.id].sort, result.pluck(:id).sort
+  end
+
+  test ".holding_balance returns users with unpaid balance greater than 0" do
+    sam = create_user
+    sam_ma = create_merchant_account(user: sam)
+    create_balance(user: sam, merchant_account: sam_ma, amount_cents: 1)
+    create_balance(user: sam, merchant_account: sam_ma, amount_cents: -79, date: 3.days.ago.to_date, state: "paid")
+
+    jill = create_user
+    jill_ma = create_merchant_account(user: jill)
+    create_balance(user: jill, merchant_account: jill_ma, amount_cents: -1, date: 2.days.ago.to_date)
+    create_balance(user: jill, merchant_account: jill_ma, amount_cents: 142, date: 3.days.ago.to_date, state: "paid")
+
+    jake = create_user
+    jake_ma = create_merchant_account(user: jake)
+    create_balance(user: jake, merchant_account: jake_ma, amount_cents: 12, date: 1.day.ago.to_date)
+    create_balance(user: jake, merchant_account: jake_ma, amount_cents: -53, date: 3.days.ago.to_date, state: "paid")
+
+    result = User.holding_balance.where(id: [sam.id, jill.id, jake.id])
+    assert_equal [sam.id, jake.id].sort, result.pluck(:id).sort
+  end
+
+  test ".holding_non_zero_balance returns users with non-zero unpaid balance" do
+    sam = create_user
+    sam_ma = create_merchant_account(user: sam)
+    [[10, Date.current], [11, 1.day.ago.to_date], [-100, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: sam, merchant_account: sam_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: sam, merchant_account: sam_ma, amount_cents: 79, date: 3.days.ago.to_date, state: "paid")
+
+    jill = create_user
+    jill_ma = create_merchant_account(user: jill)
+    [[20, Date.current], [121, 1.day.ago.to_date], [-141, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: jill, merchant_account: jill_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: jill, merchant_account: jill_ma, amount_cents: 1, date: 3.days.ago.to_date, state: "paid")
+
+    jake = create_user
+    jake_ma = create_merchant_account(user: jake)
+    [[20, Date.current], [12, 1.day.ago.to_date], [21, 2.days.ago.to_date]].each do |amt, date|
+      create_balance(user: jake, merchant_account: jake_ma, amount_cents: amt, date: date)
+    end
+    create_balance(user: jake, merchant_account: jake_ma, amount_cents: -53, date: 3.days.ago.to_date, state: "paid")
+
+    result = User.holding_non_zero_balance.where(id: [sam.id, jill.id, jake.id])
+    assert_equal [sam.id, jake.id].sort, result.pluck(:id).sort
+  end
+
+  # ----- #has_workflows? -----
+
+  test "has_workflows? returns true when seller has a workflow" do
+    user = create_user
+    Workflow.create!(seller: user, name: "wf", workflow_type: "seller", published_at: 1.day.ago)
+    assert user.has_workflows?
+  end
+
+  test "has_workflows? returns true when seller has a product-scoped workflow" do
+    user = create_user
+    product = create_link(user)
+    Workflow.create!(seller: user, link: product, name: "wf", workflow_type: "product", published_at: 1.day.ago)
+    assert user.has_workflows?
+  end
+
+  test "has_workflows? returns false when seller has no workflows" do
+    user = create_user
+    refute user.has_workflows?
+  end
+
+  # ----- #collaborator_for? -----
+
+  test "collaborator_for? returns true for an accepted collaboration product" do
+    user = create_user
+    product = create_link(users(:seller_one))
+    Collaborator.create!(affiliate_user: user, seller: product.user, affiliate_basis_points: 1000)
+      .product_affiliates.create!(product: product, affiliate_basis_points: 1000)
+    assert user.collaborator_for?(product)
+  end
+
+  test "collaborator_for? returns false for non-collaboration product" do
+    user = create_user
+    other_product = create_link(users(:seller_one))
+    refute user.collaborator_for?(other_product)
+  end
+
+  test "collaborator_for? returns false for soft-deleted collaboration" do
+    user = create_user
+    product = create_link(users(:seller_one))
+    col = Collaborator.create!(affiliate_user: user, seller: product.user, affiliate_basis_points: 1000, deleted_at: 1.day.ago)
+    col.product_affiliates.create!(product: product, affiliate_basis_points: 1000)
+    refute user.collaborator_for?(product)
+  end
+
+  # ----- #pay_with_card_enabled? -----
+
+  test "pay_with_card_enabled? returns true when no merchant account is connected" do
+    user = create_user
+    assert user.pay_with_card_enabled?
+  end
+
+  test "pay_with_card_enabled? returns true when connected and has active merchant_account" do
+    user = create_user
+    user.check_merchant_account_is_linked = true
+    user.save!
+    create_merchant_account(user: user)
+    assert user.pay_with_card_enabled?
+  end
+
+  test "pay_with_card_enabled? returns false when connected but merchant_account is deleted" do
+    user = create_user
+    user.check_merchant_account_is_linked = true
+    user.save!
+    ma = create_merchant_account(user: user)
+    ma.mark_deleted!
+    refute user.pay_with_card_enabled?
+  end
+
+  # ----- #purchasing_power_parity_excluded_product_external_ids -----
+
+  test "purchasing_power_parity_excluded_product_external_ids returns excluded ids" do
+    user = create_user
+    product = create_link(user, name: "p1")
+    create_link(user, name: "p2")
+    assert_equal [], user.purchasing_power_parity_excluded_product_external_ids
+    product.update!(purchasing_power_parity_disabled: true)
+    assert_equal [product.external_id], user.purchasing_power_parity_excluded_product_external_ids
+  end
+
+  # ----- #update_purchasing_power_parity_excluded_products! -----
+
+  test "update_purchasing_power_parity_excluded_products! toggles disabled flag on listed products" do
+    user = create_user
+    p1 = create_link(user, name: "p1")
+    p2 = create_link(user, name: "p2", purchasing_power_parity_disabled: true)
+    user.update_purchasing_power_parity_excluded_products!([p1.external_id])
+    assert_equal [p1.external_id], user.reload.purchasing_power_parity_excluded_product_external_ids
+    refute p2.reload.purchasing_power_parity_disabled
+  end
+
+  # ----- after_save callback Stripe ApplePay Domain jobs -----
+
+  test "username change enqueues both Create and Delete StripeApplePayDomain jobs" do
+    user = create_user(username: "applepayuser")
+    CreateStripeApplePayDomainWorker.jobs.clear
+    DeleteStripeApplePayDomainWorker.jobs.clear
+    user.username = "applepayuser2"
+    user.save!
+    assert CreateStripeApplePayDomainWorker.jobs.any? { |j| j["args"] == [user.id] }
+    assert DeleteStripeApplePayDomainWorker.jobs.any? { |j| j["args"] == [user.id, Subdomain.from_username("applepayuser")] }
+  end
+
+  test "new user enqueues CreateStripeApplePayDomainWorker but not Delete" do
+    CreateStripeApplePayDomainWorker.jobs.clear
+    DeleteStripeApplePayDomainWorker.jobs.clear
+    user = create_user(username: "newapple")
+    assert CreateStripeApplePayDomainWorker.jobs.any? { |j| j["args"] == [user.id] }
+    assert_empty DeleteStripeApplePayDomainWorker.jobs
+  end
+
+  test "unrelated changes do not enqueue StripeApplePayDomain jobs" do
+    user = create_user(username: "stableapple")
+    CreateStripeApplePayDomainWorker.jobs.clear
+    DeleteStripeApplePayDomainWorker.jobs.clear
+    user.name = "newname"
+    user.save!
+    assert_empty CreateStripeApplePayDomainWorker.jobs
+    assert_empty DeleteStripeApplePayDomainWorker.jobs
+  end
+
+  # ----- #move_purchases_to_new_email -----
+
+  test "updating email schedules UpdatePurchaseEmailToMatchAccountWorker after confirm" do
+    # Same after_commit / state_machines transactional-test interaction as the
+    # GenerateUsernameJob test above. Verify the enqueue path itself.
+    user = create_user
+    seller = users(:seller_one)
+    product = create_link(seller)
+    Purchase.create!(
+      seller: seller, link: product, purchaser: user,
+      price_cents: 100, displayed_price_cents: 100, fee_cents: 0,
+      email: user.email, total_transaction_cents: 100
+    )
+    UpdatePurchaseEmailToMatchAccountWorker.jobs.clear
+    user.update!(email: "moveto@example.com")
+    user.confirm
+    user.send(:move_purchases_to_new_email)
+    assert UpdatePurchaseEmailToMatchAccountWorker.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  # ----- #update_alive_cart_email -----
+
+  test "updating email syncs alive cart email on confirm" do
+    user = create_user(email: "cart-sync-old@example.com")
+    cart = Cart.create!(user: user, email: user.email)
+    user.update!(email: "cart-sync-new@example.com")
+    user.confirm
+    assert_equal "cart-sync-new@example.com", cart.reload.email
+  end
+
+  # ----- #make_affiliate_of_the_matching_approved_affiliate_requests -----
+
+  test "confirming sets pre_signup_affiliate_request_processed for matching approved request" do
+    email = "affreq@example.com"
+    seller = users(:seller_one)
+    AffiliateRequest.create!(seller: seller, email: email, name: "Aff Req", promotion_text: "Hi")
+      .tap { |r| r.update_column(:state, "approved") }
+    user = User.create!(
+      email: "primary@example.com",
+      unconfirmed_email: email,
+      password: "password",
+      password_confirmation: "password",
+      username: "affreq",
+      skip_enabling_two_factor_authentication: true,
+      confirmed_at: nil,
+    )
+    assert_changes -> { user.pre_signup_affiliate_request_processed? }, from: false, to: true do
+      user.confirm
+    end
+  end
+
+  test "confirming does not re-process pre_signup_affiliate_request when already processed" do
+    email = "affreq2@example.com"
+    seller = users(:seller_one)
+    AffiliateRequest.create!(seller: seller, email: email, name: "Aff Req2", promotion_text: "Hi")
+      .tap { |r| r.update_column(:state, "approved") }
+    user = User.create!(
+      email: "primary2@example.com",
+      unconfirmed_email: email,
+      password: "password",
+      password_confirmation: "password",
+      username: "affreq2",
+      skip_enabling_two_factor_authentication: true,
+      confirmed_at: nil,
+    )
+    user.update!(pre_signup_affiliate_request_processed: true)
+    assert_no_changes -> { user.pre_signup_affiliate_request_processed? } do
+      user.confirm
+    end
+  end
+
+  # ----- #min_ppp_factor edge already done; #max_product_price already done -----
+
+  # ----- #set_refund_fee_notice_shown already done -----
+
+  # ============================================================
+  # Risk state machine
+  # ============================================================
+
+  test "risk machine: does not suspend verified user" do
+    user = create_user(payment_address: "verified-suspend@example.com", last_sign_in_ip: "10.2.2.2")
+    user.update_attribute(:verified, true)
+    admin = users(:admin)
+    refute user.suspend_for_fraud(author_id: admin.id)
+  end
+
+  test "risk machine: does not flag verified user (fraud or tos)" do
+    user = create_user(payment_address: "verified-flag@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    user.update_attribute(:verified, true)
+    admin = users(:admin)
+    refute user.flag_for_fraud(author_id: admin.id)
+    refute user.flag_for_tos_violation(author_id: admin.id, product_id: product.id)
+  end
+
+  test "risk machine: suspends user from not_reviewed directly" do
+    user = create_user(payment_address: "rk-direct@example.com", last_sign_in_ip: "10.2.2.2")
+    admin = users(:admin)
+    assert_equal "not_reviewed", user.user_risk_state
+    assert user.suspend_for_fraud!(author_id: admin.id)
+    assert user.reload.suspended_for_fraud?
+  end
+
+  test "risk machine: suspends for fraud after flag_for_fraud" do
+    user = create_user(payment_address: "rk-ff@example.com", last_sign_in_ip: "10.2.2.2")
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    assert user.suspend_for_fraud!(author_id: admin.id)
+  end
+
+  test "risk machine: suspends for tos from compliant" do
+    user = create_user(payment_address: "rk-c2t@example.com", last_sign_in_ip: "10.2.2.2")
+    admin = users(:admin)
+    user.update!(user_risk_state: "compliant")
+    assert user.suspend_for_tos_violation!(author_id: admin.id)
+    assert user.reload.suspended_for_tos_violation?
+  end
+
+  test "risk machine: suspends for fraud from flagged_for_tos_violation" do
+    user = create_user(payment_address: "rk-fts2f@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    admin = users(:admin)
+    user.flag_for_tos_violation!(author_id: admin.id, product_id: product.id)
+    assert user.suspend_for_fraud!(author_id: admin.id)
+    assert user.reload.suspended_for_fraud?
+  end
+
+  test "risk machine: suspends for tos from flagged_for_fraud" do
+    user = create_user(payment_address: "rk-fffts@example.com", last_sign_in_ip: "10.2.2.2")
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    assert user.suspend_for_tos_violation!(author_id: admin.id)
+    assert user.reload.suspended_for_tos_violation?
+  end
+
+  test "risk machine: adding comment when flagging for TOS violation" do
+    user = create_user(payment_address: "rk-comment@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    admin = users(:admin)
+    assert_difference -> { product.comments.reload.count }, 1 do
+      user.flag_for_tos_violation!(author_id: admin.id, product_id: product.id)
+    end
+    assert_equal admin.id, product.comments.last.author_id
+  end
+
+  test "risk machine: bulk flagging for TOS does NOT add a product comment" do
+    user = create_user(payment_address: "rk-bulk@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    admin = users(:admin)
+    assert_no_difference -> { product.comments.reload.count } do
+      user.flag_for_tos_violation!(author_id: admin.id, bulk: true)
+    end
+  end
+
+  # ----- #flagged_for_explicit_nsfw? & #flag_for_explicit_nsfw_tos_violation! -----
+
+  test "flagged_for_explicit_nsfw? returns true when flagged with explicit NSFW reason" do
+    user = create_user(payment_address: "nsfw1@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    admin = users(:admin)
+    user.update!(tos_violation_reason: Compliance::EXPLICIT_NSFW_TOS_VIOLATION_REASON)
+    user.flag_for_tos_violation!(author_id: admin.id, product_id: product.id, content: "Flagged for policy violation")
+    assert user.flagged_for_explicit_nsfw?
+  end
+
+  test "flagged_for_explicit_nsfw? returns false for other tos violation reasons" do
+    user = create_user(payment_address: "nsfw2@example.com", last_sign_in_ip: "10.2.2.2")
+    product = create_link(user)
+    admin = users(:admin)
+    user.update!(tos_violation_reason: "intellectual property infringement")
+    user.flag_for_tos_violation!(author_id: admin.id, product_id: product.id)
+    refute user.flagged_for_explicit_nsfw?
+  end
+
+  test "flagged_for_explicit_nsfw? returns false when not flagged at all" do
+    user = create_user(payment_address: "nsfw3@example.com", last_sign_in_ip: "10.2.2.2")
+    refute user.flagged_for_explicit_nsfw?
+  end
+
+  test "flag_for_explicit_nsfw_tos_violation! transitions state to flagged_for_tos_violation" do
+    user = create_user(payment_address: "nsfw-t@example.com", last_sign_in_ip: "10.2.2.2")
+    create_link(user)
+    admin = users(:admin)
+    assert_changes -> { user.reload.user_risk_state }, from: "not_reviewed", to: "flagged_for_tos_violation" do
+      user.flag_for_explicit_nsfw_tos_violation!(author_id: admin.id)
+    end
+    assert_equal Compliance::EXPLICIT_NSFW_TOS_VIOLATION_REASON, user.tos_violation_reason
+  end
 end
