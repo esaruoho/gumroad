@@ -3048,4 +3048,283 @@ class UserTest < ActiveSupport::TestCase
     user = create_user(name: "Kate Smith", username: "kateswanky")
     assert_equal "Kate Smith", user.display_name
   end
+
+  # ============================================================
+  # ActiveStorage-backed URL methods (has_cdn_url group)
+  # ============================================================
+
+  test "subscribe_preview_url returns URL when subscribe_preview is attached" do
+    user = create_user
+    attach_subscribe_preview(user)
+    assert_match(/#{Regexp.escape(user.subscribe_preview.key)}/, user.subscribe_preview_url)
+  end
+
+  test "resized_avatar_url returns URL when avatar is attached" do
+    user = create_user
+    attach_avatar(user)
+    variant = user.avatar.variant(resize_to_limit: [256, 256]).processed.key
+    assert_match(/#{Regexp.escape(variant)}/, user.resized_avatar_url(size: 256))
+  end
+
+  test "resized_avatar_url falls back to default when ActiveStorage raises FileNotFoundError" do
+    user = create_user
+    user.avatar.define_singleton_method(:attached?) { true }
+    user.avatar.define_singleton_method(:variant) { |*| raise ActiveStorage::FileNotFoundError }
+    assert_equal ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png"),
+                 user.resized_avatar_url(size: 256)
+  end
+
+  test "resized_avatar_url falls back to default when temp file is deleted (ENOENT)" do
+    user = create_user
+    user.avatar.define_singleton_method(:attached?) { true }
+    user.avatar.define_singleton_method(:variant) { |*| raise Errno::ENOENT, "/tmp/image_processing.png" }
+    assert_equal ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png"),
+                 user.resized_avatar_url(size: 256)
+  end
+
+  test "resized_avatar_url falls back to default when foreign key error is raised" do
+    user = create_user
+    user.avatar.define_singleton_method(:attached?) { true }
+    user.avatar.define_singleton_method(:variant) { |*|
+      raise ActiveRecord::InvalidForeignKey.new("Mysql2::Error: Cannot add or update a child row: a foreign key constraint fails")
+    }
+    assert_equal ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png"),
+                 user.resized_avatar_url(size: 256)
+  end
+
+  test "avatar_url returns URL when avatar is attached" do
+    user = create_user
+    attach_avatar(user)
+    assert_match(/#{Regexp.escape(user.avatar_variant.key)}/, user.avatar_url)
+  end
+
+  test "avatar_url returns original url when MiniMagick raises" do
+    user = create_user
+    attach_avatar(user)
+    user.stub(:avatar_variant, ->(*) { raise MiniMagick::Error }) do
+      assert_match(/#{Regexp.escape(user.avatar.key)}/, user.avatar_url)
+    end
+  end
+
+  test "financial_annual_report_url_for returns nil with no attachments" do
+    user = create_user
+    assert_nil user.financial_annual_report_url_for(year: 2022)
+  end
+
+  test "financial_annual_report_url_for returns nil for year without a report" do
+    user = create_user
+    attach_annual_report(user)
+    assert_nil user.financial_annual_report_url_for(year: 2011)
+  end
+
+  test "financial_annual_report_url_for returns URL for current year by default" do
+    user = create_user
+    attach_annual_report(user)
+    refute_nil user.financial_annual_report_url_for
+  end
+
+  test "financial_annual_report_url_for returns the URL for the selected year" do
+    year = 2019
+    user = create_user
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: Rack::Test::UploadedFile.new(Rails.root.join("spec", "support", "fixtures", "followers_import.csv"), "text/csv"),
+      filename: "Financial Annual Report #{year}.csv",
+      metadata: { year: year }
+    )
+    blob.analyze
+    user.annual_reports.attach(blob)
+    assert_match(/#{Regexp.escape(blob.key)}/, user.financial_annual_report_url_for(year: year))
+  end
+
+  # ----- avatar file validations -----
+
+  test "avatar validation: fails when file is over MAX size" do
+    user = create_user
+    with_constant(:MAXIMUM_AVATAR_FILE_SIZE, 2.megabytes, scope: User::Validations) do
+      blob = ActiveStorage::Blob.create_and_upload!(
+        io: fixture_file("error_file.jpeg", "image/jpeg"),
+        filename: "error_file.jpeg"
+      )
+      user.avatar.attach(blob)
+      user.validate
+      assert_equal ["Please upload a profile picture with a size smaller than 2 MB"], user.errors[:base]
+    end
+  end
+
+  test "avatar validation: fails on unsupported filetype" do
+    user = create_user
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: fixture_file("thing.mov", "video/quicktime"),
+      filename: "thing.mov"
+    )
+    blob.analyze
+    user.avatar.attach(blob)
+    user.validate
+    assert_equal ["Please upload a profile picture with one of the following extensions: png, jpg, jpeg."], user.errors[:base]
+  end
+
+  test "avatar validation: fails when uploaded picture is smaller than 200x200" do
+    user = create_user
+    blob = ActiveStorage::Blob.create_and_upload!(io: File.open(Rails.root.join("spec/support/fixtures/test-small.png")), filename: "test-small.png")
+    user.avatar.attach(blob)
+    user.validate
+    assert_equal ["Please upload a profile picture that is at least 200x200px"], user.errors[:base]
+  end
+
+  test "avatar validation: pre-existing small picture does not fail validation on save" do
+    user = create_user
+    user.avatar.attach(io: File.open(Rails.root.join("spec/support/fixtures/test-small.png")), filename: "test-small.png")
+    assert user.validate
+    assert_empty user.errors[:base]
+  end
+
+  test "avatar validation: valid avatar (smilie.png) passes" do
+    user = create_user
+    attach_avatar(user, filename: "smilie.png", content_type: "image/png")
+    assert user.valid?
+  end
+
+  # ============================================================
+  # GenerateSubscribePreviewJob enqueue chain
+  # ============================================================
+
+  test "GenerateSubscribePreviewJob: scheduled for new user" do
+    GenerateSubscribePreviewJob.jobs.clear
+    user = create_user(username: "subprev1")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: not scheduled when only email changes" do
+    user = create_user(username: "subprev2")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.update!(email: "new-subprev-#{SecureRandom.hex(4)}@example.com")
+    assert_empty GenerateSubscribePreviewJob.jobs
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when username changes" do
+    user = create_user(username: "subprev3")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.update!(username: "subprev3updated")
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when name changes" do
+    user = create_user(username: "subprev4")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.update!(name: "New Name")
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when highlight_color changes" do
+    user = create_user(username: "subprev5")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.seller_profile.update!(highlight_color: "#133337")
+    user.save!
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when background_color changes" do
+    user = create_user(username: "subprev6")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.seller_profile.update!(background_color: "#133337")
+    user.save!
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when font changes" do
+    user = create_user(username: "subprev7")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.seller_profile.update!(font: "Inter")
+    user.save!
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when avatar changes" do
+    user = create_user(username: "subprev8")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.avatar.attach(io: fixture_file("smilie.png", "image/png"), filename: "smilie.png")
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  # ============================================================
+  # subscribe_preview / resized_avatar / avatar - "doesn't have one" cases
+  # (already covered in earlier batches; add more variants)
+  # ============================================================
+
+  test "subscribe_preview_url returns nil when no subscribe preview attached" do
+    assert_nil create_user.subscribe_preview_url
+  end
+
+  # ============================================================
+  # update_audience_members_affiliates
+  # ============================================================
+
+  test "update_audience_members_affiliates: confirm() doesn't error on email change for affiliate" do
+    seller = create_user(username: "auds#{SecureRandom.hex(4)}")
+    user = create_user(email: "audorig-#{SecureRandom.hex(4)}@example.com")
+    aff = DirectAffiliate.create!(seller: seller, affiliate_user: user, affiliate_basis_points: 1000)
+    aff.product_affiliates.create!(product: create_link(seller), affiliate_basis_points: 1000)
+    new_email = "audnew-#{SecureRandom.hex(4)}@example.com"
+    user.update!(email: new_email)
+    assert_nothing_raised { user.confirm }
+  end
+
+  # ============================================================
+  # The "user is not deactivated" shared examples
+  # ============================================================
+
+  test "deactivate!: raises UnpaidBalanceError when user has unpaid balances" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    create_balance(user: user, amount_cents: 100)
+    assert_raises(User::UnpaidBalanceError) { user.reload.deactivate! }
+    refute_nil user.read_attribute(:username)
+    assert_nil user.deleted_at
+  end
+
+  # ============================================================
+  # Pay with paypal -- final consolidating coverage
+  # ============================================================
+
+  test "pay_with_paypal_enabled? false when disable_paypal_sales toggled true on paypal user" do
+    user = create_user
+    create_user_compliance_info(user: user)
+    create_paypal_merchant_account(user: user)
+    user.check_merchant_account_is_linked = true
+    user.save
+    user.update!(disable_paypal_sales: true)
+    refute user.pay_with_paypal_enabled?
+  end
 end

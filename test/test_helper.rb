@@ -213,6 +213,40 @@ module ActiveSupport
       )
     end
 
+    # ActiveStorage fixture root — we reuse the same files RSpec uses.
+    FIXTURE_FILES_PATH = Rails.root.join("spec", "support", "fixtures")
+
+    def fixture_file(name, content_type)
+      Rack::Test::UploadedFile.new(FIXTURE_FILES_PATH.join(name), content_type)
+    end
+
+    def attach_avatar(user, filename: "smilie.png", content_type: "image/png")
+      blob = ActiveStorage::Blob.create_and_upload!(io: fixture_file(filename, content_type), filename: filename)
+      blob.analyze
+      user.avatar.attach(blob)
+      user
+    end
+
+    def attach_subscribe_preview(user)
+      user.subscribe_preview.attach(
+        io: File.open(FIXTURE_FILES_PATH.join("subscribe_preview.png")),
+        filename: "subscribe_preview.png",
+        content_type: "image/png"
+      )
+      user
+    end
+
+    def attach_annual_report(user, year: Time.current.year, source: "followers_import.csv")
+      blob = ActiveStorage::Blob.create_and_upload!(
+        io: fixture_file(source, "text/csv"),
+        filename: "Financial Annual Report #{year}.csv",
+        metadata: { year: year }
+      )
+      blob.analyze
+      user.annual_reports.attach(blob)
+      user
+    end
+
     def create_purchase(seller:, link:, purchaser: nil, **attrs)
       attrs = {
         purchase_state: "successful",
