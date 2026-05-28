@@ -171,10 +171,11 @@ describe "User profile page", type: :system, js: true do
       end
 
       def add_section(type)
+        section_count = all(:disclosure_button, "Edit section", wait: 0).count
         all(:disclosure_button, "Add section").last.select_disclosure do
           click_on type
         end
-        sleep 1
+        expect(page).to have_disclosure_button("Edit section", count: section_count + 1)
         all(:disclosure_button, "Edit section").last.select_disclosure do
           click_on "Name"
           fill_in "Name", with: "New section"
