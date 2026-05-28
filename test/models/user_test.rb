@@ -2366,4 +2366,304 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "USD", user.merchant_account_currency(StripeChargeProcessor.charge_processor_id)
     assert_equal "GBP", user.merchant_account_currency(PaypalChargeProcessor.charge_processor_id)
   end
+
+  # ============================================================
+  # credit_card_info
+  # ============================================================
+
+  test "credit_card_info: date formatted with leading zero when expiry_month < 10" do
+    user = create_user
+    seller = users(:seller_one)
+    cc = CreditCard.new(card_type: "visa", expiry_month: 9, expiry_year: 2030, visual: "**** 4242", charge_processor_id: "stripe")
+    user.stub(:credit_card, cc) do
+      assert_equal "0", user.credit_card_info(seller)[:date].first
+    end
+  end
+
+  test "credit_card_info: no leading zero when expiry_month >= 10" do
+    user = create_user
+    seller = users(:seller_one)
+    cc = CreditCard.new(card_type: "visa", expiry_month: 10, expiry_year: 2030, visual: "**** 4242", charge_processor_id: "stripe")
+    user.stub(:credit_card, cc) do
+      assert_equal "1", user.credit_card_info(seller)[:date].first
+    end
+  end
+
+  test "credit_card_info: returns test card when user is the seller" do
+    user = create_user
+    product = create_link(user)
+    assert_equal "test", user.credit_card_info(product.user)[:credit]
+  end
+
+  test "credit_card_info: returns saved card when user has a saved credit card" do
+    user = create_user
+    cc = CreditCard.new(card_type: "visa", expiry_month: 5, expiry_year: 2030, visual: "**** 4242", charge_processor_id: "stripe")
+    user.stub(:credit_card, cc) do
+      assert_equal "saved", user.credit_card_info(users(:seller_one))[:credit]
+    end
+  end
+
+  test "credit_card_info: returns new card when user is not seller and has no saved card" do
+    user = create_user
+    user.stub(:credit_card, nil) do
+      assert_equal "new", user.credit_card_info(users(:seller_one))[:credit]
+    end
+  end
+
+  # ============================================================
+  # supports_card?
+  # ============================================================
+
+  test "supports_card? returns true for nil-processor card info (creator with native paypal)" do
+    creator = create_user
+    create_paypal_merchant_account(user: creator, currency: "gbp")
+    assert creator.supports_card?(CreditCard.new_card_info)
+    assert creator.supports_card?(CreditCard.test_card_info)
+  end
+
+  test "supports_card? returns true for stripe card (creator with native paypal)" do
+    creator = create_user
+    create_paypal_merchant_account(user: creator, currency: "gbp")
+    card = { credit: "saved", processor: "stripe", visual: "**** 4242" }
+    assert creator.supports_card?(card)
+  end
+
+  test "supports_card? returns false for braintree card (creator with native paypal)" do
+    creator = create_user
+    create_paypal_merchant_account(user: creator, currency: "gbp")
+    card = { credit: "saved", processor: "braintree", visual: "**** 4242" }
+    refute creator.supports_card?(card)
+  end
+
+  test "supports_card? returns true for native paypal card (creator with native paypal)" do
+    creator = create_user
+    create_paypal_merchant_account(user: creator, currency: "gbp")
+    card = { credit: "saved", processor: "paypal", visual: "**** 4242" }
+    assert creator.supports_card?(card)
+  end
+
+  test "supports_card? returns true for nil-processor card (creator without native paypal)" do
+    creator = create_user
+    assert creator.supports_card?(CreditCard.new_card_info)
+    assert creator.supports_card?(CreditCard.test_card_info)
+  end
+
+  test "supports_card? returns true for stripe card (creator without native paypal)" do
+    creator = create_user
+    card = { credit: "saved", processor: "stripe", visual: "**** 4242" }
+    assert creator.supports_card?(card)
+  end
+
+  test "supports_card? returns true for braintree card (creator without native paypal)" do
+    creator = create_user
+    card = { credit: "saved", processor: "braintree", visual: "**** 4242" }
+    assert creator.supports_card?(card)
+  end
+
+  test "supports_card? returns false for native paypal card (creator without native paypal)" do
+    creator = create_user
+    card = { credit: "saved", processor: "paypal", visual: "**** 4242" }
+    refute creator.supports_card?(card)
+  end
+
+  # ============================================================
+  # user_info
+  # ============================================================
+
+  test "user_info returns expected top-level keys" do
+    user = users(:named_user)
+    creator = users(:seller_one)
+    assert_equal %i[email full_name profile_picture_url shipping_information card admin].sort, user.user_info(creator).keys.sort
+  end
+
+  test "user_info shipping_information keys" do
+    user = users(:named_user)
+    creator = users(:seller_one)
+    assert_equal %i[street_address zip_code state country city].sort, user.user_info(creator)[:shipping_information].keys.sort
+  end
+
+  test "user_info field values match" do
+    user = users(:named_user)
+    creator = users(:seller_one)
+    info = user.user_info(creator)
+    assert_equal user.form_email, info[:email]
+    assert_equal user.name, info[:full_name]
+    assert_equal user.avatar_url, info[:profile_picture_url]
+    assert_equal user.is_team_member?, info[:admin]
+    %i[street_address zip_code state country city].each do |k|
+      assert_equal user.public_send(k), info[:shipping_information][k]
+    end
+  end
+
+  # ============================================================
+  # Risk state: bulk seller behavior
+  # ============================================================
+
+  test "risk state: disables a related seller's links when suspended" do
+    payment_address = "shared-suspend@example.com"
+    user = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.2")
+    user_2 = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.3")
+    product_1 = create_link(user)
+    product_2 = create_link(user)
+    product_3 = create_link(user_2)
+    product_4 = create_link(user_2)
+    admin = users(:admin)
+
+    user_2.mark_compliant(author_id: admin.id)
+    user_2.flag_for_tos_violation(author_id: admin.id, product_id: product_3.id)
+    user_2.suspend_for_tos_violation(author_id: admin.id)
+    refute_nil product_3.reload.banned_at
+    refute_nil product_4.reload.banned_at
+
+    user.flag_for_fraud(author_id: admin.id)
+    user.suspend_for_fraud(author_id: admin.id)
+    refute_nil product_1.reload.banned_at
+    refute_nil product_2.reload.banned_at
+  end
+
+  test "risk state: reenables original sellers links if moved to probation" do
+    payment_address = "shared-probation@example.com"
+    user = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.4")
+    product_1 = create_link(user)
+    admin = users(:admin)
+
+    user.flag_for_fraud(author_id: admin.id)
+    user.suspend_for_fraud(author_id: admin.id)
+    refute_nil product_1.reload.banned_at
+
+    user.put_on_probation(author_id: admin.id)
+    assert user.on_probation?
+    assert_nil product_1.reload.banned_at
+  end
+
+  test "risk state: does not suspend other sellers when only flagged for tos" do
+    payment_address = "shared-tos@example.com"
+    user = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.6")
+    user_2 = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.7")
+    product_1 = create_link(user)
+    admin = users(:admin)
+
+    user.flag_for_tos_violation(author_id: admin.id, product_id: product_1.id)
+    user.suspend_for_tos_violation(author_id: admin.id)
+    refute user_2.reload.suspended?
+  end
+
+  test "risk state: re-enables all sellers links if marked compliant" do
+    payment_address = "shared-compliant@example.com"
+    user = create_user(payment_address: payment_address, last_sign_in_ip: "10.2.2.8")
+    product_1 = create_link(user)
+    product_2 = create_link(user)
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    user.suspend_for_fraud(author_id: admin.id)
+    refute_nil product_1.reload.banned_at
+    refute_nil product_2.reload.banned_at
+    user.mark_compliant(author_id: admin.id)
+    assert_nil product_1.reload.banned_at
+    assert_nil product_2.reload.banned_at
+  end
+
+  test "risk state: enqueues CreateStripeApplePayDomainWorker when suspended user marked compliant" do
+    user = create_user(payment_address: "applepay-compliant@example.com", last_sign_in_ip: "10.2.2.9")
+    admin = users(:admin)
+    user.flag_for_fraud(author_id: admin.id)
+    user.suspend_for_fraud(author_id: admin.id)
+    CreateStripeApplePayDomainWorker.jobs.clear
+    user.mark_compliant(author_id: admin.id)
+    assert CreateStripeApplePayDomainWorker.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
+  # ============================================================
+  # alive_product_files_excluding_product
+  # ============================================================
+
+  test "alive_product_files_excluding_product returns alive files from alive products" do
+    s3 = ->(suffix) { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/manual-#{suffix}.pdf" }
+    user = create_user
+    p1 = create_link(user)
+    f1 = ProductFile.create!(link: p1, url: s3.call(1))
+    f2 = ProductFile.create!(link: p1, url: s3.call(2))
+    f3 = ProductFile.create!(link: p1, url: s3.call(3))
+    p2 = create_link(user)
+    f4 = ProductFile.create!(link: p2, url: s3.call(4))
+    f5 = ProductFile.create!(link: p2, url: s3.call(5))
+    p3 = create_link(user)
+    ProductFile.create!(link: p3, url: s3.call(6))
+    ProductFile.create!(link: p3, url: s3.call(7))
+
+    p3.mark_deleted!
+    f3.mark_deleted!
+
+    expected = [f1, f2, f4, f5].sort_by(&:created_at)
+    assert_equal expected, user.alive_product_files_excluding_product.to_a
+  end
+
+  test "alive_product_files_excluding_product excludes product files for a given product id" do
+    s3 = ->(suffix) { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/manual-#{suffix}.pdf" }
+    user = create_user
+    p1 = create_link(user)
+    ProductFile.create!(link: p1, url: s3.call(1))
+    p2 = create_link(user)
+    p3 = create_link(user)
+    f6 = ProductFile.create!(link: p3, url: s3.call(6))
+    f7 = ProductFile.create!(link: p3, url: s3.call(7))
+    ProductFile.create!(link: p3, url: s3.call(9)).mark_deleted!
+    f10 = ProductFile.create!(link: p3, url: s3.call(10))
+
+    p1.mark_deleted!
+
+    result = user.alive_product_files_excluding_product(product_id_to_exclude: p2.id).to_a
+    assert_equal [f6, f7, f10].sort, result.sort
+  end
+
+  test "alive_product_files_excluding_product de-duplicates by url" do
+    s3 = ->(suffix) { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}/attachment/manual-#{suffix}.pdf" }
+    user = create_user
+    p1 = create_link(user)
+    f1 = ProductFile.create!(link: p1, url: s3.call(1))
+    f3 = ProductFile.create!(link: p1, url: s3.call(3))
+    p2 = create_link(user)
+    f4 = ProductFile.create!(link: p2, url: s3.call(4))
+    p3 = create_link(user)
+    f6 = ProductFile.create!(link: p3, url: s3.call(6))
+    f7 = ProductFile.create!(link: p3, url: s3.call(7))
+    f8 = ProductFile.create!(link: p3, url: f1.url)
+
+    # Duplicate files all pointing at f1.url
+    [p1, p2, p3].each_with_index do |p, i|
+      ProductFile.create!(link: p, url: f1.url) if i > 0
+    end
+
+    result = user.alive_product_files_excluding_product.map(&:url).uniq
+    assert_equal [f1, f3, f4, f6, f7, f8].map(&:url).uniq.sort, result.sort
+  end
+
+  # ============================================================
+  # init_default_notification_settings extras
+  # ============================================================
+
+  test "init_default_notification_settings: payment+free flags on, recurring off after save" do
+    user = create_user
+    %i[enable_payment_email enable_payment_push_notification
+       enable_free_downloads_email enable_free_downloads_push_notification].each { |key| assert user.public_send(key), "#{key}" }
+    %i[enable_recurring_subscription_charge_email enable_recurring_subscription_charge_push_notification].each { |key| refute user.public_send(key), "#{key}" }
+  end
+
+  # ============================================================
+  # Versionable concern shared examples
+  # ============================================================
+
+  test "Versionable: tracks versions on email change" do
+    user = create_user
+    initial = user.versions.count
+    user.update!(email: "v-#{SecureRandom.hex(4)}@example.com")
+    assert user.versions.count > initial
+  end
+
+  test "Versionable: tracks versions on payment_address change" do
+    user = create_user(payment_address: "old-paypal-vsn@example.com")
+    initial = user.versions.count
+    user.update!(payment_address: "new-paypal-vsn@example.com")
+    assert user.versions.count > initial
+  end
 end
