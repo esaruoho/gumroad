@@ -159,13 +159,27 @@ jobs:
             minio/minio:RELEASE.2025-09-07T16-13-09Z \
             server /data --console-address ":9001"
           for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
-          docker run --rm --network host --entrypoint sh minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
+          docker run --rm --network host --entrypoint sh \
+            -v "$PWD/spec/support/fixtures:/fixtures:ro" \
+            -v "$PWD/docker/fixture-files-private.txt:/fixture-files-private.txt:ro" \
+            -v "$PWD/docker/fixture-files-public.txt:/fixture-files-public.txt:ro" \
+            minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
+            set -e
             mc alias set myminio http://localhost:9000 minioadmin minioadmin
             for b in gumroad-specs gumroad-invoices; do
               mc mb --ignore-existing myminio/$b
               mc anonymous set public myminio/$b
               mc version enable myminio/$b
             done
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              mc cp "/fixtures/$file" "myminio/gumroad-specs/specs/$file"
+            done < /fixture-files-private.txt
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              mc cp "/fixtures/$file" "myminio/gumroad-specs/specs/$file"
+              mc anonymous set download "myminio/gumroad-specs/specs/$file"
+            done < /fixture-files-public.txt
           '
 
       - name: Precompile assets
@@ -383,13 +397,27 @@ jobs:
             minio/minio:RELEASE.2025-09-07T16-13-09Z \
             server /data --console-address ":9001"
           for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
-          docker run --rm --network host --entrypoint sh minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
+          docker run --rm --network host --entrypoint sh \
+            -v "$PWD/spec/support/fixtures:/fixtures:ro" \
+            -v "$PWD/docker/fixture-files-private.txt:/fixture-files-private.txt:ro" \
+            -v "$PWD/docker/fixture-files-public.txt:/fixture-files-public.txt:ro" \
+            minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
+            set -e
             mc alias set myminio http://localhost:9000 minioadmin minioadmin
             for b in gumroad-specs gumroad-invoices; do
               mc mb --ignore-existing myminio/$b
               mc anonymous set public myminio/$b
               mc version enable myminio/$b
             done
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              mc cp "/fixtures/$file" "myminio/gumroad-specs/specs/$file"
+            done < /fixture-files-private.txt
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              mc cp "/fixtures/$file" "myminio/gumroad-specs/specs/$file"
+              mc anonymous set download "myminio/gumroad-specs/specs/$file"
+            done < /fixture-files-public.txt
           '
 
       - name: Precompile assets
