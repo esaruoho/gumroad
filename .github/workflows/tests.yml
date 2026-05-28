@@ -114,7 +114,12 @@ jobs:
           cache: npm
 
       - name: Install npm dependencies
-        run: npm ci
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm ci
 
       - name: Restore asset precompile cache
         id: asset_cache
@@ -333,7 +338,12 @@ jobs:
           cache: npm
 
       - name: Install npm dependencies
-        run: npm ci
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm ci
 
       - name: Restore asset precompile cache
         uses: actions/cache@v4
