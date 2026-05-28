@@ -152,7 +152,7 @@ jobs:
             minio/minio:RELEASE.2025-09-07T16-13-09Z \
             server /data --console-address ":9001"
           for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
-          docker run --rm --network host minio/mc:RELEASE.2025-08-13T08-35-41Z sh -c '
+          docker run --rm --network host --entrypoint sh minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
             mc alias set myminio http://localhost:9000 minioadmin minioadmin
             for b in gumroad-specs gumroad-invoices; do
               mc mb --ignore-existing myminio/$b
@@ -363,7 +363,7 @@ jobs:
             minio/minio:RELEASE.2025-09-07T16-13-09Z \
             server /data --console-address ":9001"
           for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/ready && break; sleep 1; done
-          docker run --rm --network host minio/mc:RELEASE.2025-08-13T08-35-41Z sh -c '
+          docker run --rm --network host --entrypoint sh minio/mc:RELEASE.2025-08-13T08-35-41Z -c '
             mc alias set myminio http://localhost:9000 minioadmin minioadmin
             for b in gumroad-specs gumroad-invoices; do
               mc mb --ignore-existing myminio/$b
