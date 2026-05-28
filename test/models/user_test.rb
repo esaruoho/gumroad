@@ -236,6 +236,22 @@ class UserTest < ActiveSupport::TestCase
     assert_nil user.paypal_payout_email
   end
 
+  test "paypal_payout_email returns PayPal account email when payment_address is blank" do
+    user = users(:paypal_payee)
+    assert_equal "payme@example.com", user.paypal_payout_email
+    create_paypal_merchant_account(user: user, charge_processor_merchant_id: "B66YJBBNCRW6L")
+    user.update!(payment_address: "")
+
+    WebMock.stub_request(:post, "https://api.sandbox.paypal.com/v1/oauth2/token")
+      .to_return(status: 200, headers: { "Content-Type" => "application/json" },
+                 body: { access_token: "test_access_token", token_type: "Bearer", expires_in: 30548 }.to_json)
+    WebMock.stub_request(:get, %r{\Ahttps://api\.sandbox\.paypal\.com/v1/customer/partners/.*/merchant-integrations/B66YJBBNCRW6L\z})
+      .to_return(status: 200, headers: { "Content-Type" => "application/json" },
+                 body: { merchant_id: "B66YJBBNCRW6L", primary_email: "sb-byx2u2205460@business.example.com", primary_currency: "USD", country: "US" }.to_json)
+
+    assert_equal "sb-byx2u2205460@business.example.com", user.paypal_payout_email
+  end
+
   # ----- #build_user_compliance_info -----
 
   test "build_user_compliance_info sets json_data to an empty hash" do
@@ -1001,6 +1017,84 @@ class UserTest < ActiveSupport::TestCase
     assert_equal [da], seller.reload.direct_affiliates
   end
 
+  test "has one (live) global affiliate" do
+    user = create_user
+    global_affiliate = user.global_affiliate
+    global_affiliate.mark_deleted!
+    live_global_affiliate = GlobalAffiliate.new(affiliate_user: user, affiliate_basis_points: GlobalAffiliate::AFFILIATE_BASIS_POINTS)
+    live_global_affiliate.save(validate: false)
+    assert_equal live_global_affiliate, user.reload.global_affiliate
+  end
+
+  test "has many affiliate accounts" do
+    user = create_user
+    direct_affiliate = DirectAffiliate.create!(affiliate_user: user, seller: users(:seller_one), affiliate_basis_points: 1000)
+    assert_equal [direct_affiliate, user.global_affiliate].sort_by(&:id), user.reload.affiliate_accounts.sort_by(&:id)
+  end
+
+  test "has many affiliate sales" do
+    user = create_user
+    direct_affiliate = DirectAffiliate.create!(affiliate_user: user, seller: users(:seller_one), affiliate_basis_points: 1000)
+    global_affiliate = user.global_affiliate
+    direct_purchase = create_purchase(seller: users(:seller_one), link: create_link(users(:seller_one)), purchaser: users(:seller_two))
+    direct_purchase.update!(affiliate: direct_affiliate)
+    global_purchase = create_purchase(seller: users(:seller_one), link: create_link(users(:seller_one)), purchaser: users(:seller_two))
+    global_purchase.update!(affiliate: global_affiliate)
+    other_affiliate = DirectAffiliate.create!(affiliate_user: create_user, seller: users(:seller_one), affiliate_basis_points: 300, send_posts: true)
+    create_purchase(seller: users(:seller_one), link: create_link(users(:seller_one)), purchaser: users(:seller_two)).update!(affiliate: other_affiliate)
+    assert_equal [direct_purchase, global_purchase].sort_by(&:id), user.affiliate_sales.sort_by(&:id)
+  end
+
+  test "has many affiliated products" do
+    user = create_user
+    product1 = create_link(users(:seller_one))
+    product2 = create_link(users(:seller_one))
+    direct_affiliate = DirectAffiliate.create!(affiliate_user: user, seller: users(:seller_one), affiliate_basis_points: 1000)
+    global_affiliate = user.global_affiliate
+    direct_affiliate.products = [product1, product2]
+    global_affiliate.products << product2
+    assert_equal [product1, product2].sort_by(&:id), user.affiliated_products.sort_by(&:id)
+  end
+
+  test "has many affiliated creators" do
+    user = create_user
+    seller1 = users(:seller_one)
+    seller2 = users(:seller_two)
+    product1 = create_link(seller1)
+    product2 = create_link(seller2)
+    direct_affiliate = DirectAffiliate.create!(affiliate_user: user, seller: seller1, affiliate_basis_points: 1000)
+    global_affiliate = user.global_affiliate
+    direct_affiliate.products = [product1, product2]
+    global_affiliate.products << product2
+    assert_equal [seller1, seller2].sort_by(&:id), user.affiliated_creators.sort_by(&:id)
+  end
+
+  test "has_many collaborators with foreign key seller_id" do
+    seller = create_user
+    affiliate_user = users(:seller_one)
+    collaborator = Collaborator.create!(seller: seller, affiliate_user: affiliate_user, affiliate_basis_points: 1000)
+    assert_equal [collaborator], seller.reload.collaborators
+  end
+
+  test "collaborating_products only contains those from accepted collaborations" do
+    user = create_user
+    seller1 = users(:seller_one)
+    seller2 = users(:seller_two)
+    seller3 = create_user
+    product1 = create_link(seller1)
+    product2 = create_link(seller2)
+    product3 = create_link(seller3)
+    accepted_collaboration = Collaborator.create!(affiliate_user: user, seller: seller1, affiliate_basis_points: 1000)
+    accepted_collaboration.product_affiliates.create!(product: product1, affiliate_basis_points: 1000)
+    pending_collaboration = Collaborator.create!(affiliate_user: user, seller: seller2, affiliate_basis_points: 1000)
+    pending_collaboration.product_affiliates.create!(product: product2, affiliate_basis_points: 1000)
+    CollaboratorInvitation.create!(collaborator: pending_collaboration)
+    deleted_collaboration = Collaborator.create!(affiliate_user: user, seller: seller3, affiliate_basis_points: 1000, deleted_at: 1.day.ago)
+    deleted_collaboration.product_affiliates.create!(product: product3, affiliate_basis_points: 1000)
+    assert_equal [accepted_collaboration], user.accepted_alive_collaborations
+    assert_equal [product1], user.collaborating_products
+  end
+
   # ----- stripped_fields -----
 
   test "stripped_fields strips facebook_meta_tag" do
@@ -1418,6 +1512,50 @@ class UserTest < ActiveSupport::TestCase
     assert_equal ma, user.merchant_account("stripe")
   end
 
+  test "merchant_account returns Stripe Connect account when merchant migration enabled" do
+    creator = create_user
+    create_user_compliance_info(user: creator)
+    Feature.activate_user(:merchant_migration, creator)
+    stripe_account = create_merchant_account(user: creator, charge_processor_id: "stripe")
+    stripe_connect_account = create_stripe_connect_account(user: creator)
+    assert_equal stripe_connect_account, creator.merchant_account(StripeChargeProcessor.charge_processor_id)
+
+    Feature.deactivate_user(:merchant_migration, creator)
+    creator.update!(check_merchant_account_is_linked: true)
+    assert_equal stripe_connect_account, creator.merchant_account(StripeChargeProcessor.charge_processor_id)
+  end
+
+  test "merchant_account returns custom stripe account when Stripe Connect is deleted" do
+    creator = create_user
+    create_user_compliance_info(user: creator)
+    Feature.activate_user(:merchant_migration, creator)
+    stripe_account = create_merchant_account(user: creator, charge_processor_id: "stripe")
+    stripe_connect_account = create_stripe_connect_account(user: creator)
+    stripe_connect_account.mark_deleted!
+    assert_equal stripe_account, creator.merchant_account(StripeChargeProcessor.charge_processor_id)
+  end
+
+  test "merchant_account returns custom stripe account when merchant migration not enabled" do
+    creator = create_user
+    create_user_compliance_info(user: creator)
+    Feature.activate_user(:merchant_migration, creator)
+    stripe_account = create_merchant_account(user: creator, charge_processor_id: "stripe")
+    stripe_connect_account = create_stripe_connect_account(user: creator)
+    Feature.deactivate_user(:merchant_migration, creator)
+    assert_equal stripe_account, creator.merchant_account(StripeChargeProcessor.charge_processor_id)
+  end
+
+  test "merchant_account returns nil when both Stripe and Stripe Connect are deleted" do
+    creator = create_user
+    create_user_compliance_info(user: creator)
+    Feature.activate_user(:merchant_migration, creator)
+    stripe_account = create_merchant_account(user: creator, charge_processor_id: "stripe")
+    stripe_connect_account = create_stripe_connect_account(user: creator)
+    stripe_connect_account.mark_deleted!
+    stripe_account.mark_deleted!
+    assert_nil creator.merchant_account(StripeChargeProcessor.charge_processor_id)
+  end
+
   # ----- Balance scopes (.holding_balance, etc.) -----
 
   test ".holding_balance_more_than returns users with unpaid balance above threshold" do
@@ -1536,6 +1674,13 @@ class UserTest < ActiveSupport::TestCase
     refute user.collaborator_for?(product)
   end
 
+  test "collaborator_for? returns false when collaborator has no products for that product" do
+    user = create_user
+    product = create_link(users(:seller_one))
+    Collaborator.create!(affiliate_user: user, seller: product.user, affiliate_basis_points: 1000)
+    refute user.collaborator_for?(product)
+  end
+
   # ----- #pay_with_card_enabled? -----
 
   test "pay_with_card_enabled? returns true when no merchant account is connected" do
@@ -1580,6 +1725,13 @@ class UserTest < ActiveSupport::TestCase
     user.update_purchasing_power_parity_excluded_products!([p1.external_id])
     assert_equal [p1.external_id], user.reload.purchasing_power_parity_excluded_product_external_ids
     refute p2.reload.purchasing_power_parity_disabled
+  end
+
+  test "update_purchasing_power_parity_excluded_products! updates PPP flag on published bundle with no products" do
+    user = create_user
+    bundle = create_link(user, is_bundle: true, purchase_disabled_at: nil)
+    assert_nothing_raised { user.update_purchasing_power_parity_excluded_products!([bundle.external_id]) }
+    assert_equal true, bundle.reload.purchasing_power_parity_disabled
   end
 
   # ----- after_save callback Stripe ApplePay Domain jobs -----
@@ -1680,6 +1832,24 @@ class UserTest < ActiveSupport::TestCase
     user.update!(pre_signup_affiliate_request_processed: true)
     assert_no_changes -> { user.pre_signup_affiliate_request_processed? } do
       user.confirm
+    end
+  end
+
+  test "confirming calls make_requester_an_affiliate! when processing approved affiliate request" do
+    requester_email = "requester@example.com"
+    seller = users(:seller_one)
+    AffiliateRequest.create!(seller: seller, email: requester_email, name: "Aff Req", promotion_text: "Hi")
+      .tap { |r| r.update_column(:state, "approved") }
+    user = create_user(confirmed_at: nil, unconfirmed_email: requester_email)
+    assert_changes -> { user.pre_signup_affiliate_request_processed? }, from: false, to: true do
+      user.confirm
+    end
+  end
+
+  test "confirming does nothing when no approved affiliate requests match email" do
+    unconfirmed_user = create_user(confirmed_at: nil, unconfirmed_email: "nomatch@example.com")
+    assert_no_difference -> { DirectAffiliate.count } do
+      unconfirmed_user.confirm
     end
   end
 
@@ -2034,6 +2204,15 @@ class UserTest < ActiveSupport::TestCase
     refute seller.has_all_eligible_refund_policies_as_no_refunds?
   end
 
+  test "has_all_eligible_refund_policies_as_no_refunds? true when all policies are no-refunds" do
+    seller = users(:named_seller)
+    p1 = create_link(seller)
+    p2 = create_link(seller)
+    ProductRefundPolicy.create!(seller: seller, product: p1, max_refund_period_in_days: 0, fine_print: "")
+    ProductRefundPolicy.create!(seller: seller, product: p2, max_refund_period_in_days: 0, fine_print: "")
+    assert seller.has_all_eligible_refund_policies_as_no_refunds?
+  end
+
   # ----- #made_a_successful_sale_with_a_stripe_connect_or_paypal_connect_account? -----
 
   test "made_a_successful_sale_with_*: true with Stripe Connect alive sale" do
@@ -2069,6 +2248,20 @@ class UserTest < ActiveSupport::TestCase
     create_purchase(seller: user, link: create_link(user), merchant_account: pp)
     pp.mark_deleted!
     assert user.made_a_successful_sale_with_a_stripe_connect_or_paypal_connect_account?
+  end
+
+  test "made_a_successful_sale_with_*: false with failed Stripe Connect sale" do
+    user = create_user
+    sc = create_stripe_connect_account(user: user)
+    create_purchase(seller: user, link: create_link(user), merchant_account: sc, purchase_state: "failed")
+    refute user.made_a_successful_sale_with_a_stripe_connect_or_paypal_connect_account?
+  end
+
+  test "made_a_successful_sale_with_*: false with failed PayPal Connect sale" do
+    user = create_user
+    pp = create_paypal_merchant_account(user: user)
+    create_purchase(seller: user, link: create_link(user), merchant_account: pp, purchase_state: "failed")
+    refute user.made_a_successful_sale_with_a_stripe_connect_or_paypal_connect_account?
   end
 
   # ----- #purchased_small_bets? -----
@@ -2289,6 +2482,34 @@ class UserTest < ActiveSupport::TestCase
     product.update!(community_chat_enabled: true)
     other_product.update!(community_chat_enabled: true)
     assert_equal [community.id, other_community.id].sort, user.accessible_communities_ids.uniq.sort
+  end
+
+  test "accessible_communities_ids: seller+buyer excludes communities where feature flag is disabled" do
+    user = create_user
+    product = create_link(user)
+    community = Community.create!(seller: user, resource: product)
+    other_product = create_link(users(:seller_one))
+    other_community = Community.create!(seller: other_product.user, resource: other_product)
+    create_purchase(seller: other_product.user, link: other_product, purchaser: user, purchase_state: "successful")
+    Feature.deactivate_user(:communities, user)
+    Feature.deactivate_user(:communities, other_product.user)
+    product.update!(community_chat_enabled: true)
+    other_product.update!(community_chat_enabled: true)
+    assert_equal [], user.accessible_communities_ids
+  end
+
+  test "accessible_communities_ids: seller+buyer excludes communities where community chat is disabled" do
+    user = create_user
+    product = create_link(user)
+    community = Community.create!(seller: user, resource: product)
+    other_product = create_link(users(:seller_one))
+    other_community = Community.create!(seller: other_product.user, resource: other_product)
+    create_purchase(seller: other_product.user, link: other_product, purchaser: user, purchase_state: "successful")
+    Feature.activate_user(:communities, user)
+    Feature.activate_user(:communities, other_product.user)
+    product.update!(community_chat_enabled: false)
+    other_product.update!(community_chat_enabled: false)
+    assert_equal [], user.accessible_communities_ids
   end
 
   # ============================================================
@@ -2676,6 +2897,56 @@ class UserTest < ActiveSupport::TestCase
     refute user.requires_credit_card?
   end
 
+  test "requires_credit_card? returns true if user has an active subscription" do
+    user = create_user
+    subscription = create_subscription(user: user)
+    create_purchase(
+      seller: subscription.link.user, link: subscription.link, purchaser: user,
+      subscription: subscription, is_original_subscription_purchase: true
+    )
+    assert user.reload.requires_credit_card?
+    subscription.cancel_effective_immediately!
+    refute user.requires_credit_card?
+  end
+
+  test "requires_credit_card? returns true if user has an active preorder authorization" do
+    user = create_user
+    seller = create_user
+    preorder_purchase = create_purchase(
+      seller: seller, link: create_link(seller), purchaser: user,
+      purchase_state: "preorder_authorization_successful"
+    )
+    assert user.reload.requires_credit_card?
+    preorder_purchase.mark_preorder_concluded_successfully!
+    refute user.requires_credit_card?
+  end
+
+  test "requires_credit_card? returns false if user only has free subscriptions" do
+    user = create_user
+    product = create_subscription_product(user: create_user, price_cents: 0)
+    subscription = create_subscription(user: user, link: product)
+    Purchase.create!(
+      seller: product.user, link: product, purchaser: user,
+      subscription: subscription, is_original_subscription_purchase: true,
+      price_cents: 0, displayed_price_cents: 0, fee_cents: 0,
+      total_transaction_cents: 0, email: user.email, purchase_state: "successful"
+    )
+    refute user.reload.requires_credit_card?
+    subscription.cancel_effective_immediately!
+    refute user.requires_credit_card?
+  end
+
+  test "requires_credit_card? returns false if user only has test subscriptions" do
+    user = create_user
+    subscription = create_subscription(user: user)
+    create_purchase(
+      seller: subscription.link.user, link: subscription.link, purchaser: user,
+      subscription: subscription, is_original_subscription_purchase: true,
+      purchase_state: "test_successful"
+    )
+    refute user.reload.requires_credit_card?
+  end
+
   # ============================================================
   # paypal_disconnect_allowed?
   # ============================================================
@@ -2707,6 +2978,15 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
+  test "paypal_disconnect_allowed? false with both active subscribers and preorders via paypal" do
+    creator = create_user
+    creator.stub(:active_subscribers?, ->(*) { true }) do
+      creator.stub(:active_preorders?, ->(*) { true }) do
+        refute creator.paypal_disconnect_allowed?
+      end
+    end
+  end
+
   # ============================================================
   # invalidate_active_sessions! / invalidate_browser_sessions!
   # ============================================================
@@ -2725,6 +3005,59 @@ class UserTest < ActiveSupport::TestCase
     travel_to(Time.current) do
       user.invalidate_browser_sessions!
       assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+    end
+  end
+
+  test "revokes access tokens for mobile app when invalidate_active_sessions! is called" do
+    user = create_user
+    oauth_app = OauthApplication.create!(
+      name: "test_oauth_app",
+      redirect_uri: "https://example.com",
+      uid: OauthApplication::MOBILE_API_OAUTH_APPLICATION_UID,
+      owner: create_user
+    )
+    active_token_one = Doorkeeper::AccessToken.create!(
+      application: oauth_app,
+      resource_owner_id: user.id,
+      scopes: "mobile_api"
+    )
+    active_token_two = Doorkeeper::AccessToken.create!(
+      application: oauth_app,
+      resource_owner_id: user.id,
+      scopes: "mobile_api"
+    )
+    other_user = create_user
+    active_token_other = Doorkeeper::AccessToken.create!(
+      application: oauth_app,
+      resource_owner_id: other_user.id,
+      scopes: "mobile_api"
+    )
+    travel_to(Time.current) do
+      user.invalidate_active_sessions!
+      assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+      assert_equal Time.current.to_i, active_token_one.reload.revoked_at.to_i
+      assert_equal Time.current.to_i, active_token_two.reload.revoked_at.to_i
+      assert_nil active_token_other.reload.revoked_at
+    end
+  end
+
+  test "does not revoke mobile access tokens when invalidate_browser_sessions! is called" do
+    user = create_user
+    oauth_app = OauthApplication.create!(
+      name: "test_oauth_app_browser",
+      redirect_uri: "https://example.com",
+      uid: OauthApplication::MOBILE_API_OAUTH_APPLICATION_UID,
+      owner: create_user
+    )
+    active_token = Doorkeeper::AccessToken.create!(
+      application: oauth_app,
+      resource_owner_id: user.id,
+      scopes: "mobile_api"
+    )
+    travel_to(Time.current) do
+      user.invalidate_browser_sessions!
+      assert_equal Time.current.to_i, user.reload.last_active_sessions_invalidated_at.to_i
+      assert_nil active_token.reload.revoked_at
     end
   end
 
@@ -2880,6 +3213,107 @@ class UserTest < ActiveSupport::TestCase
     assert_nothing_raised { user.deactivate! }
   end
 
+  test "deactivate!: marks installment as deleted" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    product = create_link(user)
+    installment = Installment.create!(
+      seller: user,
+      link: product,
+      message: "Hello",
+      name: "A post",
+      installment_type: "product",
+      send_emails: true
+    )
+    freeze_time do
+      delete_at = Time.current
+      user.reload.deactivate!
+      assert_equal delete_at.to_i, installment.reload.deleted_at.to_i
+    end
+  end
+
+  test "deactivate!: marks bank account (ACH) as deleted" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    bank_account = AchAccount.create!(
+      user: user,
+      account_number: "000123456789",
+      routing_number: "110000000",
+      account_number_last_four: "6789",
+      account_holder_full_name: "Stripe Test Account",
+      account_type: "checking"
+    )
+    freeze_time do
+      delete_at = Time.current
+      user.reload.deactivate!
+      assert_equal delete_at.to_i, bank_account.reload.deleted_at.to_i
+    end
+  end
+
+  test "deactivate!: clears saved credit card when present" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    credit_card = CreditCard.create!(
+      charge_processor_id: "stripe",
+      stripe_customer_id: "cus_test_123",
+      stripe_fingerprint: "fingerprint_123",
+      visual: "**** 4242",
+      card_type: "visa",
+      expiry_month: 1,
+      expiry_year: 2035,
+      users: [user]
+    )
+    assert_changes -> { user.reload.credit_card }, from: credit_card, to: nil do
+      user.deactivate!
+    end
+  end
+
+  test "deactivate!: cancels active subscriptions" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    membership_product1 = create_membership_product(user: create_user)
+    membership_product2 = create_membership_product(user: create_user)
+    subscription1 = create_subscription(user: user, link: membership_product1, free_trial_ends_at: 30.days.from_now)
+    subscription2 = create_subscription(user: user, link: membership_product2, free_trial_ends_at: 30.days.from_now)
+    assert_changes -> { user.subscriptions.active_without_pending_cancel.count }, from: 2, to: 0 do
+      user.deactivate!
+    end
+    subscription1.reload
+    subscription2.reload
+    assert subscription1.cancelled_at
+    assert subscription1.cancelled_by_buyer
+    assert subscription2.cancelled_at
+    assert subscription2.cancelled_by_buyer
+  end
+
+  test "deactivate!: raises UnpaidBalanceError when user has unpaid balance" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    create_balance(user: user, amount_cents: 100)
+    assert_raises(User::UnpaidBalanceError) { user.reload.deactivate! }
+    assert user.read_attribute(:username)
+    assert_nil user.deleted_at
+  end
+
+  test "deactivate!: does not clear credit card when deactivation fails" do
+    user = create_user
+    user.fetch_or_build_user_compliance_info.dup_and_save! { |info| info.country = "United States" }
+    credit_card = CreditCard.create!(
+      charge_processor_id: "stripe",
+      stripe_customer_id: "cus_test_456",
+      stripe_fingerprint: "fingerprint_456",
+      visual: "**** 5555",
+      card_type: "visa",
+      expiry_month: 1,
+      expiry_year: 2035,
+      users: [user]
+    )
+    create_balance(user: user, amount_cents: 100)
+    assert_no_changes -> { user.reload.credit_card } do
+      assert_raises(User::UnpaidBalanceError) { user.deactivate! }
+    end
+  end
+
   # ============================================================
   # has_workflows? (already done) — extra: published_at scope
   # ============================================================
@@ -2908,6 +3342,61 @@ class UserTest < ActiveSupport::TestCase
     seller.stub(:gumroad_day_saved_fee_cents, 4062) do
       assert_equal "$40.62", seller.gumroad_day_saved_fee_amount
     end
+  end
+
+  test "gumroad_day_saved_fee_cents returns 10% of new sales on Gumroad Day" do
+    seller = create_user(gumroad_day_timezone: "Pacific Time (US & Canada)")
+    membership_product = create_subscription_product(user: seller)
+
+    # Sales made before Gumroad Day
+    create_purchase(
+      seller: seller,
+      link: create_link(seller),
+      price_cents: 100_00,
+      created_at: DateTime.new(2024, 4, 3, 23, 0, 0, "-07:00")
+    )
+
+    # Gumroad Day sales
+    create_purchase(
+      seller: seller,
+      link: create_link(seller),
+      price_cents: 100_00,
+      created_at: DateTime.new(2024, 4, 4, 1, 0, 0, "-07:00")
+    )
+    create_purchase(
+      seller: seller,
+      link: create_link(seller),
+      price_cents: 206_20,
+      created_at: DateTime.new(2024, 4, 4, 12, 0, 0, "-07:00")
+    )
+    subscription = create_subscription(user: create_user, link: membership_product)
+    create_purchase(
+      seller: seller,
+      link: membership_product,
+      subscription: subscription,
+      is_original_subscription_purchase: true,
+      price_cents: 100_00,
+      created_at: DateTime.new(2024, 4, 4, 1, 0, 0, "-07:00")
+    )
+    # Recurring charge not counted towards saved fee
+    create_purchase(
+      seller: seller,
+      link: membership_product,
+      subscription: subscription,
+      is_original_subscription_purchase: false,
+      price_cents: 100_00,
+      created_at: DateTime.new(2024, 4, 4, 23, 0, 0, "-07:00")
+    )
+
+    # Sales made after Gumroad Day
+    create_purchase(
+      seller: seller,
+      link: create_link(seller),
+      price_cents: 100_00,
+      created_at: DateTime.new(2024, 4, 5, 1, 0, 0, "-07:00")
+    )
+
+    assert_equal 40_62, seller.gumroad_day_saved_fee_cents
   end
 
   # ============================================================
@@ -2954,6 +3443,32 @@ class UserTest < ActiveSupport::TestCase
     enqueued_ids = InvalidateProductCacheWorker.jobs.flat_map { |j| j["args"] }.flatten
     assert_includes enqueued_ids, p1.id
     assert_includes enqueued_ids, p2.id
+  end
+
+  test "clear_products_cache is called automatically when facebook_pixel_id changes" do
+    user = create_user
+    create_link(user)
+    create_link(user, custom_permalink: "blah")
+    user.seller_profile.save!
+    user.reload
+    called = 0
+    user.define_singleton_method(:clear_products_cache) { called += 1 }
+    user.facebook_pixel_id = "123"
+    user.save!
+    assert_equal 1, called
+  end
+
+  test "clear_products_cache is not called when non-LINK_PROPERTIES attribute changes" do
+    user = create_user
+    create_link(user)
+    create_link(user, custom_permalink: "blah")
+    user.seller_profile.save!
+    user.reload
+    called = 0
+    user.define_singleton_method(:clear_products_cache) { called += 1 }
+    user.email = "newemail#{Time.current.to_i}@example.com"
+    user.save!
+    assert_equal 0, called
   end
 
   # ============================================================
@@ -3278,6 +3793,32 @@ class UserTest < ActiveSupport::TestCase
     assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
   end
 
+  test "GenerateSubscribePreviewJob: does not schedule when subscribe_preview attachment changes" do
+    user = create_user(username: "subprevchange1")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.subscribe_preview.attach(io: fixture_file("smilie.png", "image/png"), filename: "new_subscribe_preview.png")
+    assert_empty GenerateSubscribePreviewJob.jobs
+  end
+
+  test "GenerateSubscribePreviewJob: scheduled when avatar is removed" do
+    user = create_user(username: "subprevavatarrm")
+    user.build_seller_profile
+    attach_subscribe_preview(user)
+    user.seller_profile.save!
+    user.save!
+    GenerateSubscribePreviewJob.jobs.clear
+    user.avatar.attach(io: fixture_file("smilie.png", "image/png"), filename: "smilie.png")
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+    GenerateSubscribePreviewJob.jobs.clear
+    user.avatar = nil
+    user.save!
+    assert GenerateSubscribePreviewJob.jobs.any? { |j| j["args"] == [user.id] }
+  end
+
   # ============================================================
   # subscribe_preview / resized_avatar / avatar - "doesn't have one" cases
   # (already covered in earlier batches; add more variants)
@@ -3299,6 +3840,47 @@ class UserTest < ActiveSupport::TestCase
     new_email = "audnew-#{SecureRandom.hex(4)}@example.com"
     user.update!(email: new_email)
     assert_nothing_raised { user.confirm }
+  end
+
+  test "update_audience_members_affiliates: changing email updates members records" do
+    user = create_user(email: "original@example.com")
+
+    # add member who is both a follower and an affiliate
+    seller_1 = create_user
+    affiliate_1 = DirectAffiliate.create!(seller: seller_1, affiliate_user: user, affiliate_basis_points: 1000, send_posts: true)
+    affiliate_1.product_affiliates.create!(product: create_link(seller_1), affiliate_basis_points: 1000)
+    Follower.create!(user: seller_1, email: user.email, confirmed_at: Time.current)
+    member_check = seller_1.audience_members.find_by(email: user.email, follower: true, affiliate: true)
+    assert member_check.present?
+
+    # add member who is just an affiliate
+    seller_2 = create_user
+    affiliate_2 = DirectAffiliate.create!(seller: seller_2, affiliate_user: user, affiliate_basis_points: 1000, send_posts: true)
+    affiliate_2.product_affiliates.create!(product: create_link(seller_2), affiliate_basis_points: 1000)
+    member_check_2 = seller_2.audience_members.find_by(email: user.email, affiliate: true)
+    assert member_check_2.present?
+
+    # add member who is just an affiliate, to test what happens when their audience wasn't refreshed yet
+    seller_3 = create_user
+    affiliate_3 = DirectAffiliate.create!(seller: seller_3, affiliate_user: user, affiliate_basis_points: 1000, send_posts: true)
+    affiliate_3.product_affiliates.create!(product: create_link(seller_3), affiliate_basis_points: 1000)
+    seller_3.audience_members.find_by(email: user.email, affiliate: true).delete
+
+    user.update!(email: "new@example.com")
+    user.confirm
+
+    member_1 = seller_1.audience_members.find_by(email: "original@example.com")
+    assert_equal true, member_1.follower # no change
+    assert_equal false, member_1.affiliate # removes affiliate from this record
+
+    member_2 = seller_1.audience_members.find_by(email: "new@example.com")
+    assert_equal true, member_2.affiliate # moves affiliate to its own member record
+
+    assert_nil seller_2.audience_members.find_by(email: "original@example.com") # record was removed because it wasn't an affiliate or anything else anymore
+    assert seller_2.audience_members.find_by(email: "new@example.com").present?
+
+    assert_nil seller_3.audience_members.find_by(email: "original@example.com") # the missing member was ignored
+    assert_nil seller_3.audience_members.find_by(email: "new@example.com") # no change
   end
 
   # ============================================================
@@ -3525,5 +4107,123 @@ class UserTest < ActiveSupport::TestCase
     user = create_user
     assert user.weekly_notification
     assert user.payment_notification
+  end
+
+  # ----- scopes -----
+
+  test ".holding_non_zero_balance returns users with non-zero unpaid balances" do
+    sam = create_user
+    create_balance(user: sam, amount_cents: 10)
+    create_balance(user: sam, amount_cents: 11, date: 1.day.ago)
+    create_balance(user: sam, amount_cents: -100, date: 2.days.ago)
+    create_balance(user: sam, amount_cents: 79, date: 3.days.ago, state: "paid")
+    jill = create_user
+    create_balance(user: jill, amount_cents: 20)
+    create_balance(user: jill, amount_cents: 121, date: 1.day.ago)
+    create_balance(user: jill, amount_cents: -141, date: 2.days.ago)
+    create_balance(user: jill, amount_cents: 1, date: 3.days.ago, state: "paid")
+    jake = create_user
+    create_balance(user: jake, amount_cents: 20)
+    create_balance(user: jake, amount_cents: 12, date: 1.day.ago)
+    create_balance(user: jake, amount_cents: 21, date: 2.days.ago)
+    create_balance(user: jake, amount_cents: -53, date: 3.days.ago, state: "paid")
+    result = User.holding_non_zero_balance.where(id: [sam.id, jill.id, jake.id])
+    assert_equal [sam.id, jake.id].sort, result.pluck(:id).sort
+  end
+
+  # ----- has_cdn_url -----
+
+  test "subscribe_preview_url returns CDN URL" do
+    with_constant(:CDN_URL_MAP, { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}" => "https://public-files.gumroad.com", "#{AWS_S3_ENDPOINT}/gumroad/" => "https://public-files.gumroad.com/res/gumroad/" }) do
+      user = create_user
+      attach_subscribe_preview(user)
+      key = user.subscribe_preview.key
+      assert_equal "https://public-files.gumroad.com/#{key}", user.subscribe_preview_url
+    end
+  end
+
+  test "resized_avatar_url returns CDN URL" do
+    with_constant(:CDN_URL_MAP, { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}" => "https://public-files.gumroad.com", "#{AWS_S3_ENDPOINT}/gumroad/" => "https://public-files.gumroad.com/res/gumroad/" }) do
+      user = create_user
+      attach_avatar(user)
+      variant = user.avatar.variant(resize_to_limit: [256, 256]).processed.key
+      assert_match("https://public-files.gumroad.com/#{variant}", user.resized_avatar_url(size: 256))
+    end
+  end
+
+  test "avatar_url returns CDN URL" do
+    with_constant(:CDN_URL_MAP, { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}" => "https://public-files.gumroad.com", "#{AWS_S3_ENDPOINT}/gumroad/" => "https://public-files.gumroad.com/res/gumroad/" }) do
+      user = create_user
+      attach_avatar(user)
+      assert_match("https://public-files.gumroad.com/#{user.avatar_variant.key}", user.avatar_url)
+    end
+  end
+
+  test "financial_annual_report_url_for returns URL for selected year" do
+    with_constant(:CDN_URL_MAP, { "#{AWS_S3_ENDPOINT}/#{S3_BUCKET}" => "https://public-files.gumroad.com", "#{AWS_S3_ENDPOINT}/gumroad/" => "https://public-files.gumroad.com/res/gumroad/" }) do
+      user = create_user
+      attach_annual_report(user)
+      year = 2019
+      blob = ActiveStorage::Blob.create_and_upload!(
+        io: Rack::Test::UploadedFile.new(Rails.root.join("spec", "support", "fixtures", "followers_import.csv"), "text/csv"),
+        filename: "Financial Annual Report #{year}.csv",
+        metadata: { year: year }
+      )
+      blob.analyze
+      user.annual_reports.attach(blob)
+      assert_equal "https://public-files.gumroad.com/#{blob.key}", user.financial_annual_report_url_for(year: year)
+    end
+  end
+
+  # ----- #product_level_support_emails -----
+
+  test "product_level_support_emails returns the user's product support emails" do
+    user = create_user
+    product1 = create_link(user, support_email: "1+2@example.com")
+    product2 = create_link(user, support_email: "1+2@example.com")
+    product3 = create_link(user, support_email: "3@example.com")
+    create_link(user, support_email: nil)
+    Feature.activate(:product_level_support_emails)
+    result = user.product_level_support_emails
+    expected = [
+      {
+        email: "1+2@example.com",
+        product_ids: [product1.external_id, product2.external_id],
+      },
+      {
+        email: "3@example.com",
+        product_ids: [product3.external_id],
+      }
+    ]
+    assert_equal expected.sort_by { |h| h[:email] }, result.sort_by { |h| h[:email] }
+  ensure
+    Feature.deactivate(:product_level_support_emails)
+  end
+
+  test "product_level_support_emails returns nil when feature is disabled" do
+    user = create_user
+    create_link(user, support_email: "1@example.com")
+    Feature.deactivate(:product_level_support_emails)
+    assert_nil user.product_level_support_emails
+  end
+
+  # ----- #update_product_level_support_emails! -----
+
+  test "update_product_level_support_emails! updates products support emails" do
+    user = create_user
+    product1 = create_link(user, support_email: "old1@example.com")
+    product2 = create_link(user, support_email: "old2@example.com")
+    product3 = create_link(user, support_email: "old3@example.com")
+    Feature.activate(:product_level_support_emails)
+    user.update_product_level_support_emails!(
+      [
+        { email: "new1+2@example.com", product_ids: [product1.external_id, product2.external_id] }
+      ]
+    )
+    assert_equal "new1+2@example.com", product1.reload.support_email
+    assert_equal "new1+2@example.com", product2.reload.support_email
+    assert_nil product3.reload.support_email
+  ensure
+    Feature.deactivate(:product_level_support_emails)
   end
 end

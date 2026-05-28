@@ -192,6 +192,18 @@ module ActiveSupport
       }.merge(attrs))
     end
 
+    # Build a Subscription (mirrors FactoryBot's :subscription factory) with a
+    # PaymentOption attached so it satisfies the "at least one PaymentOption" validation.
+    def create_subscription(user:, link: nil, **attrs)
+      link ||= create_subscription_product(user: create_user)
+      price = link.default_price || link.prices.alive.first ||
+        Price.create!(link: link, price_cents: link.price_cents, currency: "usd", recurrence: link.subscription_duration)
+      subscription = Subscription.new(user: user, link: link, **attrs)
+      subscription.payment_options.build(price: price)
+      subscription.save!
+      subscription
+    end
+
     def create_user_compliance_info(user:, country: "United States", **attrs)
       UserComplianceInfo.create!(
         user: user,
