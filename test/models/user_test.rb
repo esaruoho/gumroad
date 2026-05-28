@@ -1,0 +1,930 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class UserTest < ActiveSupport::TestCase
+  # ----- #display_name -----
+
+  test "display_name returns name when name is present" do
+    user = create_user(name: "Test name")
+    assert_equal "Test name", user.display_name
+  end
+
+  test "display_name returns email when name is blank, prefer_email is true, no custom username" do
+    user = create_user(name: "", username: nil)
+    assert_equal user.external_id, user.username
+    assert_equal user.email, user.display_name(prefer_email_over_default_username: true)
+  end
+
+  test "display_name returns custom username when name is blank, prefer_email is true, custom username present" do
+    user = create_user(name: "", username: nil)
+    user.update!(username: "johndoe")
+    assert_equal "johndoe", user.display_name(prefer_email_over_default_username: true)
+  end
+
+  test "display_name returns username when name is blank, prefer_email is false, no custom username" do
+    user = create_user(name: "", username: nil)
+    assert_equal user.username, user.display_name
+  end
+
+  test "display_name returns custom username when name is blank, prefer_email is false, custom username present" do
+    user = create_user(name: "", username: nil)
+    user.update!(username: "johndoe")
+    assert_equal "johndoe", user.display_name
+  end
+
+  # ----- #support_or_form_email -----
+
+  test "support_or_form_email returns support_email when set" do
+    user = create_user(email: "support-test-1@example.com", support_email: "form-support@example.com")
+    assert_equal "form-support@example.com", user.support_or_form_email
+  end
+
+  test "support_or_form_email returns email when support_email is absent" do
+    user = create_user(email: "support-test-2@example.com")
+    assert_equal "support-test-2@example.com", user.support_or_form_email
+  end
+
+  # ----- #has_valid_payout_info? -----
+
+  test "has_valid_payout_info? returns true when PayPal info is valid" do
+    user = users(:payout_info_user)
+    PaypalPayoutProcessor.stub(:has_valid_payout_info?, true) do
+      assert user.has_valid_payout_info?
+    end
+  end
+
+  test "has_valid_payout_info? returns true when Stripe info is valid" do
+    user = users(:payout_info_user)
+    StripePayoutProcessor.stub(:has_valid_payout_info?, true) do
+      assert user.has_valid_payout_info?
+    end
+  end
+
+  test "has_valid_payout_info? returns false when neither is valid" do
+    user = users(:payout_info_user)
+    PaypalPayoutProcessor.stub(:has_valid_payout_info?, false) do
+      StripePayoutProcessor.stub(:has_valid_payout_info?, false) do
+        refute user.has_valid_payout_info?
+      end
+    end
+  end
+
+  # ----- #profile_url -----
+
+  test "profile_url returns subdomain of the user by default" do
+    seller = users(:named_seller)
+    assert_equal "http://seller.test.gumroad.com:31337", seller.profile_url
+  end
+
+  test "profile_url returns the custom domain when given" do
+    seller = users(:named_seller)
+    assert_equal "https://example.com", seller.profile_url(custom_domain_url: "https://example.com")
+  end
+
+  test "profile_url adds recommended_by query parameter" do
+    seller = users(:named_seller)
+    assert_equal "http://seller.test.gumroad.com:31337?recommended_by=discover",
+                 seller.profile_url(recommended_by: "discover")
+    assert_equal "https://example.com?recommended_by=discover",
+                 seller.profile_url(custom_domain_url: "https://example.com", recommended_by: "discover")
+  end
+
+  # ----- #subdomain / #subdomain_with_protocol -----
+
+  test "subdomain_with_protocol returns protocol + subdomain converting underscores to hyphens" do
+    creator = create_user
+    creator.update_column(:username, "test_user_1")
+    with_constant(:ROOT_DOMAIN, "test-root.gumroad.com") do
+      assert_equal "http://test-user-1.test-root.gumroad.com", creator.subdomain_with_protocol
+    end
+  end
+
+  test "subdomain returns subdomain converting underscores to hyphens" do
+    creator = create_user
+    creator.update_column(:username, "test_user_2")
+    with_constant(:ROOT_DOMAIN, "test-root.gumroad.com") do
+      assert_equal "test-user-2.test-root.gumroad.com", creator.subdomain
+    end
+  end
+
+  # ----- .find_by_hostname -----
+
+  test "find_by_hostname returns nil for blank hostname" do
+    assert_nil User.find_by_hostname("")
+    assert_nil User.find_by_hostname(nil)
+  end
+
+  test "find_by_hostname finds user by subdomain" do
+    user = create_user(username: "johnlookup")
+    root_hostname = URI("#{PROTOCOL}://#{ROOT_DOMAIN}").host
+    assert_equal user, User.find_by_hostname("johnlookup.#{root_hostname}")
+  end
+
+  test "find_by_hostname finds user by custom domain" do
+    user = create_user(username: "janelookup")
+    CustomDomain.create!(domain: "lookup-example.com", user: user)
+    assert_equal user, User.find_by_hostname("lookup-example.com")
+  end
+
+  # ----- #two_factor_authentication_enabled -----
+
+  test "two_factor_authentication_enabled defaults to true" do
+    user = create_user(skip_enabling_two_factor_authentication: false)
+    assert user.two_factor_authentication_enabled
+  end
+
+  # ----- #set_refund_fee_notice_shown -----
+
+  test "refund_fee_notice_shown defaults to true" do
+    user = create_user
+    assert user.refund_fee_notice_shown?
+  end
+
+  # ----- #set_refund_policy_enabled / #account_level_refund_policy_enabled? -----
+
+  test "refund_policy_enabled defaults to true" do
+    user = create_user
+    assert user.refund_policy_enabled?
+  end
+
+  test "refund_policy_enabled stays true when seller_refund_policy_disabled_for_all is on, but account-level is false" do
+    Feature.activate(:seller_refund_policy_disabled_for_all)
+    user = create_user
+    assert user.refund_policy_enabled?
+    refute user.account_level_refund_policy_enabled?
+    Feature.deactivate(:seller_refund_policy_disabled_for_all)
+    assert user.refund_policy_enabled?
+    assert user.account_level_refund_policy_enabled?
+  end
+
+  test "refund_policy_enabled is false when seller_refund_policy_new_users_enabled flag is off" do
+    Feature.deactivate(:seller_refund_policy_new_users_enabled)
+    user = create_user
+    refute user.refund_policy_enabled?
+  ensure
+    Feature.activate(:seller_refund_policy_new_users_enabled)
+  end
+
+  test "account_level_refund_policy_enabled? defaults to true" do
+    user = users(:seller_one)
+    assert user.account_level_refund_policy_enabled?
+  end
+
+  test "account_level_refund_policy_enabled? is false before LAST_ALLOWED_TIME when delayed flag is on for user" do
+    user = users(:seller_one)
+    Feature.activate_user(:account_level_refund_policy_delayed_for_sellers, user)
+    travel_to(User::LAST_ALLOWED_TIME_FOR_PRODUCT_LEVEL_REFUND_POLICY) do
+      refute user.account_level_refund_policy_enabled?
+    end
+  ensure
+    Feature.deactivate_user(:account_level_refund_policy_delayed_for_sellers, user) if user
+  end
+
+  test "account_level_refund_policy_enabled? is true after LAST_ALLOWED_TIME when delayed flag is on for user" do
+    user = users(:seller_one)
+    Feature.activate_user(:account_level_refund_policy_delayed_for_sellers, user)
+    travel_to(User::LAST_ALLOWED_TIME_FOR_PRODUCT_LEVEL_REFUND_POLICY + 1.second) do
+      assert user.account_level_refund_policy_enabled?
+    end
+  ensure
+    Feature.deactivate_user(:account_level_refund_policy_delayed_for_sellers, user) if user
+  end
+
+  test "account_level_refund_policy_enabled? is false when seller_refund_policy_disabled_for_all is on" do
+    user = users(:seller_one)
+    Feature.activate(:seller_refund_policy_disabled_for_all)
+    refute user.account_level_refund_policy_enabled?
+  ensure
+    Feature.deactivate(:seller_refund_policy_disabled_for_all)
+  end
+
+  # ----- #paypal_payout_email -----
+
+  test "paypal_payout_email returns payment_address when present (no merchant account)" do
+    user = users(:paypal_payee)
+    assert_equal "payme@example.com", user.paypal_payout_email
+  end
+
+  test "paypal_payout_email returns payment_address when present even with merchant account" do
+    user = users(:paypal_payee)
+    MerchantAccount.create!(
+      user: user,
+      charge_processor_id: "paypal",
+      charge_processor_merchant_id: "B66YJBBNCRW6L"
+    )
+    assert_equal "payme@example.com", user.paypal_payout_email
+  end
+
+  test "paypal_payout_email returns nil when payment_address blank and no merchant account" do
+    user = users(:paypal_payee)
+    user.update!(payment_address: "")
+    assert_nil user.paypal_payout_email
+  end
+
+  test "paypal_payout_email returns nil when payment_address blank and merchant has no paypal account details" do
+    user = users(:paypal_payee)
+    user.update!(payment_address: "")
+    MerchantAccount.create!(
+      user: user,
+      charge_processor_id: "paypal",
+      charge_processor_merchant_id: "B66YJBBNCRW6L"
+    )
+    # paypal_account_details reads from the live PayPal API; with no VCR cassette
+    # it returns nil naturally in the test env, which is the case the original
+    # spec asserted via allow_any_instance_of(MerchantAccount).to receive(:paypal_account_details).and_return(nil).
+    assert_nil user.paypal_payout_email
+  end
+
+  # ----- #build_user_compliance_info -----
+
+  test "build_user_compliance_info sets json_data to an empty hash" do
+    user = new_user
+    assert_equal({}, user.build_user_compliance_info.attributes["json_data"])
+  end
+
+  # ----- #valid_password? -----
+
+  test "valid_password? returns true for matching password" do
+    user = users(:seller_one)
+    assert user.valid_password?("password")
+  end
+
+  test "valid_password? returns false for non-matching password" do
+    user = users(:seller_one)
+    refute user.valid_password?("INVALID")
+  end
+
+  # ----- #account_active? -----
+
+  test "account_active? returns true for a live user" do
+    assert new_user.account_active?
+  end
+
+  test "account_active? returns false for a deleted user" do
+    user = new_user(deleted_at: 1.minute.ago)
+    refute user.account_active?
+  end
+
+  test "account_active? returns false for a suspended user" do
+    user = create_user
+    admin = users(:admin)
+    user.flag_for_fraud!(author_id: admin.id)
+    user.suspend_for_fraud!(author_id: admin.id)
+    refute user.account_active?
+  end
+
+  # ----- #name_or_username -----
+
+  test "name_or_username returns name when name and username are present" do
+    user = create_user(name: "Katsuya Noguchi", username: "katsuya")
+    assert_equal "Katsuya Noguchi", user.name_or_username
+  end
+
+  test "name_or_username returns name when name is present but username is not" do
+    user = create_user(name: "Katsuya Noguchi", username: "katsuya2")
+    user.username = nil
+    assert_equal "Katsuya Noguchi", user.name_or_username
+  end
+
+  test "name_or_username returns username when username is present but name is not" do
+    user = create_user(name: "Katsuya Noguchi", username: "katsuya3")
+    user.name = nil
+    assert_equal "katsuya3", user.name_or_username
+  end
+
+  # ----- #timezone_id -----
+
+  test "timezone_id returns matching TZ database name" do
+    assert_equal "America/Los_Angeles", new_user(timezone: "Pacific Time (US & Canada)").timezone_id
+    assert_equal "Europe/London", new_user(timezone: "London").timezone_id
+  end
+
+  # ----- #timezone_formatted_offset -----
+
+  test "timezone_formatted_offset returns matching UTC offset" do
+    assert_equal "-08:00", new_user(timezone: "Pacific Time (US & Canada)").timezone_formatted_offset
+    assert_equal "+00:00", new_user(timezone: "London").timezone_formatted_offset
+  end
+
+  # ----- json_data -----
+
+  test "json_data is valid with empty hash" do
+    user = create_user
+    user.json_data = {}
+    assert user.valid?
+  end
+
+  test "json_data treats nil as empty hash" do
+    user = create_user
+    user.json_data = nil
+    assert user.valid?
+  end
+
+  test "json_data accepts a key/value pair" do
+    user = create_user
+    user.json_data[:fizz] = "buzz"
+    assert user.valid?
+  end
+
+  test "json_data accepts a key set to an empty value" do
+    user = create_user
+    user.json_data[:some_key] = nil
+    assert user.valid?
+  end
+
+  test "json_data raises when set to a non-hash value" do
+    user = create_user
+    user.json_data = "some string"
+    assert_raises(ArgumentError) { user.valid? }
+    user.json_data = [1, 2, 3, 4]
+    assert_raises(ArgumentError) { user.valid? }
+  end
+
+  # ----- Australia tax period -----
+
+  test "supports total sales in Australia tax period" do
+    user = create_user
+    assert user.respond_to?(:au_backtax_sales_cents)
+    user.au_backtax_sales_cents = 100_00
+    user.save!
+    assert_equal 100_00, user.reload.au_backtax_sales_cents
+  end
+
+  test "supports total owed in Australia tax period" do
+    user = create_user
+    assert user.respond_to?(:au_backtax_owed_cents)
+    user.au_backtax_owed_cents = 909
+    user.save!
+    assert_equal 909, user.reload.au_backtax_owed_cents
+  end
+
+  # ----- email behavior -----
+
+  test "email does not allow same email address" do
+    user = create_user(email: "dup@example.com")
+    duplicate = new_user(email: user.email)
+    refute duplicate.save
+  end
+
+  test "email does not have unconfirmed_email if all emails have been confirmed" do
+    user = create_user
+    email = "user1234@gumroad.com"
+    user.update_attribute(:email, email)
+    assert_changes -> { user.unconfirmed_email }, from: email, to: nil do
+      user.confirm
+    end
+  end
+
+  # ----- append http -----
+
+  test "notification_endpoint prepends http when missing" do
+    user = create_user
+    user.notification_endpoint = "www.google.com"
+    user.save
+    assert_equal "http://www.google.com", user.reload.notification_endpoint
+  end
+
+  # ----- user roles -----
+
+  test "is_affiliate? is true when row exists in affiliates table" do
+    user = create_user
+    DirectAffiliate.create!(
+      affiliate_user_id: user.id,
+      seller_id: users(:seller_two).id,
+      affiliate_basis_points: 1000
+    )
+    assert user.is_affiliate?
+  end
+
+  test "is_affiliate? is false when no row exists" do
+    user = create_user
+    refute user.is_affiliate?
+  end
+
+  # ----- purchasing_power_parity_limit -----
+
+  test "purchasing_power_parity_limit accepts values between 1 and 100" do
+    user = create_user
+    assert_nothing_raised { user.update!(purchasing_power_parity_limit: 40) }
+  end
+
+  test "purchasing_power_parity_limit rejects values below 1" do
+    user = create_user
+    assert_raises(ActiveRecord::RecordInvalid) { user.update!(purchasing_power_parity_limit: 0) }
+  end
+
+  test "purchasing_power_parity_limit rejects values above 100" do
+    user = create_user
+    assert_raises(ActiveRecord::RecordInvalid) { user.update!(purchasing_power_parity_limit: 101) }
+  end
+
+  # ----- min_ppp_factor -----
+
+  test "min_ppp_factor returns 0 when no limit is set" do
+    user = create_user
+    assert_equal 0, user.min_ppp_factor
+  end
+
+  test "min_ppp_factor returns inverse-as-decimal when limit is set" do
+    user = create_user(purchasing_power_parity_limit: 40)
+    assert_in_delta 0.6, user.min_ppp_factor, 0.0001
+  end
+
+  # ----- max_product_price -----
+
+  test "max_product_price returns the default max when user is not verified" do
+    user = create_user
+    assert_equal User::MAX_PRICE_USD_CENTS_UNLESS_VERIFIED, user.max_product_price
+  end
+
+  test "max_product_price returns nil when user is verified" do
+    user = create_user(verified: true)
+    assert_nil user.max_product_price
+  end
+
+  # ============================================================
+  # Validations
+  # ============================================================
+
+  # google_analytics_id format
+  [
+    [nil, true],
+    ["G-1234567", true],
+    ["G-2910WADW", true],
+    ["1234143WW", false],
+    ["G-<script>alert('hello')</script>-12", false],
+  ].each do |id, valid|
+    test "google_analytics_id #{id.inspect} valid: #{valid}" do
+      user = new_user(google_analytics_id: id)
+      assert_equal valid, user.valid?
+    end
+  end
+
+  # name
+  test "name is valid if blank" do
+    assert new_user(name: nil).valid?
+  end
+
+  test "name is valid at normal length" do
+    assert new_user(name: "a" * 25).valid?
+  end
+
+  test "name is invalid if too long" do
+    refute new_user(name: "a" * 256).valid?
+  end
+
+  test "name is invalid if it contains a colon on create" do
+    user = new_user(name: "John: The Creator")
+    refute user.valid?
+    assert_equal(
+      ["cannot contain colons (:) as it causes email delivery problems. Please remove any colons from your name and try again."],
+      user.errors.messages[:name]
+    )
+  end
+
+  test "name is invalid if it contains a colon on update" do
+    user = create_user
+    user.name = "John: The Creator"
+    refute user.valid?
+    assert_equal(
+      ["cannot contain colons (:) as it causes email delivery problems. Please remove any colons from your name and try again."],
+      user.errors.messages[:name]
+    )
+  end
+
+  test "name is valid when colon character exists but name is not changed" do
+    user = create_user(name: "John The Creator")
+    user.update_column(:name, "John: The Creator")
+    assert user.reload.valid?
+  end
+
+  # username
+  test "username is valid if nil" do
+    assert new_user(username: nil).valid?
+  end
+
+  test "username is nilified if empty" do
+    user = new_user
+    user.username = ""
+    assert_nil user.username
+    user.username = " "
+    assert_nil user.username
+  end
+
+  test "username is invalid if not unique" do
+    create_user(username: "uniquetest")
+    user = new_user(username: "uniquetest")
+    refute user.valid?
+  end
+
+  test "username length 3-20 is valid" do
+    assert new_user(username: "abcde").valid?
+  end
+
+  test "username length over 20 is invalid" do
+    refute new_user(username: "a" * 21).valid?
+  end
+
+  test "username length under 3 is invalid" do
+    refute new_user(username: "ab").valid?
+  end
+
+  test "username with underscore is invalid" do
+    refute new_user(username: "a_aa").valid?
+  end
+
+  test "username with hyphen is invalid" do
+    refute new_user(username: "a-a").valid?
+  end
+
+  test "username with only numbers is invalid" do
+    refute new_user(username: "1234").valid?
+  end
+
+  test "username with letters and numbers is valid" do
+    assert new_user(username: "abc123").valid?
+  end
+
+  test "username with japanese characters is invalid" do
+    refute new_user(username: "日本の").valid?
+  end
+
+  test "username with caps is invalid" do
+    refute new_user(username: "LOUDNOISES").valid?
+  end
+
+  test "username with only digits is invalid" do
+    refute new_user(username: "12345").valid?
+  end
+
+  test "username with spaces is invalid" do
+    refute new_user(username: "a a").valid?
+  end
+
+  test "username on the denylist is invalid" do
+    refute new_user(username: DENYLIST.sample).valid?
+  end
+
+  test "username old-style is accepted when unchanged" do
+    user = users(:legacy_username_user)
+    user.name = "Sample name 123"
+    assert user.save
+  end
+
+  test "username new-format enforced when username changes from old style" do
+    user = users(:legacy_username_user)
+    user.username = "test_123"
+    user.save
+    assert_includes user.errors.full_messages.to_sentence,
+                    "Username has to contain at least one letter and may only contain lower case letters and numbers."
+  end
+
+  # email
+  test "email is invalid when required and not present" do
+    user = new_user
+    user.email = nil
+    user.stub(:email_required?, true) do
+      refute user.valid?
+    end
+  end
+
+  test "email is invalid when not in email format" do
+    refute new_user(email: "invalid").valid?
+  end
+
+  test "email is invalid when starts with a dot" do
+    refute new_user(email: ".blah@blah.com").valid?
+  end
+
+  test "email is invalid when has whitespace" do
+    refute new_user(email: "bla\th@blah.com").valid?
+  end
+
+  test "email is valid when correct" do
+    assert new_user(email: "blah@blah.com").valid?
+  end
+
+  test "email is valid with a dash" do
+    assert new_user(email: "blah-blah@blah.com").valid?
+  end
+
+  test "email is valid with an underscore" do
+    assert new_user(email: "blah_blah@blah.com").valid?
+  end
+
+  test "email is valid with IP domain" do
+    assert new_user(email: "blah@[192.0.0.1]").valid?
+  end
+
+  test "email is valid at 255 chars" do
+    assert new_user(email: "a" * 249 + "@b.com").valid?
+  end
+
+  test "email is invalid over 255 chars" do
+    refute new_user(email: "a" * 250 + "@b.com").valid?
+  end
+
+  # kindle_email
+  test "kindle_email is valid when blank" do
+    user = new_user
+    user.kindle_email = nil
+    assert user.valid?
+    user.kindle_email = ""
+    assert user.valid?
+  end
+
+  test "kindle_email is invalid when not email address" do
+    refute new_user.tap { |u| u.kindle_email = "invalid" }.valid?
+  end
+
+  test "kindle_email is invalid when starts with a dot" do
+    refute new_user.tap { |u| u.kindle_email = ".blah@kindle.com" }.valid?
+  end
+
+  test "kindle_email is invalid when has whitespace" do
+    refute new_user.tap { |u| u.kindle_email = "bla\th@kindle.com" }.valid?
+  end
+
+  test "kindle_email is invalid when not @kindle.com domain" do
+    refute new_user.tap { |u| u.kindle_email = "blah@blah.com" }.valid?
+  end
+
+  test "kindle_email is valid with @kindle.com domain" do
+    assert new_user.tap { |u| u.kindle_email = "blah@kindle.com" }.valid?
+  end
+
+  test "kindle_email is valid with dash" do
+    assert new_user.tap { |u| u.kindle_email = "blah-blah@kindle.com" }.valid?
+  end
+
+  test "kindle_email is valid with underscore" do
+    assert new_user.tap { |u| u.kindle_email = "blah_blah@kindle.com" }.valid?
+  end
+
+  test "kindle_email is valid with mixed case" do
+    assert new_user.tap { |u| u.kindle_email = "ExAmple123@KINDLE.com" }.valid?
+  end
+
+  test "kindle_email is valid up to 255 chars" do
+    assert new_user.tap { |u| u.kindle_email = "a" * 244 + "@kindle.com" }.valid?
+  end
+
+  test "kindle_email is invalid over 255 chars" do
+    refute new_user.tap { |u| u.kindle_email = "a" * 245 + "@kindle.com" }.valid?
+  end
+
+  # password presence
+  test "password is invalid when missing and required" do
+    user = new_user
+    user.password = nil
+    user.stub(:password_required?, true) do
+      refute user.valid?
+    end
+  end
+
+  test "password is valid when missing and not required" do
+    user = new_user
+    user.stub(:password_required?, false) do
+      user.password = nil
+      assert user.valid?
+    end
+  end
+
+  # password confirmation
+  test "password is invalid when confirmation mismatched and required" do
+    user = new_user
+    user.password = "password"
+    user.password_confirmation = "passwordTYPO"
+    user.stub(:password_required?, true) do
+      refute user.valid?
+    end
+  end
+
+  test "password is valid when confirmation mismatched and not required" do
+    user = new_user
+    user.password = "password"
+    user.password_confirmation = "passwordTYPO"
+    user.stub(:password_required?, false) do
+      assert user.valid?
+    end
+  end
+
+  # password length
+  test "password is valid between 6 and 127 chars" do
+    assert new_user.tap { |u| u.password = "a" * 20; u.password_confirmation = "a" * 20 }.valid?
+  end
+
+  test "password is invalid over 128 chars" do
+    refute new_user.tap { |u| u.password = "a" * 129; u.password_confirmation = "a" * 129 }.valid?
+  end
+
+  test "password is invalid under 6 chars" do
+    refute new_user.tap { |u| u.password = "abc"; u.password_confirmation = "abc" }.valid?
+  end
+
+  # locale
+  test "locale is valid when nil" do
+    user = new_user
+    user.locale = nil
+    assert user.valid?
+  end
+
+  test "locale is valid when available" do
+    user = new_user
+    user.locale = "en"
+    assert user.valid?
+  end
+
+  # currency_type
+  test "currency_type is valid in valid currencies" do
+    user = new_user
+    user.currency_type = "usd"
+    assert user.valid?
+  end
+
+  test "currency_type is invalid when not in valid currencies" do
+    user = new_user
+    user.currency_type = "lol"
+    refute user.valid?
+  end
+
+  # facebook_meta_tag
+  test "facebook_meta_tag is valid when nil" do
+    user = new_user
+    user.facebook_meta_tag = nil
+    assert user.valid?
+  end
+
+  test "facebook_meta_tag is valid up to 100 chars" do
+    tag = '<meta name="facebook-domain-verification" content="y5fgkbh7x91y5tnt6yt3sttk" />'
+    assert tag.length <= 100
+    user = new_user
+    user.facebook_meta_tag = tag
+    assert user.valid?
+  end
+
+  test "facebook_meta_tag is valid in correct format" do
+    user = new_user
+    user.facebook_meta_tag = '<meta name="facebook-domain-verification" content="y5fgkbh7x91y5tnt6yt3sttk" />'
+    assert user.valid?
+  end
+
+  test "facebook_meta_tag is invalid when malformed" do
+    user = new_user
+    user.facebook_meta_tag = '<script>var x = 1</script><meta name="facebook-domain-verification" content="y5fgkbh7x91y5tnt6yt3sttk" />'
+    user.save
+    refute user.valid?
+    assert_equal ["Please enter a valid meta tag"], user.errors[:base]
+
+    user.facebook_meta_tag = '<meta name="facebook-domain-verification" content=""><script>malicious</script>" />'
+    user.save
+    refute user.valid?
+    assert_equal ["Please enter a valid meta tag"], user.errors[:base]
+  end
+
+  # support_email reserved domain
+  test "support_email is valid when nil" do
+    user = new_user
+    user.support_email = nil
+    assert user.valid?
+  end
+
+  test "support_email is invalid when domain is reserved" do
+    user = new_user
+    user.support_email = "something@gumroad.com"
+    refute user.valid?
+    assert_equal ["is reserved"], user.errors[:support_email]
+  end
+
+  # custom_fee_per_thousand
+  test "custom_fee_per_thousand allows nil and integers 0-1000" do
+    user = new_user(custom_fee_per_thousand: nil)
+    assert user.valid?
+
+    user.custom_fee_per_thousand = 100.5
+    refute user.valid?
+    assert_equal ["must be an integer"], user.errors[:custom_fee_per_thousand]
+
+    user.custom_fee_per_thousand = -1
+    refute user.valid?
+    assert_equal ["must be greater than or equal to 0"], user.errors[:custom_fee_per_thousand]
+
+    user.custom_fee_per_thousand = 1001
+    refute user.valid?
+    assert_equal ["must be less than or equal to 1000"], user.errors[:custom_fee_per_thousand]
+
+    user.custom_fee_per_thousand = "abc"
+    refute user.valid?
+    assert_equal ["is not a number"], user.errors[:custom_fee_per_thousand]
+
+    [0, 50, 100, 500, 750, 1000].each do |value|
+      user.custom_fee_per_thousand = value
+      assert user.valid?, "expected valid for custom_fee_per_thousand=#{value}"
+    end
+  end
+
+  # account_created_email_domain_is_not_blocked
+  test "account_created_email_domain validation fails when domain is blocked" do
+    PlatformBlock.add!(object_type: PlatformBlock::TYPES[:email_domain], object_value: "platformblock.example.com")
+    user = new_user
+    user.email = "john@platformblock.example.com"
+    refute user.valid?
+    user.validate
+    assert_equal ["Something went wrong."], user.errors[:base]
+  ensure
+    PlatformBlock.active.find_by(object_value: "platformblock.example.com")&.unblock!
+  end
+
+  test "account_created_email_domain validation passes when domain is not blocked" do
+    user = new_user
+    user.account_created_ip = "example.com"
+    assert user.valid?
+  end
+
+  test "account_created_email_domain validation surfaces invalid email error" do
+    user = new_user
+    user.email = "john\tdoe@example.com"
+    user.validate
+    assert_equal ["is invalid"], user.errors[:email]
+  end
+
+  # account_created_ip
+  test "account_created_ip validation fails when IP is blocked" do
+    PlatformBlock.add!(object_type: PlatformBlock::TYPES[:ip_address], object_value: "127.0.0.99", expires_in: 1.hour)
+    user = new_user
+    user.account_created_ip = "127.0.0.99"
+    refute user.valid?
+    user.validate
+    assert_equal ["Something went wrong."], user.errors[:base]
+  ensure
+    PlatformBlock.active.find_by(object_value: "127.0.0.99")&.unblock!
+  end
+
+  test "account_created_ip validation passes when IP not blocked" do
+    user = new_user
+    user.account_created_ip = "127.0.0.1"
+    assert user.valid?
+  end
+
+  test "account_created_ip validation passes when IP is nil" do
+    user = new_user
+    user.account_created_ip = nil
+    assert user.valid?
+  end
+
+  # subscribe_preview_url
+  test "subscribe_preview_url returns nil when user has no subscribe preview" do
+    user = new_user
+    assert_nil user.subscribe_preview_url
+  end
+
+  # resized_avatar_url default
+  test "resized_avatar_url returns default avatar URL when user has no avatar" do
+    user = new_user
+    expected = ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png")
+    assert_equal expected, user.resized_avatar_url(size: 256)
+  end
+
+  # avatar nil
+  test "avatar_url is valid when avatar is nil" do
+    user = new_user
+    refute user.avatar.attached?
+    assert user.valid?
+  end
+
+  test "avatar_url returns default URL when user has no avatar" do
+    user = new_user
+    expected = ActionController::Base.helpers.image_url("gumroad-default-avatar-5.png")
+    assert_equal expected, user.avatar_url
+  end
+
+  # ============================================================
+  # Risk-state scopes
+  # ============================================================
+
+  test ".payment_reminder_risk_state selects not-reviewed, flagged-for-tos, and compliant users" do
+    expected = [
+      users(:risk_not_reviewed),
+      users(:risk_flagged_for_tos),
+      users(:risk_compliant),
+    ]
+    result = User.payment_reminder_risk_state.where(id: User.where(email: expected.map(&:email)).pluck(:id))
+    assert_equal expected.map(&:id).sort, result.pluck(:id).sort
+  end
+
+  test ".not_suspended excludes suspended users" do
+    expected = [
+      users(:risk_not_reviewed),
+      users(:risk_on_probation),
+      users(:risk_flagged_for_fraud),
+      users(:risk_flagged_for_tos),
+      users(:risk_compliant),
+    ]
+    risk_ids = User.where(email: expected.map(&:email) +
+                                 [users(:risk_suspended_for_fraud).email,
+                                  users(:risk_suspended_for_tos).email]).pluck(:id)
+    result = User.not_suspended.where(id: risk_ids)
+    assert_equal expected.map(&:id).sort, result.pluck(:id).sort
+  end
+end

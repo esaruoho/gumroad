@@ -1,0 +1,176 @@
+# Fixture conventions:
+# - `password` for every account is "password"
+# - encrypted_password is the bcrypt hash of "password" with test-env stretches
+# - external_id is set explicitly; Devise's before_save callback won't fire on fixtures
+# - recommendation_type is required (not-null in schema)
+
+DEFAULTS: &defaults
+  encrypted_password: "$2a$04$3jn2Gtw779BQ6pd6MxfnDOPS1oJTSgz593uO.bvmnXSicXAVogBmK"
+  confirmed_at: <%= Time.current %>
+  user_risk_state: not_reviewed
+  recommendation_type: own_products
+  currency_type: usd
+  locale: en
+  # flags: bit 1 announcement_notification_enabled | bit 7 refund_fee_notice_shown |
+  # bit 19 pre_signup_affiliate_request_processed | bit 46 refund_policy_enabled
+  flags: <%= 1 | (1 << 6) | (1 << 18) | (1 << 45) %>
+  timezone: "Pacific Time (US & Canada)"
+  notification_content_type: "application/x-www-form-urlencoded"
+
+# Plain seller, no associations.
+seller_one:
+  <<: *defaults
+  email: seller_one@example.com
+  username: sellerone
+  external_id: ext_seller_one
+  payment_address: seller_one_payouts@example.com
+
+# Plain seller, alternate email/username.
+seller_two:
+  <<: *defaults
+  email: seller_two@example.com
+  username: sellertwo
+  external_id: ext_seller_two
+  payment_address: seller_two_payouts@example.com
+
+# Equivalent of FactoryBot `:named_seller`.
+named_seller:
+  <<: *defaults
+  email: seller@example.com
+  username: seller
+  external_id: ext_named_seller
+  name: "Seller"
+  payment_address: seller_payout@example.com
+
+# Equivalent of FactoryBot `:named_user`.
+named_user:
+  <<: *defaults
+  email: gumbot@example.com
+  username: gumbot
+  external_id: ext_named_user
+  name: "Gumbot"
+  payment_address: gumbot_payout@example.com
+
+# Admin user. Inherits default flags + is_team_member bit (28).
+admin:
+  <<: *defaults
+  email: admin@example.com
+  username: admin
+  external_id: ext_admin
+  flags: <%= 1 | (1 << 6) | (1 << 18) | (1 << 27) | (1 << 45) %>
+
+# Compliant user (risk state = compliant).
+compliant_seller:
+  <<: *defaults
+  email: compliant@example.com
+  username: compliant
+  external_id: ext_compliant
+  user_risk_state: compliant
+
+# User with username already in old-style format (has underscore) for legacy tests.
+legacy_username_user:
+  <<: *defaults
+  email: legacy@example.com
+  username: old_style_username
+  external_id: ext_legacy_username
+
+# User without a name (used by display_name tests).
+nameless_user:
+  <<: *defaults
+  email: nameless@example.com
+  username: nameless
+  external_id: ext_nameless
+  name: ""
+
+# User used for support_or_form_email tests; explicit support_email.
+support_email_user:
+  <<: *defaults
+  email: seller-email@example.com
+  username: supportemail
+  external_id: ext_support_email
+  support_email: support-email@example.com
+
+# Risk-state buckets for `.payment_reminder_risk_state` / `.not_suspended` scope tests.
+risk_not_reviewed:
+  <<: *defaults
+  email: risk_not_reviewed@example.com
+  username: risknotreviewed
+  external_id: ext_risk_not_reviewed
+  user_risk_state: not_reviewed
+
+risk_on_probation:
+  <<: *defaults
+  email: risk_on_probation@example.com
+  username: riskprobation
+  external_id: ext_risk_on_probation
+  user_risk_state: on_probation
+
+risk_flagged_for_fraud:
+  <<: *defaults
+  email: risk_flagged_for_fraud@example.com
+  username: riskflaggedfraud
+  external_id: ext_risk_flagged_for_fraud
+  user_risk_state: flagged_for_fraud
+
+risk_suspended_for_fraud:
+  <<: *defaults
+  email: risk_suspended_for_fraud@example.com
+  username: risksuspfraud
+  external_id: ext_risk_suspended_for_fraud
+  user_risk_state: suspended_for_fraud
+
+risk_flagged_for_tos:
+  <<: *defaults
+  email: risk_flagged_for_tos@example.com
+  username: riskflaggedtos
+  external_id: ext_risk_flagged_for_tos
+  user_risk_state: flagged_for_tos_violation
+
+risk_suspended_for_tos:
+  <<: *defaults
+  email: risk_suspended_for_tos@example.com
+  username: risksusptos
+  external_id: ext_risk_suspended_for_tos
+  user_risk_state: suspended_for_tos_violation
+
+risk_compliant:
+  <<: *defaults
+  email: risk_compliant@example.com
+  username: riskcompliant
+  external_id: ext_risk_compliant
+  user_risk_state: compliant
+
+# Used by find_by_hostname tests.
+hostname_no_username:
+  <<: *defaults
+  email: no_username@example.com
+  external_id: ext_no_username
+  username: # nil
+
+hostname_john:
+  <<: *defaults
+  email: john_hostname@example.com
+  username: john
+  external_id: ext_hostname_john
+
+hostname_jane:
+  <<: *defaults
+  email: jane_hostname@example.com
+  username: jane
+  external_id: ext_hostname_jane
+
+# Used by paypal_payout_email tests.
+paypal_payee:
+  <<: *defaults
+  email: paypal_payee@example.com
+  username: paypalpayee
+  external_id: ext_paypal_payee
+  payment_address: payme@example.com
+
+# Used by has_valid_payout_info? tests.
+payout_info_user:
+  <<: *defaults
+  email: payout_info@example.com
+  username: payoutinfo
+  external_id: ext_payout_info
+  payment_address: payout-info@example.com
