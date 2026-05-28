@@ -23,7 +23,10 @@ ActiveRecord::Migration.maintain_test_schema!
 Capybara.test_id = "data-testid"
 Capybara.default_max_wait_time = 25
 Capybara.app_host = "#{PROTOCOL}://#{DOMAIN}"
-Capybara.server = :puma
+# Transactional fixtures pin database connections in system specs; keep the
+# test server single-threaded so overlapping AJAX requests do not clobber
+# MySQL savepoints on fast CI runners.
+Capybara.server = :puma, { Threads: "0:1" }
 Capybara.server_port = URI(Capybara.app_host).port
 Capybara.threadsafe = true
 Capybara.enable_aria_label = true
