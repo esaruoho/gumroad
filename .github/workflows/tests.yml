@@ -144,6 +144,8 @@ jobs:
             sleep 1
           done
           bundle exec rake db:prepare
+        env:
+          RAILS_ENV: test
 
       - name: Set up MinIO (S3 fixture buckets)
         # MinIO doesn't run cleanly as a GitHub Actions service container because
@@ -368,6 +370,8 @@ jobs:
             sleep 1
           done
           bundle exec rake db:prepare
+        env:
+          RAILS_ENV: test
 
       - name: Set up MinIO (S3 fixture buckets)
         run: |
