@@ -307,7 +307,12 @@ jobs:
           sudo apt-get install -y --allow-downgrades /tmp/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           # Pin so a later apt-get upgrade doesn't bump it under us.
           sudo apt-mark hold google-chrome-stable
-          CHROME_VER_FULL=$(google-chrome --version | sed 's/^Google Chrome //')
+          CHROME_VERSION_OUTPUT=$(google-chrome --version)
+          CHROME_VER_FULL=$(echo "$CHROME_VERSION_OUTPUT" | grep -oE '[0-9]+(\.[0-9]+){3}' | head -n 1)
+          if [ -z "$CHROME_VER_FULL" ]; then
+            echo "Unable to parse Chrome version from: $CHROME_VERSION_OUTPUT"
+            exit 1
+          fi
           curl --silent --show-error --location --fail --retry 4 --retry-delay 5 \
             --output /tmp/chromedriver_linux64.zip \
             "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VER_FULL/linux64/chromedriver-linux64.zip"
