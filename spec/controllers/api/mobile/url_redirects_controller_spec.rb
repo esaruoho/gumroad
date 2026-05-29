@@ -78,6 +78,22 @@ describe Api::Mobile::UrlRedirectsController do
       expect(response.parsed_body[:product][:url_redirect_external_id]).to eq(url_redirect.external_id)
     end
 
+    it "eager-loads associations to avoid N+1 queries" do
+      purchase = create(:purchase, url_redirect: @url_redirect, link: @product)
+
+      get :url_redirect_attributes, params: { id: @url_redirect.external_id, mobile_token: Api::Mobile::BaseController::MOBILE_TOKEN }
+      assert_response 200
+
+      url_redirect = assigns(:url_redirect)
+      expect(url_redirect.association(:purchase).loaded?).to be true
+      expect(url_redirect.association(:link).loaded?).to be true
+      expect(url_redirect.link.association(:user).loaded?).to be true
+      expect(url_redirect.link.association(:product_files).loaded?).to be true
+      expect(url_redirect.link.association(:rich_contents).loaded?).to be true
+      expect(url_redirect.purchase.association(:purchaser).loaded?).to be true
+      expect(url_redirect.purchase.association(:subscription).loaded?).to be true
+    end
+
     it "does not return purchase link and file data redirect external id is invalid" do
       get :url_redirect_attributes, params: { id: @url_redirect.external_id + "invalid", mobile_token: Api::Mobile::BaseController::MOBILE_TOKEN }
       assert_response 404

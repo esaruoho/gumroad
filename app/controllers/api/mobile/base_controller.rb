@@ -22,7 +22,15 @@ class Api::Mobile::BaseController < ApplicationController
     end
 
     def fetch_url_redirect_by_external_id
-      @url_redirect = UrlRedirect.find_by_external_id(params[:id])
+      url_redirect_id = UrlRedirect.from_external_id(params[:id])
+      @url_redirect = UrlRedirect
+        .includes(
+          :subscription,
+          { purchase: [:purchaser, :subscription, { link: { user: { avatar_attachment: :blob } } }] },
+          { link: [:rich_contents, :product_files, { user: { avatar_attachment: :blob } }] },
+          { installment: [:product_files, { link: { user: { avatar_attachment: :blob } } }] }
+        )
+        .find_by(id: url_redirect_id)
       fetch_error("Could not find url redirect") if @url_redirect.nil?
     end
 
