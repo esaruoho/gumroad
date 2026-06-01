@@ -157,6 +157,23 @@ describe "ProductPresenter buyer local currency props" do
         variant: "default"
       )
     end
+
+    it "renders without error and omits buyer local price when the product has no active price" do
+      product = links(:buyer_currency_product)
+      product.alive_prices.update_all(deleted_at: Time.current)
+      product.reload
+      expect(product.price_cents).to be_nil
+      allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
+
+      props = nil
+      expect do
+        props = described_class.new(product:).props(seller_custom_domain_url: nil, request:, pundit_user: nil)[:product]
+      end.not_to raise_error
+
+      expect(props).not_to have_key(:buyer_currency)
+      expect(props).not_to have_key(:buyer_local_price_cents)
+      expect(props[:buyer_currency_display]).to include(variant: "default", buyer_local_price_cents: nil, rate: nil)
+    end
   end
 
   describe ProductPresenter::Card do

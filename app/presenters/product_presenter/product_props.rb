@@ -17,7 +17,7 @@ class ProductPresenter::ProductProps
     discount_code_result = discount_code_props(discount_code, quantity, pundit_user&.user)
     ppp_details = product.ppp_details(request.remote_ip)
     displayed_price_cents = displayed_price_cents(discount_code_result:, ppp_details:, quantity:)
-    original_price_cents = product.price_cents if displayed_price_cents < product.price_cents
+    original_price_cents = product.price_cents if displayed_price_cents.present? && displayed_price_cents < product.price_cents
     buyer_currency_display = buyer_currency_display_props(product:, price_cents: displayed_price_cents, ip: request.remote_ip)
 
     {
@@ -155,6 +155,8 @@ class ProductPresenter::ProductProps
     end
 
     def displayed_price_cents(discount_code_result:, ppp_details:, quantity:)
+      return if product.price_cents.nil?
+
       price_cents = discounted_price_cents(product.price_cents, discount_code_result, quantity)
       ppp_price_cents = ppp_price_cents(product.price_cents, ppp_details)
       ppp_price_cents.present? && ppp_price_cents < price_cents ? ppp_price_cents : price_cents
