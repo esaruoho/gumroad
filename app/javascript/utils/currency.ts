@@ -119,7 +119,7 @@ export const formatMinorUnitPriceWithIntl = (
           const configuredCurrency = Object.entries(currenciesMap).find(
             ([code]) => code === currencyCode.toLowerCase(),
           )?.[1];
-          return configuredCurrency && "single_unit" in configuredCurrency ? 1 : 100;
+          return configuredCurrency && "single_unit" in configuredCurrency && configuredCurrency.single_unit ? 1 : 100;
         })();
   return formatter.format(amountMinorUnits / resolvedSubunitToUnit);
 };

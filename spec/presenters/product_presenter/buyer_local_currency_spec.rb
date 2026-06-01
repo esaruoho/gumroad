@@ -3,7 +3,8 @@
 require "spec_helper"
 
 describe "ProductPresenter buyer local currency props" do
-  fixtures :users, :links, :prices
+  let(:seller) { create(:user, show_buyer_local_currency: true) }
+  let(:product) { create(:product, user: seller, price_cents: 1000, price_currency_type: "usd") }
 
   let(:request) do
     OpenStruct.new(
@@ -39,7 +40,6 @@ describe "ProductPresenter buyer local currency props" do
 
   describe ProductPresenter::ProductProps do
     it "includes buyer local price when the creator opts in and the buyer currency is non-primary" do
-      product = links(:buyer_currency_product)
       allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
 
       props = described_class.new(product:).props(seller_custom_domain_url: nil, request:, pundit_user: nil)[:product]
@@ -60,7 +60,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "includes buyer local price and original price for an opted-in discounted product" do
-      product = links(:buyer_currency_product)
       set_default_offer_code(product)
       allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
 
@@ -73,7 +72,7 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "omits buyer local price when the creator has not opted in" do
-      product = links(:buyer_currency_product_disabled)
+      seller.update!(show_buyer_local_currency: false)
       set_default_offer_code(product)
       allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
 
@@ -95,7 +94,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "omits buyer local price when the buyer currency matches the product currency" do
-      product = links(:buyer_currency_product)
       allow(GeoIp).to receive(:lookup).with("2.2.2.2").and_return(
         GeoIp::Result.new(
           country_name: "United States",
@@ -126,7 +124,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "omits buyer local price when the buyer country is unknown" do
-      product = links(:buyer_currency_product)
       product.alive_prices.update_all(currency: "eur")
       product.update!(price_currency_type: "eur")
       allow(GeoIp).to receive(:lookup).with("2.2.2.2").and_return(
@@ -160,7 +157,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "renders without error and omits buyer local price when the product has no active price" do
-      product = links(:buyer_currency_product)
       product.alive_prices.update_all(deleted_at: Time.current)
       product.reload
       expect(product.price_cents).to be_nil
@@ -179,7 +175,6 @@ describe "ProductPresenter buyer local currency props" do
 
   describe ProductPresenter::Card do
     it "includes buyer local price for product cards when the creator opts in" do
-      product = links(:buyer_currency_product)
       allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
 
       props = described_class.new(product:).for_web(request:)
@@ -200,7 +195,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "includes buyer local price and original price for product cards with a pre-discount price" do
-      product = links(:buyer_currency_product)
       set_default_offer_code(product)
       allow_any_instance_of(described_class).to receive(:buyer_local_currency_rate).and_return(BigDecimal("0.8"))
 
@@ -213,7 +207,6 @@ describe "ProductPresenter buyer local currency props" do
     end
 
     it "omits buyer local price for product cards when the buyer country is unknown" do
-      product = links(:buyer_currency_product)
       product.alive_prices.update_all(currency: "eur")
       product.update!(price_currency_type: "eur")
       allow(GeoIp).to receive(:lookup).with("2.2.2.2").and_return(

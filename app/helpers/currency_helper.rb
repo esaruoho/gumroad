@@ -48,6 +48,7 @@ module CurrencyHelper
     "AR" => "ars",
   }.freeze
   BUYER_LOCAL_CURRENCY_RATE_TTL = 24.hours.to_i
+  BUYER_LOCAL_CURRENCY_PREWARM_DEBOUNCE_TTL = 1.minute.to_i
 
   def currency_namespace
     Redis::Namespace.new(:currencies, redis: $redis)
@@ -130,7 +131,9 @@ module CurrencyHelper
 
     # On cold cache: fall back to last known good rate (stale-while-revalidate) and enqueue
     # a background refresh. We never make a synchronous HTTP call on the render path.
-    PrewarmBuyerLocalCurrencyRateJob.perform_async(from_currency, to_currency)
+    # Debounce the enqueue with a short-lived NX key so a traffic spike right after the daily
+    # cache expires doesn't fire perform_async (and its dedup-digest round-trip) on every render.
+    enqueue_prewarm_buyer_local_currency_rate(from_currency:, to_currency:)
 
     stale_rate = currency_namespace.get(buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:))
     BigDecimal(stale_rate) if stale_rate.present? && stale_rate.to_d.positive?
@@ -347,6 +350,17 @@ module CurrencyHelper
 
   def buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:)
     "buyer_local_currency_rate:#{from_currency}:#{to_currency}:latest"
+  end
+
+  def buyer_local_currency_prewarm_debounce_cache_key(from_currency:, to_currency:)
+    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:prewarm_enqueued"
+  end
+
+  def enqueue_prewarm_buyer_local_currency_rate(from_currency:, to_currency:)
+    debounce_key = buyer_local_currency_prewarm_debounce_cache_key(from_currency:, to_currency:)
+    return unless currency_namespace.set(debounce_key, "1", nx: true, ex: BUYER_LOCAL_CURRENCY_PREWARM_DEBOUNCE_TTL)
+
+    PrewarmBuyerLocalCurrencyRateJob.perform_async(from_currency, to_currency)
   end
 
   def subunit_to_unit(currency_type)

@@ -34,9 +34,11 @@ describe CurrencyHelper do
       travel_to Date.new(2026, 5, 26) do
         currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
         currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
+        currency_namespace.del("buyer_local_currency_rate:usd:eur:prewarm_enqueued")
         example.run
         currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
         currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
+        currency_namespace.del("buyer_local_currency_rate:usd:eur:prewarm_enqueued")
       end
     end
 
@@ -57,6 +59,12 @@ describe CurrencyHelper do
     it "returns nil and enqueues a refresh when no stale cache exists" do
       expect(PrewarmBuyerLocalCurrencyRateJob).to receive(:perform_async).with("usd", "eur")
       expect(helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur")).to be_nil
+    end
+
+    it "debounces the refresh enqueue across repeated cold-cache reads" do
+      expect(PrewarmBuyerLocalCurrencyRateJob).to receive(:perform_async).with("usd", "eur").once
+
+      3.times { helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur") }
     end
   end
 
