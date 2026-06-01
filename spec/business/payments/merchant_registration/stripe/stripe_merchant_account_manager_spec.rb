@@ -481,6 +481,88 @@ describe StripeMerchantAccountManager, :vcr do
       end
     end
 
+    describe "US business with a foreign-resident representative (person_hash)" do
+      # Regression coverage for gumroad-private#441: a US LLC with a Bangladesh-resident
+      # representative could not save settings because we sent the rep's foreign national ID
+      # as person.id_number on a US Stripe Connect account, which Stripe rejects with a
+      # "must be 9 digits" SSN error and our controller surfaces verbatim to the seller.
+      def build_us_llc_with_foreign_rep(individual_tax_id:)
+        create(:user_compliance_info_business,
+               user:,
+               first_name: "Rashed",
+               last_name: "Khan",
+               street_address: "House 12, Road 3",
+               city: "Rajshahi",
+               state: nil,
+               zip_code: "6203",
+               country: "Bangladesh",
+               individual_tax_id:)
+      end
+
+      context "with a non-US tax ID (e.g. Bangladesh national ID)" do
+        let(:user_compliance_info) { build_us_llc_with_foreign_rep(individual_tax_id: "1234567890") }
+
+        let(:person_hash) do
+          described_class.send(:person_hash, user_compliance_info, GlobalConfig.get("STRONGBOX_GENERAL_PASSWORD"))
+        end
+
+        it "omits id_number so Stripe can request document verification instead of rejecting" do
+          expect(person_hash).not_to have_key(:id_number)
+          expect(person_hash).not_to have_key(:ssn_last_4)
+        end
+
+        it "omits nationality because the Stripe account country (US) does not require it" do
+          expect(person_hash).not_to have_key(:nationality)
+        end
+
+        it "still carries the rep's foreign address so Stripe knows where they live" do
+          expect(person_hash[:address]).to include(country: "BD", city: "Rajshahi", postal_code: "6203")
+        end
+      end
+
+      context "with a 9-digit US tax ID (e.g. an ITIN held by a foreign resident)" do
+        let(:user_compliance_info) { build_us_llc_with_foreign_rep(individual_tax_id: "900123456") }
+
+        it "submits the id_number to Stripe so the account can verify without document upload" do
+          person_hash = described_class.send(:person_hash, user_compliance_info, GlobalConfig.get("STRONGBOX_GENERAL_PASSWORD"))
+          expect(person_hash[:id_number]).to eq("900123456")
+          expect(person_hash).not_to have_key(:ssn_last_4)
+        end
+      end
+    end
+
+    describe "Bangladesh business with a rep resident outside Bangladesh (person_hash)" do
+      # Reverse direction of the foreign-rep fix: gating nationality on the account country instead
+      # of the rep's residential country also means BGD/SGP/PAK/UAE *accounts* keep submitting
+      # nationality regardless of where the rep lives (Stripe KYC asks for citizenship here, not
+      # residence). Guards against regressing that direction.
+      let(:user_compliance_info) do
+        create(:user_compliance_info_business,
+               user:,
+               first_name: "Imran",
+               last_name: "Choudhury",
+               country: "United States",
+               business_name: "Choudhury Trading Ltd",
+               business_street_address: "Sheikh Mujib Road 14",
+               business_city: "Dhaka",
+               business_state: nil,
+               business_zip_code: "1212",
+               business_country: "Bangladesh",
+               nationality: "BD",
+               individual_tax_id: "12345678901")
+      end
+
+      it "still submits nationality because the Stripe account country (BD) requires it" do
+        person_hash = described_class.send(:person_hash, user_compliance_info, GlobalConfig.get("STRONGBOX_GENERAL_PASSWORD"))
+        expect(person_hash[:nationality]).to eq("BD")
+      end
+
+      it "submits the rep's id_number unchanged since the account is non-US" do
+        person_hash = described_class.send(:person_hash, user_compliance_info, GlobalConfig.get("STRONGBOX_GENERAL_PASSWORD"))
+        expect(person_hash[:id_number]).to eq("12345678901")
+      end
+    end
+
     describe "all info provided of an individual (non-US)" do
       let(:user_compliance_info) { create(:user_compliance_info, user:, zip_code: "M4C 1T2", city: "Toronto", state: nil, country: "Canada") }
       let(:bank_account) { create(:ach_account_stripe_succeed, user:) }
