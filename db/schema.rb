@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_30_000003) do
+ActiveRecord::Schema[7.1].define(version: 2026_12_01_000000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", limit: 191, null: false
     t.string "record_type", limit: 191, null: false
@@ -836,6 +836,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_30_000003) do
     t.string "error_message"
     t.text "access_activity_log"
     t.text "reason_for_winning"
+    t.index ["customer_email"], name: "index_dispute_evidences_on_customer_email"
     t.index ["dispute_id"], name: "index_dispute_evidences_on_dispute_id", unique: true
     t.index ["resolved_at"], name: "index_dispute_evidences_on_resolved_at"
   end
@@ -941,6 +942,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_30_000003) do
     t.integer "service_charge_id"
     t.index ["browser_guid"], name: "index_events_on_browser_guid"
     t.index ["created_at"], name: "index_events_on_created_at"
+    t.index ["email"], name: "index_events_on_email"
     t.index ["event_name", "link_id", "created_at"], name: "index_events_on_event_name_and_link_id"
     t.index ["ip_address"], name: "index_events_on_ip_address"
     t.index ["link_id"], name: "index_events_on_link_id"
@@ -2201,6 +2203,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_30_000003) do
     t.index ["ip_address"], name: "index_events_on_ip_address"
     t.index ["user_id"], name: "index_events_on_user_id"
     t.index ["visit_id"], name: "index_events_on_visit_id"
+    t.index ["email"], name: "index_signup_events_on_email"
   end
 
   create_table "skus_variants", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
