@@ -28,6 +28,7 @@ type Props = {
   tooltipPosition?: "top" | "right";
   buyerCurrency?: string | null | undefined;
   buyerLocalCurrencyRate?: number | null | undefined;
+  buyerLocalCurrencySubunitToUnit?: number | null | undefined;
   buyerLocalPriceCents?: number | null | undefined;
   buyerLocalOriginalPriceCents?: number | null | undefined;
 };
@@ -44,6 +45,7 @@ export const PriceTag = ({
   tooltipPosition = "right",
   buyerCurrency,
   buyerLocalCurrencyRate,
+  buyerLocalCurrencySubunitToUnit,
   buyerLocalPriceCents,
   buyerLocalOriginalPriceCents,
 }: Props) => {
@@ -55,7 +57,7 @@ export const PriceTag = ({
   const useLocalDisplay = buyerCurrency != null && currentBuyerLocalPriceCents != null;
   const formatDisplayPrice = (amountCents: number, localCents: number | null | undefined) =>
     useLocalDisplay && localCents != null
-      ? formatMinorUnitPriceWithIntl(buyerCurrency, localCents)
+      ? formatMinorUnitPriceWithIntl(buyerCurrency, localCents, buyerLocalCurrencySubunitToUnit)
       : formatPriceCentsWithCurrencySymbol(currencyCode, amountCents, { symbolFormat: "long" });
 
   const recurrenceLabel = recurrence

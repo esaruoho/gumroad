@@ -218,6 +218,7 @@ module CurrencyHelper
     props = {
       buyer_currency:,
       buyer_local_currency_rate: minor_unit_rate.to_f,
+      buyer_local_currency_subunit_to_unit: subunit_to_unit(buyer_currency),
       buyer_local_price_cents: buyer_currency_display[:buyer_local_price_cents],
     }
 

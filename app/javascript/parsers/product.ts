@@ -53,6 +53,7 @@ export type CardProduct = {
   currency_code: CurrencyCode;
   buyer_currency?: string;
   buyer_local_currency_rate?: number;
+  buyer_local_currency_subunit_to_unit?: number;
   buyer_local_price_cents?: number;
   buyer_local_original_price_cents?: number;
   buyer_currency_display?: BuyerCurrencyDisplay;

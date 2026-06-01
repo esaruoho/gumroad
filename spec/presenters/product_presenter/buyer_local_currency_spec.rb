@@ -46,6 +46,7 @@ describe "ProductPresenter buyer local currency props" do
 
       expect(props[:buyer_currency]).to eq("eur")
       expect(props[:buyer_local_currency_rate]).to eq(0.8)
+      expect(props[:buyer_local_currency_subunit_to_unit]).to eq(100)
       expect(props[:buyer_local_price_cents]).to eq(800)
       expect(props[:buyer_currency_display]).to eq(
         product_id: product.external_id,
@@ -185,6 +186,7 @@ describe "ProductPresenter buyer local currency props" do
 
       expect(props[:buyer_currency]).to eq("eur")
       expect(props[:buyer_local_currency_rate]).to eq(0.8)
+      expect(props[:buyer_local_currency_subunit_to_unit]).to eq(100)
       expect(props[:buyer_local_price_cents]).to eq(800)
       expect(props[:buyer_currency_display]).to eq(
         product_id: product.external_id,

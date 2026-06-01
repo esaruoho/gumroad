@@ -102,10 +102,24 @@ export const formatPriceCentsWithoutCurrencySymbolAndComma = (code: CurrencyCode
   });
 };
 
-export const formatMinorUnitPriceWithIntl = (currencyCode: string, amountMinorUnits: number): string => {
+export const formatMinorUnitPriceWithIntl = (
+  currencyCode: string,
+  amountMinorUnits: number,
+  subunitToUnit?: number | null,
+): string => {
   const currency = currencyCode.toUpperCase();
   const formatter = new Intl.NumberFormat("en-US", { style: "currency", currency });
-  const configuredCurrency = Object.entries(currenciesMap).find(([code]) => code === currencyCode.toLowerCase())?.[1];
-  const subunitToUnit = configuredCurrency && "single_unit" in configuredCurrency ? 1 : 100;
-  return formatter.format(amountMinorUnits / subunitToUnit);
+  // Prefer the backend's authoritative subunit_to_unit (the Money gem's value, which is
+  // the single source of truth and is non-ISO for some currencies, e.g. KRW/HUF/IDR use
+  // 100). Only fall back to the currencies.json heuristic when the caller didn't pass it.
+  const resolvedSubunitToUnit =
+    subunitToUnit != null && subunitToUnit > 0
+      ? subunitToUnit
+      : (() => {
+          const configuredCurrency = Object.entries(currenciesMap).find(
+            ([code]) => code === currencyCode.toLowerCase(),
+          )?.[1];
+          return configuredCurrency && "single_unit" in configuredCurrency ? 1 : 100;
+        })();
+  return formatter.format(amountMinorUnits / resolvedSubunitToUnit);
 };
