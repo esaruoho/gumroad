@@ -106,10 +106,6 @@ export const formatMinorUnitPriceWithIntl = (currencyCode: string, amountMinorUn
   const currency = currencyCode.toUpperCase();
   const formatter = new Intl.NumberFormat("en-US", { style: "currency", currency });
   const configuredCurrency = Object.entries(currenciesMap).find(([code]) => code === currencyCode.toLowerCase())?.[1];
-  const subunitToUnit = configuredCurrency
-    ? "single_unit" in configuredCurrency
-      ? 1
-      : 100
-    : 10 ** formatter.resolvedOptions().maximumFractionDigits;
+  const subunitToUnit = configuredCurrency && "single_unit" in configuredCurrency ? 1 : 100;
   return formatter.format(amountMinorUnits / subunitToUnit);
 };
