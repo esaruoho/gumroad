@@ -9,8 +9,6 @@ import {
 } from "$app/utils/currency";
 import { formatRecurrenceWithDuration, RecurrenceId } from "$app/utils/recurringPricing";
 
-import { WithTooltip } from "$app/components/WithTooltip";
-
 type Props = {
   url?: string;
   currencyCode: CurrencyCode;
@@ -25,7 +23,6 @@ type Props = {
   isPayWhatYouWant: boolean;
   isSalesLimited: boolean;
   creatorName?: string | undefined;
-  tooltipPosition?: "top" | "right";
   buyerCurrency?: string | null | undefined;
   buyerLocalCurrencyRate?: number | null | undefined;
   buyerLocalCurrencySubunitToUnit?: number | null | undefined;
@@ -42,7 +39,6 @@ export const PriceTag = ({
   isPayWhatYouWant,
   isSalesLimited,
   creatorName,
-  tooltipPosition = "right",
   buyerCurrency,
   buyerLocalCurrencyRate,
   buyerLocalCurrencySubunitToUnit,
@@ -80,19 +76,17 @@ export const PriceTag = ({
 
   return (
     <div itemScope itemProp="offers" itemType="https://schema.org/Offer" className="flex items-center">
-      <WithTooltip position={tooltipPosition} tip={priceTag}>
-        <div className="relative grid grid-flow-col border border-r-0 border-border">
-          <div
-            className="bg-accent px-2 py-1 text-accent-foreground"
-            itemProp="price"
-            content={formatPriceCentsWithoutCurrencySymbolAndComma(currencyCode, price)}
-          >
-            {priceTag}
-          </div>
-          <div className={classNames("border-border", borderClasses)} />
-          <div className={classNames("absolute top-0 right-px bottom-0 border-accent", borderClasses)} />
+      <div className="relative grid grid-flow-col border border-r-0 border-border">
+        <div
+          className="bg-accent px-2 py-1 text-accent-foreground"
+          itemProp="price"
+          content={formatPriceCentsWithoutCurrencySymbolAndComma(currencyCode, price)}
+        >
+          {priceTag}
         </div>
-      </WithTooltip>
+        <div className={classNames("border-border", borderClasses)} />
+        <div className={classNames("absolute top-0 right-px bottom-0 border-accent", borderClasses)} />
+      </div>
       <link itemProp="url" href={url} />
       <div itemProp="availability" className="hidden">
         {`https://schema.org/${isSalesLimited ? "LimitedAvailability" : "InStock"}`}
