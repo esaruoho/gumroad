@@ -136,14 +136,22 @@ module CurrencyHelper
       variant: "buyer_local",
     }
   rescue StandardError
-    # Graceful degradation: never re-run the operations that may have raised
-    # (product.user.show_buyer_local_currency?, price_currency_type) — return a
-    # static safe default so the product page renders without local-currency display.
+    # Graceful degradation: never re-raise. Re-deriving product_currency here could raise
+    # again (the original failure may have been in price_currency_type / product.user), so we
+    # guard it independently and fall back to "usd" only as a last resort. Both
+    # buyer_currency_shown and product_currency MUST be non-nil strings — the TS
+    # BuyerCurrencyDisplay type declares them non-nullable, and a nil here makes typia.assert
+    # throw on the checkout path, breaking checkout for that buyer.
+    safe_product_currency = begin
+      product.price_currency_type.to_s.downcase.presence || Currency::USD
+    rescue StandardError
+      Currency::USD
+    end
     {
       product_id: product.external_id,
       creator_opted_in: false,
-      buyer_currency_shown: nil,
-      product_currency: nil,
+      buyer_currency_shown: safe_product_currency,
+      product_currency: safe_product_currency,
       buyer_local_price_cents: nil,
       rate: nil,
       variant: "default",

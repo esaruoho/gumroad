@@ -132,5 +132,34 @@ describe CurrencyHelper do
         rate: nil
       )
     end
+
+    it "never returns nil for buyer_currency_shown / product_currency in the rescue path" do
+      # The TS BuyerCurrencyDisplay type declares both fields non-nullable; a nil here makes
+      # typia.assert throw and breaks the CHECKOUT page. Lock in non-nil string currencies.
+      allow(helper).to receive(:buyer_currency_for_ip).and_raise(StandardError)
+
+      props = helper.buyer_currency_display_props(product:, price_cents: 1000, ip: "1.2.3.4")
+
+      expect(props[:buyer_currency_shown]).to eq("usd")
+      expect(props[:product_currency]).to eq("usd")
+      expect(props[:buyer_currency_shown]).to be_a(String)
+      expect(props[:product_currency]).to be_a(String)
+    end
+
+    it "falls back to usd when even re-deriving the product currency raises in the rescue" do
+      # Worst case: the original failure was in price_currency_type itself, so the rescue's
+      # own re-derivation also raises — we must still emit a valid non-nil currency string.
+      allow(helper).to receive(:buyer_currency_for_ip).and_raise(StandardError)
+      allow(product).to receive(:price_currency_type).and_raise(StandardError)
+
+      props = nil
+      expect do
+        props = helper.buyer_currency_display_props(product:, price_cents: 1000, ip: "1.2.3.4")
+      end.not_to raise_error
+
+      expect(props[:buyer_currency_shown]).to eq("usd")
+      expect(props[:product_currency]).to eq("usd")
+      expect(props[:variant]).to eq("default")
+    end
   end
 end
