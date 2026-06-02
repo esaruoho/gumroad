@@ -109,7 +109,12 @@ class LinksController < ApplicationController
       BasePrice::Recurrence::ALLOWED_RECURRENCES.each do |r|
         params[:recurrence] ||= r if params[r] == "true"
       end
-      params[:price] = (params[:price].to_f * 100).to_i if params[:price].present?
+      if params[:price].present?
+        price_cents = params[:price].to_f * 100
+        # A buyer-supplied price like "1e307" overflows to Infinity, whose .to_i
+        # raises FloatDomainError; treat non-finite as absent so PWYW falls back.
+        params[:price] = price_cents.finite? ? price_cents.to_i : nil
+      end
       cart_item = @product.cart_item(params)
 
       unless (@product.customizable_price || cart_item[:option]&.[](:is_pwyw)) &&
@@ -994,6 +999,17 @@ class LinksController < ApplicationController
                 try {
                   params = JSON.parse(buyButton.dataset.gumroadCheckoutParams || "{}");
                 } catch (_e) {}
+
+                // PWYW: a buyer-entered price is dynamic, so it can't be in the
+                // server-rendered snapshot above. Fill it in only for a button with
+                // no preset price, so preset tiers and a name-your-own field coexist.
+                if (params.price === undefined) {
+                  var priceInput = document.querySelector("[data-gumroad-price-input]");
+                  if (priceInput) {
+                    var amount = parseFloat(priceInput.value);
+                    if (!isNaN(amount) && amount >= 0) params.price = String(amount);
+                  }
+                }
 
                 parent.postMessage({type:"gumroad:checkout",params:params},"*");
               }, true);

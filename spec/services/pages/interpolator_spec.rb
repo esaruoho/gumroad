@@ -117,6 +117,29 @@ describe Pages::Interpolator do
       expect(result).to include(%(data-gumroad-checkout-params='{"variant":"Pro plan","quantity":2}'))
     end
 
+    it "keeps data-gumroad-price-input on a pay-what-you-want product" do
+      product = create(:product, customizable_price: true, price_cents: 500)
+
+      result = described_class.interpolate(
+        %(<input data-gumroad-price-input type="number"><button data-gumroad-action="buy">Buy</button>),
+        product: product
+      )
+
+      expect(result).to include("data-gumroad-price-input")
+    end
+
+    it "strips data-gumroad-price-input on a non-pay-what-you-want product" do
+      product = create(:product, customizable_price: false, price_cents: 500)
+
+      result = described_class.interpolate(
+        %(<input data-gumroad-price-input type="number"><button data-gumroad-action="buy">Buy</button>),
+        product: product
+      )
+
+      expect(result).not_to include("data-gumroad-price-input")
+      expect(result).to include("<input")
+    end
+
     it "silently drops selection attributes the product can't honor (lenient fallback)" do
       product = create(:product, price_cents: 100) # simple product, no variants/PWYW/quantity/recurrence
 

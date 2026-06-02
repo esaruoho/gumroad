@@ -33,7 +33,7 @@ Mark live values and buy buttons with data attributes that Gumroad fills in serv
 For products with selection state, set the choice directly on the buy element so the checkout opens pre-selected (an invalid value silently falls back to the product defaults — it won't break the page):
 - data-gumroad-option="<variant name>" — for products with variants/versions/tiers.
 - data-gumroad-quantity="<integer>" — for products with quantity enabled.
-- data-gumroad-price="<decimal>" — for pay-what-you-want products (major units, e.g. "9.99"). This sets ONE fixed price and sends the buyer straight to checkout.
+- data-gumroad-price="<decimal>" — for pay-what-you-want products (major units, e.g. "9.99"). This presets ONE fixed price and sends the buyer straight to checkout. To let the buyer name their OWN price instead, use data-gumroad-price-input (see below).
 - data-gumroad-recurrence="monthly|quarterly|biannually|yearly|every_two_years" — for membership/subscription products.
 
 Example buy buttons:
@@ -41,16 +41,15 @@ Example buy buttons:
   <a data-gumroad-action="buy" data-gumroad-option="Pro" data-gumroad-recurrence="yearly">Buy Pro – $99/year</a>
   <button data-gumroad-action="buy" data-gumroad-quantity="2">Buy 2 seats</button>
 
-For a pay-what-you-want product where the buyer should name their OWN price on the page, render a price <input> and post the chosen amount to checkout yourself (do NOT put data-gumroad-action="buy" on this button — Gumroad's delegated buy handler would intercept it before your custom price is added). The page is allowed to post a "gumroad:checkout" message to its parent with any of: variant, quantity, price, recurrence. Use variant for a variant/version/tier name. An empty price falls back to Gumroad's own price-entry step, so there is no dead end:
-  <input id="gr-price" type="number" min="0" step="0.01" placeholder="9.99" />
-  <button id="gr-buy" type="button">I want this</button>
-  <script>
-    document.getElementById("gr-buy").addEventListener("click", function () {
-      var v = (document.getElementById("gr-price").value || "").trim(), params = {};
-      if (v !== "") { var n = parseFloat(v); if (!isNaN(n) && n >= 0) params.price = String(n); }
-      parent.postMessage({ type: "gumroad:checkout", params: params }, "*");
-    });
-  </script>
+For a pay-what-you-want product where the buyer names their OWN price on the page, add data-gumroad-price-input to a price <input> and use a normal data-gumroad-action="buy" button. Gumroad reads the input's value (major units, e.g. "9.99") at click time and sends the buyer to checkout with that price — no custom script needed. An empty value falls back to Gumroad's own price-entry step, so there is no dead end. This only works on pay-what-you-want products; on a fixed-price product the attribute is ignored:
+  <input data-gumroad-price-input type="number" min="0" step="0.01" placeholder="9.99" />
+  <button data-gumroad-action="buy">I want this</button>
+
+Use a single price input per page. A buy button that carries its own data-gumroad-price keeps that exact amount and ignores the input, so you can mix preset tiers with a name-your-own field — the input only drives buttons without a preset price:
+  <button data-gumroad-action="buy" data-gumroad-price="5">$5</button>
+  <button data-gumroad-action="buy" data-gumroad-price="10">$10</button>
+  <input data-gumroad-price-input type="number" min="0" step="0.01" placeholder="Other amount" />
+  <button data-gumroad-action="buy">Pay this amount</button>
 
 Then preview, publish, and verify it with the Gumroad CLI:
 - Run the real server-side sanitizer WITHOUT publishing and read what it changed: gumroad products page preview ${uniquePermalink} ./landing.html --json --no-input --non-interactive — inspect .sanitization_report. If it stripped tags or attributes your page needs (a buy element, an <input>, a <script>), fix the HTML and preview again. Do this until the report is clean so you never publish a broken page.

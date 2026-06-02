@@ -3481,6 +3481,15 @@ describe LinksController, :vcr, inertia: true do
           expect(response).not_to be_redirect
         end
 
+        it "falls back to the price-entry page when a PWYW price overflows instead of raising" do
+          product = create(:product, user: @user, customizable_price: true, price_cents: 1000)
+
+          get :show, params: { id: product.to_param, wanted: "true", price: "1e307" }
+
+          expect(response).to be_successful
+          expect(response).not_to be_redirect
+        end
+
         describe "discount code selection" do
           let(:url_offer_code) { create(:offer_code, products: [product], code: "URL10", amount_cents: 200, currency_type: product.price_currency_type) }
           let(:default_offer_code) { create(:offer_code, products: [product], code: "DEFAULT10", amount_cents: 300, currency_type: product.price_currency_type) }

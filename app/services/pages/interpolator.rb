@@ -38,6 +38,13 @@ class Pages::Interpolator
       end
     end
 
+    # Strip the buyer-price marker unless the product (or a tier) is PWYW, using
+    # the same variant-aware check checkout uses so it never strips a price the
+    # checkout would honor. The client handler keys off this attribute.
+    unless product.has_customizable_price_option?
+      fragment.css("[data-gumroad-price-input]").each { |node| node.remove_attribute("data-gumroad-price-input") }
+    end
+
     fragment.to_html
   end
 end

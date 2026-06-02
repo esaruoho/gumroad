@@ -160,8 +160,8 @@ gumroad products page publish <permalink> ./landing.html`}
         <code>data-gumroad-quantity="&lt;integer&gt;"</code> — products with quantity enabled.
       </li>
       <li>
-        <code>data-gumroad-price="&lt;decimal&gt;"</code> — pay-what-you-want products; major units (e.g.{" "}
-        <code>"9.99"</code>).
+        <code>data-gumroad-price="&lt;decimal&gt;"</code> — pay-what-you-want products; presets one fixed price in major
+        units (e.g. <code>"9.99"</code>).
       </li>
       <li>
         <code>data-gumroad-recurrence="monthly|quarterly|biannually|yearly|every_two_years"</code> —
@@ -172,6 +172,19 @@ gumroad products page publish <permalink> ./landing.html`}
       {`<a data-gumroad-action="buy">Buy now</a>
 <a data-gumroad-action="buy" data-gumroad-option="Pro" data-gumroad-recurrence="yearly">Buy Pro – $99/year</a>
 <button data-gumroad-action="buy" data-gumroad-quantity="2">Buy 2 seats</button>`}
+    </CodeSnippet>
+    <p>
+      To let the buyer name their own price on a pay-what-you-want product, add <code>data-gumroad-price-input</code> to
+      a price <code>&lt;input&gt;</code> and pair it with a normal <code>data-gumroad-action="buy"</code> button.
+      Gumroad reads the input's value (major units) when the buy element is clicked and sends the buyer to checkout with
+      that price. An empty value falls back to Gumroad's own price-entry step. The attribute is ignored on products that
+      aren't pay-what-you-want. Use one price input per page; a buy button that carries its own{" "}
+      <code>data-gumroad-price</code> keeps that amount and ignores the input, so preset tiers and a name-your-own field
+      can share a page.
+    </p>
+    <CodeSnippet caption="Buyer-entered price (pay-what-you-want)">
+      {`<input data-gumroad-price-input type="number" min="0" step="0.01" placeholder="9.99" />
+<button data-gumroad-action="buy">I want this</button>`}
     </CodeSnippet>
   </div>
 );
