@@ -10,9 +10,9 @@ class Api::ProductSectionsPresenter
     "SellerProfileSubscribeSection" => "subscribe",
   }.freeze
 
-  def initialize(product)
+  def initialize(product, sections: nil)
     @product = product
-    @sections = ordered_sections
+    @sections = sections || ordered_sections
     @product_external_ids_by_id = build_product_external_ids_by_id
   end
 

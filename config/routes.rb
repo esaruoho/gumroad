@@ -62,6 +62,7 @@ Rails.application.routes.draw do
       resource :refund_policy, only: [:show, :update], controller: :refund_policies
       resources :links, path: "products", only: [:index, :show, :update, :create, :destroy] do
         resources :custom_fields, only: [:index, :create, :update, :destroy]
+        resources :sections, only: [:create, :update, :destroy], controller: "product_sections"
         resources :offer_codes, only: [:index, :create, :show, :update, :destroy]
         resources :variant_categories, only: [:index, :create, :show, :update, :destroy] do
           resources :variants, only: [:index, :create, :show, :update, :destroy]
