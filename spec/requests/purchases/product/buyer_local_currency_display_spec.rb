@@ -4,8 +4,6 @@ require "spec_helper"
 
 describe "Buyer-local currency display (#5281)", type: :system, js: true do
   let(:currency_namespace) { Redis::Namespace.new(:currencies, redis: $redis) }
-  let(:rate_cache_key) { "buyer_local_currency_rate:usd:eur:#{Date.current}" }
-  let(:stale_rate_cache_key) { "buyer_local_currency_rate:usd:eur:latest" }
 
   let(:france) do
     GeoIp::Result.new(
@@ -20,12 +18,9 @@ describe "Buyer-local currency display (#5281)", type: :system, js: true do
     )
   end
 
-  before { currency_namespace.set(rate_cache_key, "0.8") }
+  before { currency_namespace.set("EUR", "0.8") }
 
-  after do
-    currency_namespace.del(rate_cache_key)
-    currency_namespace.del(stale_rate_cache_key)
-  end
+  after { currency_namespace.del("EUR") }
 
   # The GA events are gated client-side on shouldTrack() (the
   # gr:google_analytics:enabled meta tag, always "false" outside prod/staging)
@@ -161,8 +156,7 @@ describe "Buyer-local currency display (#5281)", type: :system, js: true do
 
   context "when the currency-rate cache is cold" do
     before do
-      currency_namespace.del(rate_cache_key)
-      currency_namespace.del(stale_rate_cache_key)
+      currency_namespace.del("EUR")
       allow(GeoIp).to receive(:lookup).and_return(france)
       @seller = create(:user_with_compliance_info, show_buyer_local_currency: true)
       @product = create(:product, user: @seller, price_cents: 10_00)

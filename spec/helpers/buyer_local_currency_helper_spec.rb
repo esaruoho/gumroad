@@ -30,69 +30,59 @@ describe CurrencyHelper do
   describe "#buyer_local_currency_rate" do
     let(:currency_namespace) { helper.currency_namespace }
 
-    around do |example|
-      travel_to Date.new(2026, 5, 26) do
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:prewarm_enqueued")
-        example.run
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:prewarm_enqueued")
-      end
+    before do
+      currency_namespace.set("EUR", "0.8")
+      currency_namespace.set("JPY", "150")
     end
 
-    it "returns the cached daily rate without enqueuing a refresh" do
-      currency_namespace.set("buyer_local_currency_rate:usd:eur:2026-05-26", "0.8")
+    after do
+      currency_namespace.del("EUR")
+      currency_namespace.del("JPY")
+    end
 
-      expect(PrewarmBuyerLocalCurrencyRateJob).not_to receive(:perform_async)
+    it "derives the cross rate from the hourly-cached USD rates without calling OXR" do
+      expect(URI).not_to receive(:open)
+
       expect(helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur")).to eq(BigDecimal("0.8"))
+      expect(helper.buyer_local_currency_rate(from_currency: "eur", to_currency: "jpy")).to eq(BigDecimal("187.5"))
     end
 
-    it "returns stale cache and enqueues a refresh on cold cache" do
-      currency_namespace.set("buyer_local_currency_rate:usd:eur:latest", "0.7")
-
-      expect(PrewarmBuyerLocalCurrencyRateJob).to receive(:perform_async).with("usd", "eur")
-      expect(helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur")).to eq(BigDecimal("0.7"))
+    it "returns 1 when both currencies are the same" do
+      expect(helper.buyer_local_currency_rate(from_currency: "eur", to_currency: "eur")).to eq(BigDecimal("1"))
     end
 
-    it "returns nil and enqueues a refresh when no stale cache exists" do
-      expect(PrewarmBuyerLocalCurrencyRateJob).to receive(:perform_async).with("usd", "eur")
+    it "returns nil when a rate is missing from the cache" do
+      currency_namespace.del("EUR")
+
       expect(helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur")).to be_nil
-    end
-
-    it "debounces the refresh enqueue across repeated cold-cache reads" do
-      expect(PrewarmBuyerLocalCurrencyRateJob).to receive(:perform_async).with("usd", "eur").once
-
-      3.times { helper.buyer_local_currency_rate(from_currency: "usd", to_currency: "eur") }
     end
   end
 
-  describe "#refresh_buyer_local_currency_rate!" do
+  describe "#cached_usd_rate" do
     let(:currency_namespace) { helper.currency_namespace }
 
-    around do |example|
-      travel_to Date.new(2026, 5, 26) do
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
-        example.run
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:2026-05-26")
-        currency_namespace.del("buyer_local_currency_rate:usd:eur:latest")
-      end
+    after { currency_namespace.del("EUR") }
+
+    it "returns 1 for USD" do
+      expect(helper.cached_usd_rate("usd")).to eq(BigDecimal("1"))
     end
 
-    it "queries the live rate and writes both daily and stale caches" do
-      allow(helper).to receive(:query_buyer_local_currency_rate).and_return(BigDecimal("0.81127"))
-      expect(helper.refresh_buyer_local_currency_rate!(from_currency: "usd", to_currency: "eur")).to eq(BigDecimal("0.81127"))
-      expect(currency_namespace.get("buyer_local_currency_rate:usd:eur:2026-05-26")).to eq("0.81127")
-      expect(currency_namespace.get("buyer_local_currency_rate:usd:eur:latest")).to eq("0.81127")
-      expect(currency_namespace.ttl("buyer_local_currency_rate:usd:eur:2026-05-26")).to be_between(1, 24.hours.to_i)
+    it "returns the cached rate for a known currency" do
+      currency_namespace.set("EUR", "0.8")
+
+      expect(helper.cached_usd_rate("eur")).to eq(BigDecimal("0.8"))
     end
 
-    it "returns nil when the live query fails" do
-      allow(helper).to receive(:query_buyer_local_currency_rate).and_raise(StandardError)
+    it "returns nil when the rate is missing" do
+      currency_namespace.del("EUR")
 
-      expect(helper.refresh_buyer_local_currency_rate!(from_currency: "usd", to_currency: "eur")).to be_nil
+      expect(helper.cached_usd_rate("eur")).to be_nil
+    end
+
+    it "returns nil when the cached rate is non-positive" do
+      currency_namespace.set("EUR", "0")
+
+      expect(helper.cached_usd_rate("eur")).to be_nil
     end
   end
 

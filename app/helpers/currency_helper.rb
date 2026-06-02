@@ -47,8 +47,6 @@ module CurrencyHelper
     "MY" => "myr",
     "AR" => "ars",
   }.freeze
-  BUYER_LOCAL_CURRENCY_RATE_TTL = 24.hours.to_i
-  BUYER_LOCAL_CURRENCY_PREWARM_DEBOUNCE_TTL = 1.minute.to_i
 
   def currency_namespace
     Redis::Namespace.new(:currencies, redis: $redis)
@@ -120,40 +118,20 @@ module CurrencyHelper
     nil
   end
 
+  # Cross rate between two currencies, derived from the USD-based rates kept warm hourly
+  # by UpdateCurrenciesWorker. Both rates are quoted against USD, so the cross rate is
+  # to_rate / from_rate. Reads the cache directly and never makes a synchronous HTTP call
+  # on the render path: a missing rate degrades gracefully (the seller's set price is shown).
   def buyer_local_currency_rate(from_currency:, to_currency:)
     from_currency = from_currency.to_s.downcase
     to_currency = to_currency.to_s.downcase
     return BigDecimal("1") if from_currency == to_currency
 
-    cache_key = buyer_local_currency_rate_cache_key(from_currency:, to_currency:, date: Date.current)
-    cached_rate = currency_namespace.get(cache_key)
-    return BigDecimal(cached_rate) if cached_rate.present? && cached_rate.to_d.positive?
+    from_rate = cached_usd_rate(from_currency)
+    to_rate = cached_usd_rate(to_currency)
+    return if from_rate.nil? || to_rate.nil?
 
-    # On cold cache: fall back to last known good rate (stale-while-revalidate) and enqueue
-    # a background refresh. We never make a synchronous HTTP call on the render path.
-    # Debounce the enqueue with a short-lived NX key so a traffic spike right after the daily
-    # cache expires doesn't fire perform_async (and its dedup-digest round-trip) on every render.
-    enqueue_prewarm_buyer_local_currency_rate(from_currency:, to_currency:)
-
-    stale_rate = currency_namespace.get(buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:))
-    BigDecimal(stale_rate) if stale_rate.present? && stale_rate.to_d.positive?
-  end
-
-  # Synchronous path used by background jobs (cron + prewarm). Safe to block on HTTP here.
-  def refresh_buyer_local_currency_rate!(from_currency:, to_currency:)
-    from_currency = from_currency.to_s.downcase
-    to_currency = to_currency.to_s.downcase
-    return BigDecimal("1") if from_currency == to_currency
-
-    rate = query_buyer_local_currency_rate(from_currency:, to_currency:)
-    return nil if rate.blank? || !rate.to_d.positive?
-
-    cache_key = buyer_local_currency_rate_cache_key(from_currency:, to_currency:, date: Date.current)
-    currency_namespace.set(cache_key, rate.to_s, ex: BUYER_LOCAL_CURRENCY_RATE_TTL)
-    currency_namespace.set(buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:), rate.to_s)
-    rate.to_d
-  rescue StandardError
-    nil
+    to_rate / from_rate
   end
 
   def buyer_currency_display_props(product:, price_cents:, ip:)
@@ -334,33 +312,17 @@ module CurrencyHelper
     "#{base_formatted_label} x #{(duration_in_months / number_of_months).round}"
   end
 
-  def query_buyer_local_currency_rate(from_currency:, to_currency:)
-    # Called only from the cache refresh path, not directly while rendering product pages.
-    rates = JSON.parse(URI.open(CURRENCY_SOURCE).read)["rates"]
-    from_rate = from_currency.to_s.casecmp?(Currency::USD) ? BigDecimal("1") : BigDecimal(rates[from_currency.to_s.upcase].to_s)
-    to_rate = to_currency.to_s.casecmp?(Currency::USD) ? BigDecimal("1") : BigDecimal(rates[to_currency.to_s.upcase].to_s)
-    return if from_rate.blank? || !from_rate.positive? || to_rate.blank? || !to_rate.positive?
+  # USD-based rate for a single currency, read from the hourly cache only (no inline OXR
+  # fetch), so it is safe to call on the render path. Returns nil when the rate is absent
+  # or non-positive.
+  def cached_usd_rate(currency_type)
+    return BigDecimal("1") if currency_type.to_s.casecmp?(Currency::USD)
 
-    to_rate / from_rate
-  end
+    cached = currency_namespace.get(currency_type.to_s.upcase)
+    return if cached.blank?
 
-  def buyer_local_currency_rate_cache_key(from_currency:, to_currency:, date:)
-    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:#{date}"
-  end
-
-  def buyer_local_currency_stale_rate_cache_key(from_currency:, to_currency:)
-    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:latest"
-  end
-
-  def buyer_local_currency_prewarm_debounce_cache_key(from_currency:, to_currency:)
-    "buyer_local_currency_rate:#{from_currency}:#{to_currency}:prewarm_enqueued"
-  end
-
-  def enqueue_prewarm_buyer_local_currency_rate(from_currency:, to_currency:)
-    debounce_key = buyer_local_currency_prewarm_debounce_cache_key(from_currency:, to_currency:)
-    return unless currency_namespace.set(debounce_key, "1", nx: true, ex: BUYER_LOCAL_CURRENCY_PREWARM_DEBOUNCE_TTL)
-
-    PrewarmBuyerLocalCurrencyRateJob.perform_async(from_currency, to_currency)
+    rate = cached.to_d
+    rate if rate.positive?
   end
 
   def subunit_to_unit(currency_type)

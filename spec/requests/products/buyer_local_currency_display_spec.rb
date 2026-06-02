@@ -8,19 +8,17 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
   let(:us_ip) { "54.234.242.13" }
 
   let(:currency_cache) { Redis::Namespace.new(:currencies, redis: $redis) }
-  let(:rate_cache_key) { "buyer_local_currency_rate:usd:eur:#{Date.current}" }
-  let(:stale_rate_cache_key) { "buyer_local_currency_rate:usd:eur:latest" }
 
   before do
-    currency_cache.set(rate_cache_key, "0.8")
+    # USD-based rate kept warm hourly by UpdateCurrenciesWorker; the usd→eur cross rate is 0.8.
+    currency_cache.set("EUR", "0.8")
     # Rack::Attack#throttle_by_params reads body.read on every request; on a
     # GET with no body that's nil → crash. Orthogonal to what we're testing.
     Rack::Attack.enabled = false
   end
 
   after do
-    currency_cache.del(rate_cache_key)
-    currency_cache.del(stale_rate_cache_key)
+    currency_cache.del("EUR")
     Rack::Attack.enabled = true
   end
 
@@ -99,10 +97,9 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
       end
     end
 
-    context "degraded mode: currency-rate cache cold + sidekiq job has not yet warmed it" do
+    context "degraded mode: currency-rate cache cold (UpdateCurrenciesWorker has not warmed it)" do
       it "falls back to the default variant and does not break the product page" do
-        currency_cache.del(rate_cache_key)
-        currency_cache.del(stale_rate_cache_key)
+        currency_cache.del("EUR")
 
         get short_link_path(id: product.unique_permalink),
             headers: { "X-Inertia" => "true", "REMOTE_ADDR" => eur_ip }
