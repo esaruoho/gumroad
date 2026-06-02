@@ -418,6 +418,7 @@ Rails.application.routes.draw do
     get "/terms", to: "home#terms"
     get "/prohibited", to: "home#prohibited"
     get "/privacy", to: "home#privacy"
+    get "/walks/privacy", to: "home#walks_privacy"
     get "/taxes", to: redirect("/pricing", status: 301)
     get "/hackathon", to: "home#hackathon"
     get "/small-bets", to: "home#small_bets"

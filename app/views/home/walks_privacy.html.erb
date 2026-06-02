@@ -1,0 +1,83 @@
+<%= render "home/shared/header",
+  bg_color: "pink",
+  title: "Gumroad Walks Privacy Policy",
+  description: "Last revised: June 2, 2026" %>
+
+<div class="max-w-6xl px-8 lg:px-[4vw] py-12 md:py-20 mx-auto space-y-16 text-lg">
+  <div>
+    <p class="pb-8">This Privacy Policy describes how the <strong>Gumroad Walks</strong> mobile app ("Walks," "we," "us") collects, uses, and shares your information. It is specific to the Walks app. Gumroad's general <a href="/privacy" class="text-pink underline">Privacy Policy</a> also applies; where this policy and the general policy differ for the Walks app, this policy controls.</p>
+    <p>Walks turns a walking conversation into a publishable product. During a walk, the app interviews you by voice and afterward drafts a product (such as a book, course, or podcast) from what you said. Delivering those features requires sending your voice and the resulting transcript to third-party artificial intelligence (AI) providers, as described below. We ask for your permission inside the app before any of this happens.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">1. What data we collect</h2>
+    <ul class="list-disc my-6 pl-4 [&>li]:leading-8 space-y-2">
+      <li><strong>Voice audio.</strong> The audio captured by your device's microphone while you are in an active walk session.</li>
+      <li><strong>Transcript.</strong> The text transcription of that audio, including both your responses and the interviewer's prompts.</li>
+      <li><strong>Derived product content.</strong> The draft product generated from your session — for example, a title, description, chapters, and price.</li>
+      <li><strong>Walk metadata.</strong> Session details such as duration, timestamps, and the topic you chose, stored on your device.</li>
+      <li><strong>Account / publishing data.</strong> If you choose to publish a product, the Gumroad account authorization you grant (via Gumroad OAuth) and the product you publish. Connecting a Gumroad account is optional and only needed to publish.</li>
+      <li><strong>Diagnostics.</strong> Crash and error reports (via Sentry) to keep the app reliable.</li>
+    </ul>
+    <p>Walks does <strong>not</strong> require you to create an account or log in to record a walk, review it, or generate a draft.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">2. How we collect it</h2>
+    <ul class="list-disc my-6 pl-4 [&>li]:leading-8 space-y-2">
+      <li><strong>Microphone audio</strong> is captured only while you are in an active walk session that you started, and only after you have (a) agreed to the in-app AI disclosure and (b) granted iOS microphone permission. We do not record audio in the background or outside of a session.</li>
+      <li><strong>The transcript and draft content</strong> are produced from that audio in real time during the session.</li>
+      <li><strong>Diagnostics</strong> are collected automatically when an error or crash occurs.</li>
+    </ul>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">3. How we use it</h2>
+    <p class="pb-8">We use the data we collect <strong>solely to provide the app's features to you</strong>: to transcribe your speech, conduct the interactive interview, generate a draft product you can review and edit, and — if you choose — publish that product to your Gumroad store. We use diagnostics only to maintain and improve reliability.</p>
+    <p>We do <strong>not</strong> sell your data, use it for advertising, or use it to train our own AI models.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">4. Who we share it with</h2>
+    <p class="pb-8">To provide Walks's core features, we send your voice audio and transcript to third-party AI service providers. Your data is transmitted to them through Gumroad's own servers (our servers hold the API credentials; your device does not). We currently use:</p>
+    <ul class="list-disc my-6 pl-4 [&>li]:leading-8 space-y-2">
+      <li><strong>OpenAI</strong> — receives your <strong>voice audio</strong> (and its transcript) to power the real-time voice interview. Governed by OpenAI's privacy policy: <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener" class="text-pink underline">openai.com/policies/privacy-policy</a>.</li>
+      <li><strong>Anthropic</strong> — receives your <strong>transcript</strong> to generate the draft product. Governed by Anthropic's privacy policy: <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener" class="text-pink underline">anthropic.com/legal/privacy</a>.</li>
+    </ul>
+    <p class="pb-8">Each provider processes this data under contract solely to provide the service to us, and is contractually required to provide the <strong>same or equal level of protection</strong> for your data as set out in this Privacy Policy.</p>
+    <p>We also use <strong>Sentry</strong> for crash/error diagnostics, <strong>Apple</strong> (App Attest and StoreKit) to verify the app and process subscriptions, and — only if you choose to publish — <strong>Gumroad</strong> to host the product you create. We otherwise share data only as described in Gumroad's general <a href="/privacy" class="text-pink underline">Privacy Policy</a> (for example, to comply with law).</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">5. Your permission and your choices</h2>
+    <ul class="list-disc my-6 pl-4 [&>li]:leading-8 space-y-2">
+      <li><strong>We ask first.</strong> Before any audio or transcript is collected or sent, Walks shows a clear in-app disclosure that identifies what is sent and to whom (OpenAI and Anthropic), and asks for your permission. You can decline.</li>
+      <li><strong>You control the microphone.</strong> You can grant or revoke microphone access at any time in iOS Settings. Revoking it will prevent recording.</li>
+      <li><strong>You can stop.</strong> You can end a session at any time, and you can delete walks from within the app.</li>
+      <li><strong>Connecting Gumroad is optional.</strong> You only authorize a Gumroad account if you choose to publish a product; you can disconnect it at any time in the app.</li>
+    </ul>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">6. Retention and deletion</h2>
+    <p class="pb-8">We retain your data only as long as necessary to provide the features described here and to meet legal, accounting, or reporting requirements. Walks you record are stored on your device and can be deleted by you in the app.</p>
+    <p>You may request deletion of data associated with you by contacting <a href="mailto:support@gumroad.com" class="text-pink underline">support@gumroad.com</a>. The retention and rights provisions of Gumroad's general <a href="/privacy" class="text-pink underline">Privacy Policy</a>, including rights for users in the European Union and California, also apply.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">7. Children</h2>
+    <p>Walks is not directed to children under 13 (or the minimum age required in your jurisdiction), and we do not knowingly collect their personal information.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">8. Changes to this policy</h2>
+    <p>We may update this Privacy Policy from time to time. If we make material changes, we will update the "Last revised" date above and, where appropriate, notify you in the app or in the app store listing. Your continued use of Walks after an update means you accept the revised policy.</p>
+  </div>
+
+  <div>
+    <h2 class="text-5xl lg:text-7xl font-medium pb-6">9. Contact us</h2>
+    <p>If you have any questions about this Privacy Policy or how Walks handles your data, email us at <a href="mailto:support@gumroad.com" class="text-pink underline">support@gumroad.com</a>.</p>
+  </div>
+</div>
+
+<%= render "home/shared/footer" %>

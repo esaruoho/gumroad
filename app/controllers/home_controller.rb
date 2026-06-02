@@ -55,6 +55,16 @@ class HomeController < ApplicationController
     set_meta_tag(property: "og:url", content: privacy_url)
   end
 
+  def walks_privacy
+    set_meta_tag(title: "Gumroad Walks privacy policy")
+    set_meta_tag(name: "description", content: "How the Gumroad Walks app collects, uses, and shares your data, including voice audio and transcripts sent to AI service providers.")
+    set_meta_tag(tag_name: "link", rel: "canonical", href: walks_privacy_url, head_key: "canonical")
+    set_meta_tag(property: "og:title", value: "Gumroad Walks privacy policy")
+    set_meta_tag(property: "og:description", value: "How the Gumroad Walks app collects, uses, and shares your data, including voice audio and transcripts sent to AI service providers.")
+    set_meta_tag(property: "og:type", value: "website")
+    set_meta_tag(property: "og:url", content: walks_privacy_url)
+  end
+
   def prohibited
     set_meta_tag(title: "Prohibited products on Gumroad")
     set_meta_tag(name: "description", content: "Understand what products and activities are not allowed on Gumroad to comply with our policies.")
