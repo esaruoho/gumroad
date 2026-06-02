@@ -103,7 +103,7 @@ const CustomHtmlDocumentation = () => (
     </CodeSnippet>
     <CodeSnippet caption="Gumroad CLI">
       {`gumroad products page preview <permalink> ./landing.html
-gumroad products page push <permalink> ./landing.html`}
+gumroad products page publish <permalink> ./landing.html`}
     </CodeSnippet>
     <p>
       Your HTML is sanitized — disallowed tags and attributes are stripped — then served inside a sandboxed iframe (

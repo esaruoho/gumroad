@@ -52,12 +52,11 @@ For a pay-what-you-want product where the buyer should name their OWN price on t
     });
   </script>
 
-Then publish it with the Gumroad CLI:
-- Preview the local request without publishing: gumroad products update ${uniquePermalink} --custom-html ./landing.html --dry-run --json --no-input --non-interactive
-- Publish (or update) the page: gumroad products update ${uniquePermalink} --custom-html ./landing.html --json --no-input --non-interactive
-- Inspect .result.sanitization_report in the publish response; if Gumroad removed tags or attributes, edit and publish again.
-- Remove the landing page and restore the default product page: gumroad products update ${uniquePermalink} --custom-html '' --json --no-input --non-interactive
-- Confirm it's live and find the public URL: gumroad products view ${uniquePermalink} --json --jq '.product.landing_url' --no-input --non-interactive
+Then preview, publish, and verify it with the Gumroad CLI:
+- Run the real server-side sanitizer WITHOUT publishing and read what it changed: gumroad products page preview ${uniquePermalink} ./landing.html --json --no-input --non-interactive — inspect .sanitization_report. If it stripped tags or attributes your page needs (a buy element, an <input>, a <script>), fix the HTML and preview again. Do this until the report is clean so you never publish a broken page.
+- Publish (or update) the page once preview is clean: gumroad products page publish ${uniquePermalink} ./landing.html --json --no-input --non-interactive — .sanitization_report reflects what actually shipped.
+- Confirm it's live and find the public URL: gumroad products page url ${uniquePermalink} --json --jq '.product.landing_url' --no-input --non-interactive
+- Remove the landing page and restore the default product page: gumroad products page clear ${uniquePermalink} --yes --json --no-input --non-interactive
 
 If the gumroad CLI isn't installed: brew install antiwork/cli/gumroad (or curl -fsSL https://gumroad.com/install-cli.sh | bash), then run gumroad auth login.`;
 
