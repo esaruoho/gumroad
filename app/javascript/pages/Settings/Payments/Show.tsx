@@ -1030,7 +1030,7 @@ export default function PaymentsPage() {
             />
             <FieldsetDescription>
               Buyers see an approximate price in their local currency in place of your set price. Checkout still uses
-              your set currency.
+              USD.
             </FieldsetDescription>
           </Fieldset>
         </FormSection>
