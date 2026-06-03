@@ -672,6 +672,61 @@ class Installment < ApplicationRecord
     end
   end
 
+  # Purchase ids of recipients this post was emailed to, backed by the open-tracking
+  # CreatorContactingCustomersEmailInfo rows that are created when a post email is sent.
+  def emailed_recipient_purchase_ids
+    email_infos.where.not(purchase_id: nil).distinct.pluck(:purchase_id)
+  end
+
+  # Purchase ids of recipients who have opened this post's email at least once.
+  def opened_recipient_purchase_ids
+    email_infos.where(state: "opened").where.not(purchase_id: nil).distinct.pluck(:purchase_id)
+  end
+
+  # Purchase ids of original recipients who have not opened this post's email yet.
+  # Only purchase-backed posts (customer/seller/product/variant) have per-recipient open
+  # linkage, so this returns an empty array for follower/affiliate posts.
+  def unopened_recipient_purchase_ids
+    return [] unless seller_or_product_or_variant_type?
+    emailed_recipient_purchase_ids - opened_recipient_purchase_ids
+  end
+
+  # Emails of original recipients who haven't opened. Matching on email (rather than
+  # purchase_id) is the right key because AudienceMember collapses a buyer's multiple
+  # purchases into one row keyed by (seller_id, email), so the email_info purchase
+  # may not match the audience row's max(purchase_id).
+  def unopened_recipient_emails
+    return [] unless seller_or_product_or_variant_type?
+
+    emailed_ids = emailed_recipient_purchase_ids
+    return [] if emailed_ids.empty?
+
+    emailed_emails = Purchase.where(id: emailed_ids).distinct.pluck(:email).compact.map(&:downcase)
+    opened_emails = Purchase.where(id: opened_recipient_purchase_ids).distinct.pluck(:email).compact.map(&:downcase)
+    emailed_emails - opened_emails
+  end
+
+  def resendable_to_non_openers_emails
+    candidates = unopened_recipient_emails.to_set
+    return [] if candidates.empty?
+
+    AudienceMember
+      .filter(seller_id:, params: audience_members_filter_params)
+      .pluck(:email)
+      .map(&:downcase)
+      .uniq
+      .select { candidates.include?(_1) }
+  end
+
+  def unopened_recipients_count
+    resendable_to_non_openers_emails.size
+  end
+
+  # Whether a "resend to non-openers" blast is applicable to this post.
+  def resendable_to_non_openers?
+    published? && send_emails? && seller_or_product_or_variant_type?
+  end
+
   def unique_click_count
     Rails.cache.fetch(key_for_cache(:unique_click_count)) do
       summary = CreatorEmailClickSummary.where(installment_id: id).last
