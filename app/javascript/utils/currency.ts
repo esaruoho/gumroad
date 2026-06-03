@@ -136,6 +136,8 @@ export type BuyerLocalCurrencyContext = {
 // is a minor-unit rate (set-currency cents -> buyer-currency minor units), so it applies to
 // any amount denominated in the product's currency. Use only for visible browsing prices —
 // never for amounts the buyer enters/pays or for schema.org microdata, which stay set-currency.
+// TODO(#5281): visible price is buyer-local but schema.org microdata stays set-currency — revisit
+// whether to localize microdata (consistency) or keep set-currency (real charged price).
 export const formatBuyerLocalOrSetPrice = (
   amountCents: number,
   { currencyCode, buyerCurrency, buyerLocalCurrencyRate, buyerLocalCurrencySubunitToUnit }: BuyerLocalCurrencyContext,
