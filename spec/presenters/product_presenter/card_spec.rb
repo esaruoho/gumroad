@@ -32,12 +32,11 @@ describe ProductPresenter::Card do
             price_cents: 100,
             buyer_currency_display: {
               product_id: product.external_id,
-              creator_opted_in: false,
               buyer_currency_shown: "usd",
               product_currency: "usd",
               buyer_local_price_cents: nil,
               rate: nil,
-              variant: "default"
+              display_mode: "default"
             },
             thumbnail_url: nil,
             native_type: Link::NATIVE_TYPE_DIGITAL,

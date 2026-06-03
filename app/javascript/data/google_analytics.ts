@@ -70,10 +70,9 @@ export function trackProductEvent(config: AnalyticsConfig | undefined, data: Pro
         value,
         ...(data.buyer_currency_display
           ? {
-              creator_opted_in: data.buyer_currency_display.creator_opted_in,
               buyer_currency_shown: data.buyer_currency_display.buyer_currency_shown,
               product_currency: data.buyer_currency_display.product_currency,
-              variant: data.buyer_currency_display.variant,
+              display_mode: data.buyer_currency_display.display_mode,
             }
           : {}),
       };
@@ -94,12 +93,11 @@ export function trackProductEvent(config: AnalyticsConfig | undefined, data: Pro
       logGumroadEvent("buyer_currency_display_view", {
         ...payload,
         product_id: data.product_id,
-        creator_opted_in: data.creator_opted_in,
         buyer_currency_shown: data.buyer_currency_shown,
         product_currency: data.product_currency,
         buyer_local_price_cents: data.buyer_local_price_cents,
         rate: data.rate,
-        variant: data.variant,
+        display_mode: data.display_mode,
       });
       break;
   }

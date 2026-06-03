@@ -123,7 +123,7 @@ describe CurrencyHelper do
 
       props = helper.buyer_currency_display_props(product:, price_cents: 1000, ip: "1.2.3.4")
 
-      expect(props).to include(creator_opted_in: false, variant: "default", rate: nil)
+      expect(props).to include(display_mode: "default", rate: nil)
     end
 
     it "returns a safe static default without re-raising when an operation raises" do
@@ -139,7 +139,7 @@ describe CurrencyHelper do
 
       expect(props).to include(
         product_id: "prod_abc",
-        variant: "default",
+        display_mode: "default",
         buyer_local_price_cents: nil,
         rate: nil
       )
@@ -171,7 +171,7 @@ describe CurrencyHelper do
 
       expect(props[:buyer_currency_shown]).to eq("usd")
       expect(props[:product_currency]).to eq("usd")
-      expect(props[:variant]).to eq("default")
+      expect(props[:display_mode]).to eq("default")
     end
   end
 end

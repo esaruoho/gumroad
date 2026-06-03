@@ -122,12 +122,11 @@ describe "Buyer-local currency display (#5281)", type: :system, js: true do
       payload = wait_for_gtag_event("buyer_currency_display_view").last
       expect(payload).to include(
         "product_id" => @product.external_id,
-        "creator_opted_in" => true,
         "buyer_currency_shown" => "eur",
         "product_currency" => "usd",
         "buyer_local_price_cents" => 800,
         "rate" => 0.8,
-        "variant" => "buyer_local",
+        "display_mode" => "buyer_local",
         "send_to" => "gumroad",
       )
     end

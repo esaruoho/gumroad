@@ -85,7 +85,7 @@ export function trackProductEvent(id: string | undefined, data: ProductAnalytics
 
 export function trackBuyerCurrencyDisplayView(id: string | undefined, data: BuyerCurrencyDisplay | undefined) {
   if (!data) return;
-  if (data.variant !== "buyer_local") return;
+  if (data.display_mode !== "buyer_local") return;
 
   let alreadyTracked = false;
   try {

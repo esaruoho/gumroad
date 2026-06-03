@@ -53,12 +53,11 @@ describe ProductPresenter::ProductProps do
               currency_code: Currency::USD,
               buyer_currency_display: {
                 product_id: product.external_id,
-                creator_opted_in: false,
                 buyer_currency_shown: "usd",
                 product_currency: "usd",
                 buyer_local_price_cents: nil,
                 rate: nil,
-                variant: "default"
+                display_mode: "default"
               },
               custom_view_content_button_text: nil,
               custom_button_text_option: nil,
@@ -295,12 +294,11 @@ describe ProductPresenter::ProductProps do
               currency_code: Currency::USD,
               buyer_currency_display: {
                 product_id: product.external_id,
-                creator_opted_in: false,
                 buyer_currency_shown: "usd",
                 product_currency: "usd",
                 buyer_local_price_cents: nil,
                 rate: nil,
-                variant: "default"
+                display_mode: "default"
               },
               custom_view_content_button_text: nil,
               custom_button_text_option: nil,

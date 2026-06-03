@@ -147,12 +147,11 @@ describe CheckoutPresenter do
             price_cents: 100,
             buyer_currency_display: {
               product_id: product.external_id,
-              creator_opted_in: false,
               buyer_currency_shown: "usd",
               product_currency: "usd",
               buyer_local_price_cents: nil,
               rate: nil,
-              variant: "default"
+              display_mode: "default"
             },
             pwyw: nil,
             installment_plan: nil,
@@ -670,12 +669,11 @@ describe CheckoutPresenter do
                                  price_cents: 0,
                                  buyer_currency_display: {
                                    product_id: @product.external_id,
-                                   creator_opted_in: false,
                                    buyer_currency_shown: "usd",
                                    product_currency: "usd",
                                    buyer_local_price_cents: nil,
                                    rate: nil,
-                                   variant: "default"
+                                   display_mode: "default"
                                  },
                                  installment_plan: nil,
                                  is_tiered_membership: true,

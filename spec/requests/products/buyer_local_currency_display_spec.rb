@@ -44,12 +44,11 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
         expect(props["buyer_local_currency_rate"]).to eq(0.8)
         expect(props["buyer_currency_display"]).to include(
           "product_id" => product.external_id,
-          "creator_opted_in" => true,
           "buyer_currency_shown" => "eur",
           "product_currency" => "usd",
           "buyer_local_price_cents" => 800,
           "rate" => 0.8,
-          "variant" => "buyer_local",
+          "display_mode" => "buyer_local",
         )
       end
 
@@ -73,10 +72,9 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
         expect(props).not_to have_key("buyer_currency")
         expect(props).not_to have_key("buyer_local_price_cents")
         expect(props["buyer_currency_display"]).to include(
-          "creator_opted_in" => true,
           "buyer_currency_shown" => "usd",
           "product_currency" => "usd",
-          "variant" => "default",
+          "display_mode" => "default",
         )
       end
     end
@@ -92,8 +90,7 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
 
         expect(props).not_to have_key("buyer_currency")
         expect(props["buyer_currency_display"]).to include(
-          "creator_opted_in" => false,
-          "variant" => "default",
+          "display_mode" => "default",
         )
       end
     end
@@ -107,7 +104,7 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
 
         expect(response).to be_successful
         props = JSON.parse(response.body)["props"]["product"]
-        expect(props["buyer_currency_display"]).to include("variant" => "default")
+        expect(props["buyer_currency_display"]).to include("display_mode" => "default")
         expect(props).not_to have_key("buyer_local_price_cents")
       end
     end
@@ -145,23 +142,22 @@ describe "Buyer-local currency end-to-end display (#5281)", type: :request, iner
 
       expect(event["buyer_currency_display"]).to include(
         "product_id" => product.external_id,
-        "creator_opted_in" => true,
         "buyer_currency_shown" => "eur",
         "product_currency" => "usd",
         "buyer_local_price_cents" => 800,
         "rate" => 0.8,
-        "variant" => "buyer_local",
+        "display_mode" => "buyer_local",
       )
     end
 
-    it "omits buyer_currency_display.variant=buyer_local for a US buyer's purchase" do
+    it "omits buyer_currency_display.display_mode=buyer_local for a US buyer's purchase" do
       purchase.update!(ip_address: us_ip)
 
       get url_redirect_download_page_path(id: url_redirect.token),
           headers: { "X-Inertia" => "true", "REMOTE_ADDR" => us_ip }
 
       event = JSON.parse(response.body)["props"]["seller_analytics"]["purchase_event"]
-      expect(event["buyer_currency_display"]).to include("variant" => "default")
+      expect(event["buyer_currency_display"]).to include("display_mode" => "default")
     end
 
     context "when the seller has no third-party analytics configured" do

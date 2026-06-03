@@ -103,12 +103,11 @@ module CurrencyHelper
 
     default_props = {
       product_id: product.external_id,
-      creator_opted_in:,
       buyer_currency_shown: product_currency,
       product_currency:,
       buyer_local_price_cents: nil,
       rate: nil,
-      variant: "default",
+      display_mode: "default",
     }
 
     return default_props unless creator_opted_in
@@ -129,12 +128,11 @@ module CurrencyHelper
 
     {
       product_id: product.external_id,
-      creator_opted_in:,
       buyer_currency_shown: buyer_currency,
       product_currency:,
       buyer_local_price_cents: local_price_cents,
       rate: rate.to_f,
-      variant: "buyer_local",
+      display_mode: "buyer_local",
     }
   rescue StandardError
     # Graceful degradation: never re-raise. Re-deriving product_currency here could raise
@@ -150,17 +148,16 @@ module CurrencyHelper
     end
     {
       product_id: product.external_id,
-      creator_opted_in: false,
       buyer_currency_shown: safe_product_currency,
       product_currency: safe_product_currency,
       buyer_local_price_cents: nil,
       rate: nil,
-      variant: "default",
+      display_mode: "default",
     }
   end
 
   def buyer_local_price_props(product:, original_price_cents: nil, buyer_currency_display:)
-    return {} unless buyer_currency_display&.dig(:variant) == "buyer_local"
+    return {} unless buyer_currency_display&.dig(:display_mode) == "buyer_local"
 
     buyer_currency = buyer_currency_display[:buyer_currency_shown]
     rate = BigDecimal(buyer_currency_display[:rate].to_s)
