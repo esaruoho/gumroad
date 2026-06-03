@@ -64,6 +64,27 @@ describe Ai::PageSanitizer do
       expect(sanitized).to include(%(target="_blank"))
     end
 
+    it "adds noopener noreferrer to links that open in a new tab" do
+      sanitized = described_class.sanitize(%(<a href="https://creator.com" target="_blank">Creator</a>))
+
+      expect(sanitized).to include(%(target="_blank"))
+      expect(sanitized).to include(%(rel="noopener noreferrer"))
+    end
+
+    it "overwrites weak rel values on links that open in a new tab" do
+      sanitized = described_class.sanitize(%(<a href="https://creator.com" target="_blank" rel="opener">Creator</a>))
+
+      expect(sanitized).to include(%(rel="noopener noreferrer"))
+      expect(sanitized).not_to include(%(rel="opener"))
+    end
+
+    it "does not force rel on same-tab links" do
+      sanitized = described_class.sanitize(%(<a href="https://x.com">Same tab</a>))
+
+      expect(sanitized).to include(%(<a href="https://x.com">Same tab</a>))
+      expect(sanitized).not_to include("rel=")
+    end
+
     it "strips deeply encoded javascript URLs from links" do
       sanitized = described_class.sanitize(%(<a href="java%25252573cript:alert(1)">Click</a>))
 
@@ -86,18 +107,49 @@ describe Ai::PageSanitizer do
       expect(sanitized).not_to include("Content-Security-Policy")
     end
 
-    it "adds sandbox attributes to iframes without one" do
-      sanitized = described_class.sanitize(%(<iframe src="https://example.com/embed"></iframe>))
+    it "keeps YouTube embeds with the required video sandbox" do
+      sanitized = described_class.sanitize(%(<iframe src="https://www.youtube-nocookie.com/embed/abc"></iframe>))
 
-      expect(sanitized).to include(%(sandbox="allow-scripts"))
+      expect(sanitized).to include(%(src="https://www.youtube-nocookie.com/embed/abc"))
+      expect(sanitized).to include(%(sandbox="allow-scripts allow-same-origin allow-presentation"))
+    end
+
+    it "keeps Vimeo embeds" do
+      sanitized = described_class.sanitize(%(<iframe src="https://player.vimeo.com/video/123"></iframe>))
+
+      expect(sanitized).to include(%(src="https://player.vimeo.com/video/123"))
+      expect(sanitized).to include(%(sandbox="allow-scripts allow-same-origin allow-presentation"))
     end
 
     it "overwrites permissive iframe sandbox attributes (seller can't widen the policy)" do
-      sanitized = described_class.sanitize(%(<iframe src="https://example.com" sandbox="allow-scripts allow-same-origin allow-top-navigation"></iframe>))
+      sanitized = described_class.sanitize(%(<iframe src="https://www.youtube.com/embed/abc" sandbox="allow-scripts allow-same-origin allow-top-navigation"></iframe>))
 
-      expect(sanitized).to include(%(sandbox="allow-scripts"))
-      expect(sanitized).not_to include("allow-same-origin")
+      expect(sanitized).to include(%(sandbox="allow-scripts allow-same-origin allow-presentation"))
       expect(sanitized).not_to include("allow-top-navigation")
+    end
+
+    it "strips iframes from unapproved hosts" do
+      result = described_class.sanitize_with_report(%(<iframe src="https://evil.com/x"></iframe><p>Safe</p>))
+
+      expect(result.html).not_to include("<iframe")
+      expect(result.html).to include("<p>Safe</p>")
+      expect(result.report[:removed_tags]).to contain_exactly(
+        hash_including(tag: "iframe", reason: "iframe src host not allowed")
+      )
+    end
+
+    it "strips userinfo-spoofed iframe URLs" do
+      sanitized = described_class.sanitize(%(<iframe src="https://www.youtube.com@evil.com/x"></iframe>))
+
+      expect(sanitized).not_to include("<iframe")
+      expect(sanitized).not_to include("evil.com")
+    end
+
+    it "strips non-https YouTube iframe URLs" do
+      sanitized = described_class.sanitize(%(<iframe src="http://www.youtube.com/embed/abc"></iframe>))
+
+      expect(sanitized).not_to include("<iframe")
+      expect(sanitized).not_to include("youtube.com")
     end
 
     it "removes form action attributes" do

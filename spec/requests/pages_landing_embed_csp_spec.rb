@@ -21,6 +21,7 @@ describe "GET /l/:id/landing/embed CSP", type: :request do
     expect(csp).to include("default-src 'none'")
     expect(csp).to include("script-src 'unsafe-inline'")
     expect(csp).to include("connect-src 'none'")
+    expect(csp).to include("frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com")
     # Images/media are locked to Gumroad's own CDN hosts — no bare `https:` wildcard,
     # so a seller's page can't beacon data out via an arbitrary-host image/media GET.
     img_sources = csp[/img-src([^;]*)/, 1].split
@@ -39,7 +40,8 @@ describe "GET /l/:id/landing/embed CSP", type: :request do
     csp = response.headers["Content-Security-Policy"]
     # CSP sandbox applies whether the doc is framed or loaded directly — the
     # iframe attribute alone wouldn't cover a direct navigation to this URL.
-    expect(csp).to include("sandbox allow-scripts allow-forms")
+    expect(csp).to include("sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox")
+    expect(csp).to include("allow-popups")
     expect(csp).not_to include("allow-same-origin")
     expect(csp).not_to include("allow-top-navigation")
   end

@@ -34,7 +34,9 @@ describe LinksController, :vcr, type: :controller do
 
     it "sandboxes the iframe without top-navigation and mediates checkout via postMessage" do
       get :show, params: { id: product.unique_permalink }
-      expect(response.body).to include(%(sandbox="allow-scripts allow-forms"))
+      expect(response.body).to include(%(sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"))
+      expect(response.body).to include("allow-popups")
+      expect(response.body).not_to include("allow-same-origin")
       expect(response.body).not_to include("allow-top-navigation")
       # The wrapper owns the base checkout URL; seller HTML sends either the
       # "gumroad:checkout" signal (string) or a structured payload with selection.
@@ -129,6 +131,10 @@ describe LinksController, :vcr, type: :controller do
     it "applies the strict CSP and iframe-friendly response headers" do
       get :landing_iframe_content, params: { id: product.unique_permalink }
       expect(response.headers["Content-Security-Policy"]).to eq(CUSTOM_HTML_CSP)
+      expect(response.headers["Content-Security-Policy"]).to include("sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox")
+      expect(response.headers["Content-Security-Policy"]).to include("frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com")
+      expect(response.headers["Content-Security-Policy"]).not_to include("allow-same-origin")
+      expect(response.headers["Content-Security-Policy"]).not_to include("allow-top-navigation")
       expect(response.headers["X-Frame-Options"]).to eq("SAMEORIGIN")
       expect(response.headers["Referrer-Policy"]).to eq("no-referrer")
       expect(response.headers["Content-Type"]).to include("text/html")

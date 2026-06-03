@@ -948,11 +948,12 @@ class LinksController < ApplicationController
       # A buyer can navigate straight to /l/:id/landing/embed (top-level, not
       # framed), where the iframe sandbox doesn't apply — without this the
       # seller's inline scripts would run on the real subdomain origin. Matches
-      # the wrapper iframe's sandbox: scripts + forms, no same-origin/top-nav.
-      "sandbox allow-scripts allow-forms",
+      # the wrapper iframe's sandbox: scripts + forms + popups, no same-origin/top-nav.
+      "sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox",
       "default-src 'none'",
       "script-src 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com",
       "style-src 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://fonts.bunny.net",
+      "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
       "img-src data: blob: #{PAGE_ASSET_HOSTS}",
       # Mirror img-src so the <audio>/<video>/<source> tags the sanitizer
       # allows actually load — without this they'd inherit default-src 'none'.
@@ -1096,7 +1097,7 @@ class LinksController < ApplicationController
               id="gumroad-landing-frame"
               src="#{iframe_src}"
               title="#{title}"
-              sandbox="allow-scripts allow-forms"
+              sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
             ></iframe>
             <script nonce="#{ERB::Util.h(nonce)}" data-cfasync="false">
               var frame = document.getElementById("gumroad-landing-frame");
