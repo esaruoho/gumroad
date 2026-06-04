@@ -23,6 +23,27 @@ describe LinksController, :vcr, type: :controller do
       expect(response.body).not_to include("<h1>Live landing page</h1>")
     end
 
+    it "carries og:description, fb:app_id and Twitter meta from the product (parity with the standard product page)" do
+      product.update!(description: "<p>Finishes the sound and makes it move.</p>")
+
+      get :show, params: { id: product.unique_permalink }
+
+      expect(response).to be_successful
+      expect(response.body).to match(%r{<meta property="og:description" content="[^"]*Finishes the sound and makes it move})
+      expect(response.body).to include(%(property="fb:app_id"))
+      expect(response.body).to match(%r{<meta property="twitter:card" content="summary(_large_image)?">})
+      expect(response.body).to match(%r{<meta property="twitter:description" content="[^"]*Finishes the sound and makes it move})
+      expect(response.body).to match(%r{<meta name="description" content="[^"]*Finishes the sound and makes it move})
+    end
+
+    it "uses a default og:description when the product has no description" do
+      product.update!(description: nil)
+
+      get :show, params: { id: product.unique_permalink }
+
+      expect(response.body).to include(%(<meta property="og:description" content="Available on Gumroad">))
+    end
+
     it "does not prepare the default product page before rendering the wrapper" do
       expect(controller).not_to receive(:prepare_product_page)
 

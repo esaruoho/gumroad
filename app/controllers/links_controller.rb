@@ -1077,6 +1077,16 @@ class LinksController < ApplicationController
       canonical = ERB::Util.h(product.long_url.to_s)
       og_image = product.thumbnail&.alive&.url
       og_image_tag = og_image ? %(<meta property="og:image" content="#{ERB::Util.h(og_image)}">) : ""
+      # Mirror PageMeta::Product so a custom-HTML landing page keeps the same social
+      # description, Facebook app id, and Twitter card tags the standard Inertia product
+      # page emits. Without these, a product with custom_html has no og:description /
+      # fb:app_id / twitter:* (only og:title/type/url/image), so link previews show no
+      # description and validators flag the missing properties.
+      product_description = product.description.present? ? product.plaintext_description : "Available on Gumroad"
+      social_description = product_description.length > 200 ? "#{product_description[0, 197]}..." : product_description
+      description_h = ERB::Util.h(social_description)
+      twitter_card = og_image ? "summary_large_image" : "summary"
+      twitter_image_tag = og_image ? %(<meta property="twitter:image" content="#{ERB::Util.h(og_image)}">) : ""
       <<~HTML
         <!doctype html>
         <html lang="en">
@@ -1085,10 +1095,17 @@ class LinksController < ApplicationController
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>#{title}</title>
             <link rel="canonical" href="#{canonical}">
+            <meta name="description" content="#{description_h}">
+            <meta property="fb:app_id" content="#{FACEBOOK_APP_ID}">
             <meta property="og:title" content="#{title}">
+            <meta property="og:description" content="#{description_h}">
             <meta property="og:type" content="product">
             <meta property="og:url" content="#{canonical}">
             #{og_image_tag}
+            <meta property="twitter:card" content="#{twitter_card}">
+            <meta property="twitter:title" content="#{title}">
+            <meta property="twitter:description" content="#{description_h}">
+            #{twitter_image_tag}
             <style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{display:block;width:100%;height:100%;border:0}</style>
           </head>
           <body>
